@@ -1,1 +1,837 @@
-﻿{}
+﻿[
+  {
+    "code": "BMATS101",
+    "name": "Mathematics for CSE Stream-I",
+    "semester": 1,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Differential Calculus-I",
+        "topics": ["Introduction to polar coordinates", "Polar curves", "Angle between radius vector and tangent", "Angle between two curves", "Pedal equations", "Derivative of arc length", "Curvature and radius of curvature in Cartesian and polar forms"]
+      },
+      {
+        "number": 2,
+        "title": "Differential Calculus-II",
+        "topics": ["Taylor's and Maclaurin's theorems for one variable", "Indeterminate forms", "Partial derivatives", "Euler's theorem", "Total derivatives", "Chain rule of partial differentiation", "Jacobians"]
+      },
+      {
+        "number": 3,
+        "title": "Vector Calculus",
+        "topics": ["Derivative of vector-valued functions", "Velocity and acceleration", "Scalar and vector point functions", "Gradient", "Divergence and Curl", "Solenoidal and irrotational fields", "Vector identities"]
+      },
+      {
+        "number": 4,
+        "title": "Integral Calculus",
+        "topics": ["Reduction formulae for trigonometric integrals", "Evaluation of integrals with standard limits", "Double integrals", "Change of order of integration", "Triple integrals", "Applications to area and volume"]
+      },
+      {
+        "number": 5,
+        "title": "Linear Algebra",
+        "topics": ["Rank of matrix by elementary transformation", "Solution of linear equations", "Gauss elimination and Gauss-Jordan methods", "Gauss-Seidel method", "Eigenvalues and eigenvectors", "Rayleigh's power method", "Diagonalization of matrices"]
+      }
+    ],
+    "reference_books": ["B.S. Grewal: Higher Engineering Mathematics", "E. Kreyszig: Advanced Engineering Mathematics", "N.P. Bali: Engineering Mathematics"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/1"]
+  },
+  {
+    "code": "BPHYS102",
+    "name": "Engineering Physics",
+    "semester": 1,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Modern Physics and Quantum Mechanics",
+        "topics": ["Black body radiation", "Planck's law", "Wave-particle dualism", "de Broglie hypothesis", "Compton effect", "Heisenberg's uncertainty principle", "Time-independent Schrodinger wave equation", "Particle in a box"]
+      },
+      {
+        "number": 2,
+        "title": "Electrical Properties of Materials",
+        "topics": ["Free-electron concept", "Drift velocity and relaxation time", "Quantum free electron theory", "Fermi-Dirac statistics", "Electrical conductivity", "Semiconductor conductivity", "Law of mass action"]
+      },
+      {
+        "number": 3,
+        "title": "Lasers and Optical Fibers",
+        "topics": ["Einstein coefficients", "Laser action", "CO2 laser", "Semiconductor laser", "Laser applications", "Optical fiber principles", "Numerical aperture", "Attenuation in fibers", "Fiber optic communication"]
+      },
+      {
+        "number": 4,
+        "title": "Crystal Structure",
+        "topics": ["Space lattice", "Bravais lattice", "Unit cell", "Miller indices", "Inter-planar spacing", "Coordination number", "Atomic packing factors", "Bragg's law", "X-ray diffraction"]
+      },
+      {
+        "number": 5,
+        "title": "Shock Waves and Nanomaterials",
+        "topics": ["Mach number", "Shock waves", "Shock tube", "Nanoscience fundamentals", "Density of states", "Top-down and bottom-up approaches", "Carbon nanotubes", "Fullerenes", "SEM principle"]
+      }
+    ],
+    "reference_books": ["S.O. Pillai: Solid State Physics", "M.N. Avadhanulu: Engineering Physics", "S. K. Srivastava: Nanotechnology"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/1"]
+  },
+  {
+    "code": "BPOPS103",
+    "name": "Principles of Programming Using C",
+    "semester": 1,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Programming",
+        "topics": ["Introduction to C language", "Structure of C program", "Variables and data types", "Operators and expressions", "Input/output operations", "Control structures", "Decision making statements"]
+      },
+      {
+        "number": 2,
+        "title": "Arrays and Strings",
+        "topics": ["One-dimensional arrays", "Two-dimensional arrays", "Array operations", "String handling functions", "String manipulation", "Character arrays", "Multi-dimensional arrays"]
+      },
+      {
+        "number": 3,
+        "title": "Functions and Recursion",
+        "topics": ["Function definition and declaration", "Function call", "Parameter passing", "Storage classes", "Recursion concepts", "Recursive functions", "Tower of Hanoi"]
+      },
+      {
+        "number": 4,
+        "title": "Pointers and Structures",
+        "topics": ["Pointer concepts", "Pointer arithmetic", "Pointers and arrays", "Pointers and functions", "Structure definition", "Nested structures", "Array of structures", "Unions"]
+      },
+      {
+        "number": 5,
+        "title": "File Handling and Preprocessor",
+        "topics": ["File operations", "Opening and closing files", "Reading and writing files", "Random access", "Command line arguments", "Preprocessor directives", "Macros", "Header files"]
+      }
+    ],
+    "reference_books": ["E. Balagurusamy: Programming in ANSI C", "Yashavant Kanetkar: Let Us C", "Brian Kernighan: The C Programming Language"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/1"]
+  },
+  {
+    "code": "BMATS201",
+    "name": "Mathematics for CSE Stream-II",
+    "semester": 2,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Laplace Transforms",
+        "topics": ["Laplace transform definition", "Transforms of standard functions", "Properties of Laplace transforms", "Initial and final value theorems", "Inverse Laplace transforms", "Convolution theorem", "Solution of differential equations"]
+      },
+      {
+        "number": 2,
+        "title": "Fourier Series",
+        "topics": ["Periodic functions", "Fourier series expansion", "Even and odd functions", "Half-range Fourier series", "Parseval's identity", "Complex form of Fourier series", "Harmonic analysis"]
+      },
+      {
+        "number": 3,
+        "title": "Fourier Transforms",
+        "topics": ["Infinite Fourier transforms", "Fourier sine and cosine transforms", "Properties of Fourier transforms", "Convolution theorem", "Parseval's identity", "Inverse Fourier transforms", "Applications to PDEs"]
+      },
+      {
+        "number": 4,
+        "title": "Partial Differential Equations",
+        "topics": ["Formation of PDEs", "First order PDEs", "Lagrange's linear equation", "Non-linear equations", "Homogeneous linear PDEs", "Method of separation of variables", "One-dimensional wave and heat equations"]
+      },
+      {
+        "number": 5,
+        "title": "Numerical Methods",
+        "topics": ["Finite differences", "Interpolation methods", "Newton's forward and backward", "Lagrange's interpolation", "Numerical integration", "Trapezoidal rule", "Simpson's rules", "Solution of algebraic equations"]
+      }
+    ],
+    "reference_books": ["B.S. Grewal: Higher Engineering Mathematics", "N.P. Bali: Engineering Mathematics", "Erwin Kreyszig: Advanced Engineering Mathematics"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/2"]
+  },
+  {
+    "code": "BCHEM202",
+    "name": "Engineering Chemistry",
+    "semester": 2,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Electrochemistry and Battery Technology",
+        "topics": ["Nernst equation", "Reference electrodes", "Glass electrode", "pH measurement", "Battery characteristics", "Primary and secondary batteries", "Li-ion batteries", "Fuel cells"]
+      },
+      {
+        "number": 2,
+        "title": "Corrosion and Metal Finishing",
+        "topics": ["Types of corrosion", "Corrosion mechanisms", "Corrosion prevention", "Protective coatings", "Electroplating", "Anodizing", "Electroless plating", "Metal finishing techniques"]
+      },
+      {
+        "number": 3,
+        "title": "Fuels and Solar Energy",
+        "topics": ["Classification of fuels", "Calorific value", "Solid fuels", "Liquid fuels", "Knocking and octane number", "Solar energy", "Photovoltaic cells", "Solar grade silicon"]
+      },
+      {
+        "number": 4,
+        "title": "Polymers",
+        "topics": ["Types of polymerization", "Mechanism of polymerization", "Molecular weight of polymers", "Glass transition temperature", "Thermoplastics and thermosets", "Elastomers", "Conducting polymers", "Biodegradable polymers"]
+      },
+      {
+        "number": 5,
+        "title": "Water Technology and Nanomaterials",
+        "topics": ["Hardness of water", "Boiler troubles", "Water softening", "Desalination", "Nanomaterials introduction", "Synthesis methods", "Carbon nanotubes", "Applications of nanomaterials"]
+      }
+    ],
+    "reference_books": ["P.C. Jain: Engineering Chemistry", "S.S. Dara: Engineering Chemistry", "M.M. Uppal: Engineering Chemistry"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/2"]
+  },
+  {
+    "code": "BCS203",
+    "name": "Basic Electronics and Communication Engineering",
+    "semester": 2,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Semiconductor Devices",
+        "topics": ["Semiconductor basics", "PN junction diode", "Diode characteristics", "Rectifiers", "Zener diode", "Voltage regulation", "BJT construction and operation", "BJT characteristics"]
+      },
+      {
+        "number": 2,
+        "title": "Operational Amplifiers",
+        "topics": ["Ideal op-amp characteristics", "Inverting amplifier", "Non-inverting amplifier", "Summing amplifier", "Difference amplifier", "Integrator", "Differentiator", "Comparator applications"]
+      },
+      {
+        "number": 3,
+        "title": "Digital Electronics",
+        "topics": ["Number systems", "Binary arithmetic", "Boolean algebra", "Logic gates", "Karnaugh maps", "Combinational circuits", "Half and full adders", "Multiplexers and demultiplexers"]
+      },
+      {
+        "number": 4,
+        "title": "Flip-Flops and Microcontrollers",
+        "topics": ["RS flip-flop", "JK flip-flop", "D flip-flop", "T flip-flop", "Shift registers", "Counters", "Microcontroller introduction", "8051 architecture", "Stepper motor control"]
+      },
+      {
+        "number": 5,
+        "title": "Communication Systems",
+        "topics": ["Communication elements", "Modulation", "Amplitude modulation", "Frequency modulation", "Demodulation techniques", "Transducers", "LVDT", "Piezoelectric transducers"]
+      }
+    ],
+    "reference_books": ["R.L. Boylestad: Electronic Devices and Circuit Theory", "A.P. Malvino: Electronic Principles", "George Kennedy: Electronic Communication Systems"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/2"]
+  },
+  {
+    "code": "22AI301",
+    "name": "Computational Statistics",
+    "semester": 3,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Probability and Distributions",
+        "topics": ["Probability concepts", "Random variables", "Discrete distributions", "Continuous distributions", "Expectation", "Variance", "Moments", "Moment generating functions"]
+      },
+      {
+        "number": 2,
+        "title": "Joint Probability and Markov Chains",
+        "topics": ["Joint probability distribution", "Covariance and correlation", "Stochastic processes", "Markov chains", "Transition probabilities", "Stationary distribution", "Absorbing states"]
+      },
+      {
+        "number": 3,
+        "title": "Statistical Inference-I",
+        "topics": ["Sampling distributions", "Standard error", "Testing of hypothesis", "Confidence intervals", "Z-tests", "T-tests", "Chi-square tests", "Goodness of fit"]
+      },
+      {
+        "number": 4,
+        "title": "Statistical Inference-II",
+        "topics": ["Analysis of variance", "One-way ANOVA", "Two-way ANOVA", "F-distribution", "Regression analysis", "Correlation analysis", "Least squares method"]
+      },
+      {
+        "number": 5,
+        "title": "Design of Experiments",
+        "topics": ["Principles of experimentation", "Completely randomized design", "Randomized block design", "Latin square design", "Factorial experiments", "Statistical quality control"]
+      }
+    ],
+    "reference_books": ["S.C. Gupta: Statistical Methods", "T. Veerarajan: Probability and Statistics", "R.E. Walpole: Probability and Statistics for Engineers"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/3"]
+  },
+  {
+    "code": "22AI302",
+    "name": "Digital Design and Computer Organization",
+    "semester": 3,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Number Systems and Boolean Algebra",
+        "topics": ["Binary number system", "Number system conversions", "Boolean algebra laws", "Logic gates", "Canonical forms", "Karnaugh maps", "Don't care conditions", "Quine-McCluskey method"]
+      },
+      {
+        "number": 2,
+        "title": "Combinational Logic Circuits",
+        "topics": ["Adders and subtractors", "Magnitude comparator", "Decoders", "Encoders", "Multiplexers", "Demultiplexers", "Parity generators", "Code converters"]
+      },
+      {
+        "number": 3,
+        "title": "Sequential Logic Circuits",
+        "topics": ["Flip-flops", "Flip-flop conversions", "Registers", "Shift registers", "Counters", "Synchronous counters", "Asynchronous counters", "Ring counters"]
+      },
+      {
+        "number": 4,
+        "title": "Computer Organization",
+        "topics": ["Functional units", "Bus structure", "Memory organization", "Cache memory", "Mapping functions", "Virtual memory", "I/O organization", "Interrupts"]
+      },
+      {
+        "number": 5,
+        "title": "Processing and Pipelining",
+        "topics": ["Instruction execution", "ALU design", "Control unit", "Hardwired control", "Microprogrammed control", "Pipelining concepts", "Pipeline hazards", "Performance measures"]
+      }
+    ],
+    "reference_books": ["M. Morris Mano: Digital Logic and Computer Design", "Carl Hamacher: Computer Organization", "William Stallings: Computer Organization and Architecture"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/3"]
+  },
+  {
+    "code": "22AI303",
+    "name": "Operating Systems",
+    "semester": 3,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction and Structures",
+        "topics": ["OS functions", "System calls", "System programs", "OS structure", "Virtual machines", "System boot", "Process concept", "Process scheduling"]
+      },
+      {
+        "number": 2,
+        "title": "Process Management",
+        "topics": ["Process operations", "Inter-process communication", "Threads", "Multithreading models", "Thread libraries", "Scheduling criteria", "Scheduling algorithms", "Multiprocessor scheduling"]
+      },
+      {
+        "number": 3,
+        "title": "Synchronization and Deadlocks",
+        "topics": ["Critical section problem", "Peterson's solution", "Semaphores", "Classical synchronization problems", "Deadlock characterization", "Deadlock prevention", "Deadlock avoidance", "Banker's algorithm"]
+      },
+      {
+        "number": 4,
+        "title": "Memory Management",
+        "topics": ["Swapping", "Contiguous allocation", "Paging", "Segmentation", "Virtual memory", "Demand paging", "Page replacement algorithms", "Thrashing"]
+      },
+      {
+        "number": 5,
+        "title": "File Systems and Storage",
+        "topics": ["File concepts", "Access methods", "Directory structure", "File system mounting", "File sharing", "Allocation methods", "Free space management", "Disk scheduling"]
+      }
+    ],
+    "reference_books": ["Abraham Silberschatz: Operating System Concepts", "William Stallings: Operating Systems", "Andrew Tanenbaum: Modern Operating Systems"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/3"]
+  },
+  {
+    "code": "22AI304",
+    "name": "Data Structures",
+    "semester": 3,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction and Arrays",
+        "topics": ["Data structure classifications", "Operations", "Arrays", "Structures", "Polynomials", "Sparse matrices", "Stacks", "Expression evaluation"]
+      },
+      {
+        "number": 2,
+        "title": "Queues and Linked Lists",
+        "topics": ["Queues", "Circular queues", "Priority queues", "Singly linked lists", "Doubly linked lists", "Circular linked lists", "Linked stacks and queues", "Polynomial representation"]
+      },
+      {
+        "number": 3,
+        "title": "Trees",
+        "topics": ["Binary trees", "Tree traversals", "Threaded binary trees", "Binary search trees", "AVL trees", "B-trees", "Heaps", "Priority queues"]
+      },
+      {
+        "number": 4,
+        "title": "Graphs",
+        "topics": ["Graph representations", "BFS", "DFS", "Spanning trees", "Kruskal's algorithm", "Prim's algorithm", "Dijkstra's algorithm", "Shortest paths"]
+      },
+      {
+        "number": 5,
+        "title": "Hashing and Advanced Topics",
+        "topics": ["Hash functions", "Collision resolution", "Open addressing", "Chaining", "Dynamic hashing", "Optimal binary search trees", "Digital search trees", "Tries"]
+      }
+    ],
+    "reference_books": ["Ellis Horowitz: Fundamentals of Data Structures in C", "Seymour Lipschutz: Data Structures", "Jean-Paul Tremblay: Data Structures and Algorithms"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/3"]
+  },
+  {
+    "code": "22AI305",
+    "name": "Introduction to Artificial Intelligence",
+    "semester": 3,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction and Search Strategies",
+        "topics": ["What is AI", "Intelligent agents", "Rationality", "Environment types", "Problem-solving agents", "Uninformed search", "BFS", "DFS", "Iterative deepening"]
+      },
+      {
+        "number": 2,
+        "title": "Heuristic Search",
+        "topics": ["Greedy best-first search", "A* search", "Optimality of A*", "Memory-bounded search", "Local search", "Hill-climbing", "Simulated annealing", "Genetic algorithms"]
+      },
+      {
+        "number": 3,
+        "title": "Knowledge Representation",
+        "topics": ["Propositional logic", "First-order logic", "Syntax and semantics", "Knowledge engineering", "Inference rules", "Forward chaining", "Backward chaining", "Resolution"]
+      },
+      {
+        "number": 4,
+        "title": "Machine Learning Basics",
+        "topics": ["Forms of learning", "Supervised learning", "Decision trees", "Ensemble learning", "Reinforcement learning", "Passive RL", "Active RL", "Generalization"]
+      },
+      {
+        "number": 5,
+        "title": "NLP and Robotics",
+        "topics": ["Language models", "Text classification", "Information retrieval", "Robotics hardware", "Robotic perception", "Motion planning", "Robot learning", "AI applications"]
+      }
+    ],
+    "reference_books": ["Stuart Russell: Artificial Intelligence: A Modern Approach", "Elaine Rich: Artificial Intelligence", "Dan Patterson: Introduction to AI and Expert Systems"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/3"]
+  },
+  {
+    "code": "22AI401",
+    "name": "Analysis and Design of Algorithms",
+    "semester": 4,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction and Analysis",
+        "topics": ["Algorithm definition", "Algorithm specification", "Analysis framework", "Asymptotic notations", "Big-O", "Omega", "Theta", "Recurrence relations", "Substitution method"]
+      },
+      {
+        "number": 2,
+        "title": "Divide and Conquer",
+        "topics": ["Binary search", "Merge sort", "Quick sort", "Strassen's matrix multiplication", "Decrease and conquer", "Insertion sort", "Topological sort", "Heaps and heapsort"]
+      },
+      {
+        "number": 3,
+        "title": "Dynamic Programming and Greedy",
+        "topics": ["Knapsack problem", "Matrix chain multiplication", "Floyd-Warshall algorithm", "Optimal binary search trees", "Prim's algorithm", "Kruskal's algorithm", "Dijkstra's algorithm", "Huffman coding"]
+      },
+      {
+        "number": 4,
+        "title": "Backtracking and Branch-Bound",
+        "topics": ["n-Queens problem", "Subset sum", "Graph coloring", "Hamiltonian cycles", "Branch and bound", "Traveling salesman", "0/1 knapsack", "Approximation algorithms"]
+      },
+      {
+        "number": 5,
+        "title": "Complexity Theory",
+        "topics": ["P and NP classes", "NP-complete problems", "Cook's theorem", "Reductions", "Decision trees", "Lower bounds", "Backtracking analysis", "Amortized analysis"]
+      }
+    ],
+    "reference_books": ["Cormen: Introduction to Algorithms", "Anany Levitin: Introduction to Design and Analysis of Algorithms", "Aho, Hopcroft, Ullman: Design and Analysis of Algorithms"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/4"]
+  },
+  {
+    "code": "22AI402",
+    "name": "Object Oriented Programming with Java",
+    "semester": 4,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "OOP and Java Fundamentals",
+        "topics": ["OOP paradigms", "Java buzzwords", "Data types", "Variables", "Operators", "Control statements", "Classes", "Objects", "Constructors", "Access specifiers"]
+      },
+      {
+        "number": 2,
+        "title": "Inheritance and Packages",
+        "topics": ["Inheritance basics", "Types of inheritance", "Super keyword", "Method overriding", "Abstract classes", "Final keyword", "Packages", "Interfaces", "Static members"]
+      },
+      {
+        "number": 3,
+        "title": "Exception Handling and Multithreading",
+        "topics": ["Exception handling basics", "Multiple catch clauses", "Nested try statements", "User-defined exceptions", "Thread model", "Creating threads", "Synchronization", "Inter-thread communication"]
+      },
+      {
+        "number": 4,
+        "title": "Collections and Generics",
+        "topics": ["Collection framework", "List interface", "Set interface", "Map interface", "ArrayList", "LinkedList", "HashMap", "Generics", "Autoboxing", "Enumerations"]
+      },
+      {
+        "number": 5,
+        "title": "Advanced Java",
+        "topics": ["JDBC", "Servlets", "JSP", "JavaBeans", "MVC architecture", "Spring basics", "Hibernate basics", "RESTful web services", "Microservices introduction"]
+      }
+    ],
+    "reference_books": ["Herbert Schildt: Java: The Complete Reference", "Cay Horstmann: Core Java", "Y. Daniel Liang: Introduction to Java Programming"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/4"]
+  },
+  {
+    "code": "22AI403",
+    "name": "Database Management Systems",
+    "semester": 4,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction and ER Model",
+        "topics": ["Database concepts", "DBMS architecture", "Data models", "ER model", "Entity types", "Relationships", "Constraints", "ER diagrams", "Specialization", "Generalization"]
+      },
+      {
+        "number": 2,
+        "title": "Relational Model",
+        "topics": ["Relational data model", "Relational algebra", "Selection", "Projection", "Join operations", "Integrity constraints", "Functional dependencies", "Normal forms", "Normalization"]
+      },
+      {
+        "number": 3,
+        "title": "SQL and Advanced SQL",
+        "topics": ["SQL data types", "DDL statements", "DML statements", "DCL statements", "Subqueries", "Joins", "Views", "Triggers", "Stored procedures", "Cursors"]
+      },
+      {
+        "number": 4,
+        "title": "Transaction Processing",
+        "topics": ["Transaction concepts", "ACID properties", "Serializability", "Concurrency control", "Locking", "Two-phase locking", "Deadlock handling", "Recovery techniques"]
+      },
+      {
+        "number": 5,
+        "title": "NoSQL and Big Data",
+        "topics": ["NoSQL databases", "CAP theorem", "Document stores", "MongoDB", "Key-value stores", "Column stores", "Graph databases", "Neo4j", "Big data storage"]
+      }
+    ],
+    "reference_books": ["Abraham Silberschatz: Database System Concepts", "R. Elmasri: Fundamentals of Database Systems", "Raghu Ramakrishnan: Database Management Systems"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/4"]
+  },
+  {
+    "code": "22AI501",
+    "name": "Machine Learning",
+    "semester": 5,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Machine Learning",
+        "topics": ["Introduction to ML", "Types of learning", "Supervised learning", "Unsupervised learning", "Reinforcement learning", "Training and test sets", "Overfitting", "Underfitting", "Cross-validation", "Evaluation metrics"]
+      },
+      {
+        "number": 2,
+        "title": "Supervised Learning - Classification",
+        "topics": ["Classification models", "KNN", "Decision trees", "ID3 algorithm", "C4.5 algorithm", "Random forest", "SVM", "Kernel functions", "Naive Bayes", "Logistic regression"]
+      },
+      {
+        "number": 3,
+        "title": "Supervised Learning - Regression",
+        "topics": ["Linear regression", "Multiple linear regression", "Polynomial regression", "Ridge regression", "Lasso regression", "Elastic net", "Gradient descent", "Regularization"]
+      },
+      {
+        "number": 4,
+        "title": "Unsupervised Learning",
+        "topics": ["Clustering algorithms", "K-means", "Hierarchical clustering", "DBSCAN", "Dimensionality reduction", "PCA", "LDA", "Association rules", "Apriori algorithm", "FP-growth"]
+      },
+      {
+        "number": 5,
+        "title": "Neural Networks and Deep Learning",
+        "topics": ["Perceptron", "Multilayer perceptron", "Backpropagation", "Activation functions", "CNN basics", "RNN basics", "LSTM", "GRU", "Transfer learning", "Model deployment"]
+      }
+    ],
+    "reference_books": ["Tom Mitchell: Machine Learning", "Christopher Bishop: Pattern Recognition and Machine Learning", "Aurelien Geron: Hands-On Machine Learning"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/5"]
+  },
+  {
+    "code": "22AI502",
+    "name": "Computer Networks",
+    "semester": 5,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction and Physical Layer",
+        "topics": ["Network models", "OSI reference model", "TCP/IP protocol suite", "Transmission media", "Wireless transmission", "Digital modulation", "Multiplexing techniques", "Switching"]
+      },
+      {
+        "number": 2,
+        "title": "Data Link Layer",
+        "topics": ["Framing", "Error detection", "CRC", "Hamming code", "Flow control", "Stop-and-wait", "Sliding window protocols", "HDLC", "PPP"]
+      },
+      {
+        "number": 3,
+        "title": "Network Layer",
+        "topics": ["IP addressing", "Subnetting", "CIDR", "Routing algorithms", "Distance vector", "Link state", "BGP", "Congestion control", "QoS"]
+      },
+      {
+        "number": 4,
+        "title": "Transport Layer",
+        "topics": ["TCP", "UDP", "Port numbers", "Connection management", "Flow control", "Congestion control", "Socket programming", "TCP vs UDP"]
+      },
+      {
+        "number": 5,
+        "title": "Application Layer",
+        "topics": ["DNS", "Email protocols", "SMTP", "POP3", "IMAP", "HTTP", "FTP", "Web services", "Network security basics"]
+      }
+    ],
+    "reference_books": ["Andrew Tanenbaum: Computer Networks", "Behrouz Forouzan: Data Communications and Networking", "James Kurose: Computer Networking: A Top-Down Approach"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/5"]
+  },
+  {
+    "code": "22AI503",
+    "name": "Software Engineering and Project Management",
+    "semester": 5,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Software Process Models",
+        "topics": ["Software process", "Waterfall model", "Iterative models", "Spiral model", "Agile methodology", "Scrum", "Extreme programming", "DevOps fundamentals"]
+      },
+      {
+        "number": 2,
+        "title": "Requirements Engineering",
+        "topics": ["Requirements elicitation", "Analysis", "Specification", "Validation", "Requirements management", "Use case modeling", "SRS documentation", "Change management"]
+      },
+      {
+        "number": 3,
+        "title": "Design and Testing",
+        "topics": ["Architectural design", "Design patterns", "UML diagrams", "Testing fundamentals", "White box testing", "Black box testing", "Integration testing", "System testing"]
+      },
+      {
+        "number": 4,
+        "title": "Project Management",
+        "topics": ["Project planning", "Estimation techniques", "Risk management", "Quality assurance", "Configuration management", "Version control", "Project scheduling", "Team management"]
+      },
+      {
+        "number": 5,
+        "title": "Modern Practices",
+        "topics": ["CI/CD pipelines", "Containerization", "Docker", "Kubernetes", "Microservices", "Cloud-native development", "SRE practices", "Monitoring and logging"]
+      }
+    ],
+    "reference_books": ["Ian Sommerville: Software Engineering", "Roger Pressman: Software Engineering: A Practitioner's Approach", "Robert C. Martin: Clean Code"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/5"]
+  },
+  {
+    "code": "22AI601",
+    "name": "Big Data Technologies",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Big Data",
+        "topics": ["Big Data characteristics", "Volume", "Velocity", "Variety", "Veracity", "Value", "Hadoop ecosystem", "HDFS", "MapReduce", "YARN"]
+      },
+      {
+        "number": 2,
+        "title": "Apache Spark",
+        "topics": ["Spark architecture", "RDDs", "Spark SQL", "DataFrames", "Spark Streaming", "MLlib", "GraphX", "Spark optimization"]
+      },
+      {
+        "number": 3,
+        "title": "NoSQL Databases",
+        "topics": ["CAP theorem", "MongoDB", "Cassandra", "HBase", "Redis", "Neo4j", "Document stores", "Key-value stores", "Graph databases"]
+      },
+      {
+        "number": 4,
+        "title": "Data Processing and Analysis",
+        "topics": ["ETL processes", "Data warehousing", "Apache Hive", "Apache Pig", "Data mining", "Association rules", "Classification", "Clustering"]
+      },
+      {
+        "number": 5,
+        "title": "Machine Learning at Scale",
+        "topics": ["Distributed machine learning", "Feature engineering at scale", "Model deployment", "MLOps", "TensorFlow Extended", "MLflow", "Kubeflow"]
+      }
+    ],
+    "reference_books": ["Tom White: Hadoop: The Definitive Guide", "Bill Chambers: Spark: The Definitive Guide", "Nathan Marz: Big Data"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "22AI602",
+    "name": "Deep Learning",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Neural Networks",
+        "topics": ["Biological neurons", "Artificial neurons", "Activation functions", "MLP", "Forward propagation", "Backpropagation", "Weight initialization", "Glorot and He initialization"]
+      },
+      {
+        "number": 2,
+        "title": "Training Deep Neural Networks",
+        "topics": ["Vanishing gradients", "Exploding gradients", "Batch normalization", "Gradient clipping", "Optimizers", "SGD", "Momentum", "Adam", "Learning rate scheduling", "Regularization"]
+      },
+      {
+        "number": 3,
+        "title": "Convolutional Neural Networks",
+        "topics": ["Convolution operation", "Filters", "Padding", "Pooling", "CNN architectures", "LeNet", "AlexNet", "VGGNet", "ResNet", "Transfer learning", "Object detection", "YOLO"]
+      },
+      {
+        "number": 4,
+        "title": "Recurrent Neural Networks",
+        "topics": ["RNN architecture", "LSTM", "GRU", "Bidirectional RNNs", "Sequence to sequence models", "Attention mechanism", "Transformer architecture", "BERT", "GPT"]
+      },
+      {
+        "number": 5,
+        "title": "Advanced Topics",
+        "topics": ["Autoencoders", "Variational autoencoders", "GANs", "DCGAN", "StyleGAN", "Deep reinforcement learning", "Model deployment", "Edge AI"]
+      }
+    ],
+    "reference_books": ["Ian Goodfellow: Deep Learning", "Francois Chollet: Deep Learning with Python", "Aurelien Geron: Hands-On Machine Learning"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "22AI603",
+    "name": "Natural Language Processing",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to NLP",
+        "topics": ["NLP applications", "Text preprocessing", "Tokenization", "Stemming", "Lemmatization", "Stop words removal", "POS tagging", "Named entity recognition"]
+      },
+      {
+        "number": 2,
+        "title": "Text Representation",
+        "topics": ["Bag of words", "TF-IDF", "Word embeddings", "Word2Vec", "GloVe", "FastText", "Contextual embeddings", "ELMo", "BERT embeddings"]
+      },
+      {
+        "number": 3,
+        "title": "Sequence Processing",
+        "topics": ["Language models", "N-grams", "RNNs for NLP", "LSTM for text", "Sequence labeling", "Text classification", "Sentiment analysis", "Topic modeling"]
+      },
+      {
+        "number": 4,
+        "title": "Advanced NLP",
+        "topics": ["Machine translation", "Attention mechanism", "Transformer models", "BERT", "GPT", "T5", "Question answering", "Summarization"]
+      },
+      {
+        "number": 5,
+        "title": "NLP Applications",
+        "topics": ["Chatbots", "Dialog systems", "Speech recognition", "Text generation", "Information extraction", "Relation extraction", "Knowledge graphs", "LLM fine-tuning"]
+      }
+    ],
+    "reference_books": ["Dan Jurafsky: Speech and Language Processing", "Christopher Manning: Foundations of Statistical Natural Language Processing", "Yoav Goldberg: Neural Network Methods for NLP"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "22AI701",
+    "name": "Computer Vision",
+    "semester": 7,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Image Processing Fundamentals",
+        "topics": ["Image formation", "Color spaces", "Image filtering", "Edge detection", "Corner detection", "Histogram processing", "Morphological operations", "Image segmentation"]
+      },
+      {
+        "number": 2,
+        "title": "Feature Extraction",
+        "topics": ["SIFT", "SURF", "ORB", "HOG", "LBP", "Feature matching", "Image stitching", "Panorama creation", "Geometric transformations"]
+      },
+      {
+        "number": 3,
+        "title": "Deep Learning for Vision",
+        "topics": ["CNN architectures for vision", "Transfer learning", "Fine-tuning", "Object detection", "R-CNN", "Fast R-CNN", "YOLO", "SSD"]
+      },
+      {
+        "number": 4,
+        "title": "Advanced Vision Tasks",
+        "topics": ["Semantic segmentation", "Instance segmentation", "Mask R-CNN", "U-Net", "Image generation", "Style transfer", "GANs for vision", "Vision transformers"]
+      },
+      {
+        "number": 5,
+        "title": "Applications",
+        "topics": ["Face recognition", "Object tracking", "Optical flow", "Action recognition", "Scene understanding", "Medical image analysis", "Autonomous vehicles", "AR/VR applications"]
+      }
+    ],
+    "reference_books": ["Richard Szeliski: Computer Vision: Algorithms and Applications", "David Forsyth: Computer Vision: A Modern Approach", "Simon Prince: Computer Vision: Models, Learning, and Inference"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/7"]
+  },
+  {
+    "code": "22AI702",
+    "name": "Reinforcement Learning",
+    "semester": 7,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to RL",
+        "topics": ["RL framework", "Agent-environment interface", "Rewards", "Policy", "Value function", "Model-based vs model-free", "Exploration vs exploitation", "Markov decision processes"]
+      },
+      {
+        "number": 2,
+        "title": "Dynamic Programming",
+        "topics": ["Policy evaluation", "Policy improvement", "Policy iteration", "Value iteration", "Asynchronous DP", "Generalized policy iteration", "Bellman equations"]
+      },
+      {
+        "number": 3,
+        "title": "Monte Carlo and TD Methods",
+        "topics": ["Monte Carlo prediction", "Monte Carlo control", "Temporal difference learning", "TD prediction", "SARSA", "Q-learning", "On-policy vs off-policy", "Expected SARSA"]
+      },
+      {
+        "number": 4,
+        "title": "Deep Reinforcement Learning",
+        "topics": ["Function approximation", "DQN", "Experience replay", "Target networks", "Policy gradients", "REINFORCE", "Actor-critic methods", "A3C", "PPO"]
+      },
+      {
+        "number": 5,
+        "title": "Advanced Topics",
+        "topics": ["Model-based RL", "Planning", "AlphaGo", "MuZero", "Multi-agent RL", "Hierarchical RL", "Inverse RL", "RL applications in robotics", "RL for NLP"]
+      }
+    ],
+    "reference_books": ["Richard Sutton: Reinforcement Learning: An Introduction", "Csaba Szepesvari: Algorithms for Reinforcement Learning", "Maxim Lapan: Deep Reinforcement Learning Hands-On"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/7"]
+  },
+  {
+    "code": "22AI703",
+    "name": "Edge AI",
+    "semester": 7,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Edge Computing",
+        "topics": ["Edge computing paradigms", "Cloudlet", "Fog computing", "MEC", "Hardware for edge", "AI hardware", "Edge frameworks", "Network virtualization"]
+      },
+      {
+        "number": 2,
+        "title": "AI Applications on Edge",
+        "topics": ["Real-time video analytics", "ML solutions", "Deep learning solutions", "Autonomous vehicles", "Smart manufacturing", "Smart home", "IoT integration"]
+      },
+      {
+        "number": 3,
+        "title": "Model Optimization",
+        "topics": ["Model compression", "Quantization", "Pruning", "Knowledge distillation", "Model optimization for edge", "Early exit", "Model sharing", "Distributed training"]
+      },
+      {
+        "number": 4,
+        "title": "Edge Hardware and Software",
+        "topics": ["Mobile CPUs and GPUs", "FPGA solutions", "TPU", "Edge data analysis", "Big data at edge", "Edge frameworks", "TensorFlow Lite", "ONNX"]
+      },
+      {
+        "number": 5,
+        "title": "Deployment and Security",
+        "topics": ["Model deployment at edge", "Containerization at edge", "Edge-cloud coordination", "Security challenges", "Privacy preservation", "Federated learning", "Edge AI case studies"]
+      }
+    ],
+    "reference_books": ["Edge Computing and AI by Xiaofei Wang", "TinyML by Pete Warden", "Edge AI by IEEE Computer Society"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/7"]
+  },
+  {
+    "code": "22AI801",
+    "name": "Technical Seminar",
+    "semester": 8,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Seminar Preparation",
+        "topics": ["Topic selection", "Literature survey", "Research methodology", "Technical paper writing", "Presentation skills", "PowerPoint design", "Technical communication"]
+      }
+    ],
+    "reference_books": ["Meenakshi Raman: Technical Communication", "C.R. Kothari: Research Methodology"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/8"]
+  },
+  {
+    "code": "22AI802",
+    "name": "Research Internship/Industry Internship",
+    "semester": 8,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Internship Work",
+        "topics": ["Industry exposure", "Real-world problem solving", "Project development", "Technical documentation", "Professional ethics", "Team collaboration", "Industry best practices"]
+      }
+    ],
+    "reference_books": ["Industrial Engineering and Management by O.P. Khanna"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/8"]
+  }
+]

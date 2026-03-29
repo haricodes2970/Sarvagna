@@ -7,6 +7,7 @@ from apify_client import ApifyClientAsync
 from playwright.async_api import async_playwright
 
 from core.config import get_settings
+from services.syllabus_loader import get_modules
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -21,14 +22,17 @@ _MAX_RETRIES = 3
 _RETRY_DELAY = 2  # seconds
 
 
-def _build_search_urls(subject_name: str, module_number: int) -> list[str]:
-    query = f"{subject_name} module {module_number} notes"
+def _build_search_urls(subject_name: str, module_number: int, module_topic: str | None = None) -> list[str]:
+    if module_topic:
+        query = f"{subject_name} {module_topic} notes"
+    else:
+        query = f"{subject_name} module {module_number} notes"
     return [f"https://www.{domain}/search?q={query.replace(' ', '+')}" for domain in _SCRAPE_URLS]
 
 
-async def _scrape_via_apify(subject_name: str, module_number: int) -> str | None:
+async def _scrape_via_apify(subject_name: str, module_number: int, module_topic: str | None = None) -> str | None:
     client = ApifyClientAsync(settings.APIFY_API_KEY)
-    urls = _build_search_urls(subject_name, module_number)
+    urls = _build_search_urls(subject_name, module_number, module_topic)
 
     run_input = {
         "startUrls": [{"url": url} for url in urls],
@@ -53,8 +57,8 @@ async def _scrape_via_apify(subject_name: str, module_number: int) -> str | None
         return None
 
 
-async def _scrape_via_playwright(subject_name: str, module_number: int) -> str | None:
-    urls = _build_search_urls(subject_name, module_number)
+async def _scrape_via_playwright(subject_name: str, module_number: int, module_topic: str | None = None) -> str | None:
+    urls = _build_search_urls(subject_name, module_number, module_topic)
     texts: list[str] = []
 
     async with async_playwright() as pw:
@@ -75,25 +79,45 @@ async def _scrape_via_playwright(subject_name: str, module_number: int) -> str |
     return "\n\n".join(texts) if texts else None
 
 
-async def scrape_subject(subject_name: str, module_number: int) -> str:
+async def scrape_subject(
+    subject_name: str,
+    module_number: int,
+    branch: str = "",
+    semester: int = 0,
+) -> str:
     """
     Scrape content for a subject module. Tries Apify first, falls back to
     Playwright. Retries up to _MAX_RETRIES times total.
+
+    If branch and semester are provided, looks up the module topic from the
+    syllabus and uses it as a targeted search keyword instead of the generic
+    "module N" query.
+
     Returns scraped text or raises RuntimeError if all attempts fail.
     """
+    # Resolve syllabus topic for this module to make search more targeted
+    module_topic: str | None = None
+    if branch and semester:
+        modules = get_modules(branch, semester, subject_name)
+        if modules and 1 <= module_number <= len(modules):
+            module_topic = modules[module_number - 1]
+            logger.info("Syllabus topic for module %d: '%s'", module_number, module_topic)
+        else:
+            logger.info("No syllabus topic found for '%s' module %d, using generic query", subject_name, module_number)
+
     last_error: Exception | None = None
 
     for attempt in range(1, _MAX_RETRIES + 1):
         logger.info("Scrape attempt %d/%d for '%s' module %d", attempt, _MAX_RETRIES, subject_name, module_number)
 
         try:
-            text = await _scrape_via_apify(subject_name, module_number)
+            text = await _scrape_via_apify(subject_name, module_number, module_topic)
             if text and len(text.strip()) > 100:
                 logger.info("Apify succeeded on attempt %d", attempt)
                 return text.strip()
 
             logger.info("Apify returned no content, falling back to Playwright")
-            text = await _scrape_via_playwright(subject_name, module_number)
+            text = await _scrape_via_playwright(subject_name, module_number, module_topic)
             if text and len(text.strip()) > 100:
                 logger.info("Playwright succeeded on attempt %d", attempt)
                 return text.strip()
