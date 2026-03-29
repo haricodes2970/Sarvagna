@@ -32,23 +32,20 @@ async def _scrape_via_apify(subject_name: str, module_number: int) -> str | None
 
     run_input = {
         "startUrls": [{"url": url} for url in urls],
-        "maxPagesPerCrawl": 5,
-        "maxCrawlingDepth": 1,
-        "pageFunction": """
-            async function pageFunction(context) {
-                const { page, request } = context;
-                const text = await page.evaluate(() => document.body.innerText);
-                return { url: request.url, text };
-            }
-        """,
+        "maxCrawlingDepth": 3,
+        "crawlerType": "cheerio",
+        "outputFormat": "markdown",
+        "saveFiles": True,
     }
 
     try:
-        run = await client.actor("apify/web-scraper").call(run_input=run_input, timeout_secs=120)
+        run = await client.actor("apify/website-content-crawler").call(run_input=run_input, timeout_secs=120)
         dataset = client.dataset(run["defaultDatasetId"])
         items = []
         async for item in dataset.iterate_items():
-            if item.get("text"):
+            if item.get("markdown"):
+                items.append(item["markdown"])
+            elif item.get("text"):
                 items.append(item["text"])
         return "\n\n".join(items) if items else None
     except Exception as exc:
