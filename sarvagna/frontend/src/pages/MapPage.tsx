@@ -35,7 +35,7 @@ export default function MapPage() {
         toast("Complete previous modules to unlock this one", { icon: "🔒" });
         return;
       }
-      navigate(`/modulemap/${subjectId}/${node.module_number}`);
+      navigate(`/lobby/${subjectId}/${node.module_number}`);
     },
     [subjectId, navigate, mapData]
   );

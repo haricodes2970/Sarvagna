@@ -103,6 +103,7 @@ class ModuleImage(Base):
     )
     module_number: Mapped[int] = mapped_column(Integer, nullable=False)
     image_url: Mapped[str] = mapped_column(Text, nullable=False)
+    selected_map: Mapped[str | None] = mapped_column(String(20), nullable=True, default="map1")
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     subject: Mapped["Subject"] = relationship(back_populates="module_images")

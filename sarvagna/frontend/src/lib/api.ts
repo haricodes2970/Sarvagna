@@ -215,17 +215,20 @@ export const modulemapApi = {
     api.get<ModuleMapResponse>(`/modulemap/${subject_id}/${module_number}`),
 };
 
-// ─── Module Map Images ───────────────────────────────────────────────────────────
-export interface ModuleImageResponse {
+// ─── Map Selection ────────────────────────────────────────────────────────────
+
+export interface MapSelectionResponse {
   subject_id: string;
   module_number: number;
-  image_url: string;
-  generated_at: string;
+  selected_map: string;
 }
 
-export const mapimageApi = {
-  getModuleImage: (subject_id: string, module_number: number) =>
-    api.get<ModuleImageResponse>(`/mapimage/${subject_id}/${module_number}`),
+export const mapSelectionApi = {
+  getSelectedMap: (subject_id: string, module_number: number) =>
+    api.get<MapSelectionResponse>(`/mapselection/${subject_id}/${module_number}`),
+
+  saveSelectedMap: (subject_id: string, module_number: number, map_id: string) =>
+    api.post<MapSelectionResponse>(`/mapselection/${subject_id}/${module_number}`, { map_id }),
 };
 
 // ─── Chat ─────────────────────────────────────────────────────────────────────
