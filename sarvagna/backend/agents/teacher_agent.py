@@ -264,7 +264,17 @@ async def teach_module(
     finally:
         await qdrant.close()
 
-    context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No textbook content available yet."
+    has_context = bool(context_chunks)
+    if has_context:
+        context = "\n\n---\n\n".join(context_chunks)
+    else:
+        context = (
+            "No scraped textbook content is available for this module yet.\n"
+            "IMPORTANT: Teach from your general knowledge of the subject, but begin your "
+            "FIRST response in this session with exactly this notice on its own line:\n"
+            "> ⚠️ Note: Teaching from general knowledge — textbook content loading...\n"
+            "After that note, proceed with normal teaching. Do NOT repeat the note in later messages."
+        )
 
     system_prompt = SARVAGNA_SYSTEM_PROMPT + f"""
 

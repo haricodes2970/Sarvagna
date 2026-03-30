@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,12 +9,15 @@ import { chatApi, subjectsApi, type ChatMessage } from "@/lib/api";
 
 export default function ChatPage() {
   const { subjectId, moduleNumber } = useParams<{ subjectId: string; moduleNumber: string }>();
+  const [searchParams] = useSearchParams();
+  const topicParam = searchParams.get("topic"); // e.g. "Introduction to ML and its applications"
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const modNum = Number(moduleNumber);
 
   const [input, setInput] = useState("");
   const [localMessages, setLocalMessages] = useState<ChatMessage[]>([]);
+  const autoSentRef = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -38,6 +41,20 @@ export default function ChatPage() {
       setLocalMessages(history.messages);
     }
   }, [history]);
+
+  // Auto-send opening message when arriving from map with a topic param
+  useEffect(() => {
+    if (
+      topicParam &&
+      !autoSentRef.current &&
+      history !== undefined &&   // history loaded
+      history.messages.length === 0  // fresh session
+    ) {
+      autoSentRef.current = true;
+      sendMutation.mutate(`Let's study: ${topicParam}`);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topicParam, history]);
 
   // Auto-scroll to bottom whenever messages change
   useEffect(() => {

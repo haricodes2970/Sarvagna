@@ -101,7 +101,14 @@ export default function ModuleMapPage() {
           layout={layout}
           mapImage={mapImage}
           topicStatuses={topicStatuses}
-          onNodeClick={() => navigate(`/chat/${subjectId}/${moduleNumber}`)}
+          onNodeClick={(nodeId) => {
+            // Look up node title from layout so we can pre-seed the chat
+            const allNodes = [layout.capital, ...layout.cities, ...layout.villages];
+            const node = allNodes.find((n) => n.id === nodeId);
+            const topicTitle = node?.title ?? "";
+            const query = topicTitle ? `?topic=${encodeURIComponent(topicTitle)}` : "";
+            navigate(`/chat/${subjectId}/${moduleNumber}${query}`);
+          }}
         />
       </div>
     </div>

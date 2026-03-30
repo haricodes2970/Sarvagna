@@ -52,16 +52,23 @@ def _extract_topics(syllabus_data, subject, module_number: int) -> tuple[str, li
     subject_lower = (subject.name or "").strip().lower()
     entry = None
     best_score = -1.0
-    for e in syllabus_data:
-        if e.get("semester") != (subject.semester or 0):
-            continue
-        name = (e.get("name") or "").strip().lower()
-        if name == subject_lower:
-            entry = e
+
+    # Two-pass: first try exact semester match, then fall back to name-only match
+    for strict_semester in (True, False):
+        for e in syllabus_data:
+            if strict_semester and e.get("semester") != (subject.semester or 0):
+                continue
+            name = (e.get("name") or "").strip().lower()
+            if name == subject_lower:
+                entry = e
+                break
+            if subject_lower in name or name in subject_lower:
+                score = 0.9
+                if score > best_score:
+                    best_score = score
+                    entry = e
+        if entry is not None:
             break
-        if subject_lower in name or name in subject_lower:
-            entry = e
-            best_score = 0.9
 
     if entry is None:
         return f"Module {module_number}", []
@@ -77,16 +84,11 @@ def _extract_topics(syllabus_data, subject, module_number: int) -> tuple[str, li
     raw_subs = mod.get("subtopics") if "subtopics" in mod else mod.get("topics") or []
     subtopics_str: list[str] = [str(x) for x in (raw_subs or []) if isinstance(x, str)]
 
-    # Build a single "topic" node (the module itself) with its subtopics
+    # Each syllabus subtopic becomes a city node on the map.
+    # The module title is used as the capital (center node) by generate_map_layout.
     topics = [
-        {
-            "id": f"m{module_number}",
-            "title": module_title,
-            "subtopics": [
-                {"id": f"t{module_number}-{i}", "title": s}
-                for i, s in enumerate(subtopics_str)
-            ],
-        }
+        {"id": f"t{module_number}-{i}", "title": s, "subtopics": []}
+        for i, s in enumerate(subtopics_str)
     ]
     return module_title, topics
 
