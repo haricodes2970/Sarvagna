@@ -10,7 +10,7 @@ import { chatApi, subjectsApi, type ChatMessage } from "@/lib/api";
 export default function ChatPage() {
   const { subjectId, moduleNumber } = useParams<{ subjectId: string; moduleNumber: string }>();
   const [searchParams] = useSearchParams();
-  const topicParam = searchParams.get("topic"); // e.g. "Introduction to ML and its applications"
+  const topicTitle = searchParams.get("topicTitle"); // e.g. "K-nearest neighbors algorithm"
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const modNum = Number(moduleNumber);
@@ -42,19 +42,19 @@ export default function ChatPage() {
     }
   }, [history]);
 
-  // Auto-send opening message when arriving from map with a topic param
+  // Auto-send opening message when arriving from map with a topicTitle param
   useEffect(() => {
     if (
-      topicParam &&
+      topicTitle &&
       !autoSentRef.current &&
-      history !== undefined &&   // history loaded
-      history.messages.length === 0  // fresh session
+      history !== undefined &&        // history loaded
+      history.messages.length === 0   // fresh session only
     ) {
       autoSentRef.current = true;
-      sendMutation.mutate(`Let's study: ${topicParam}`);
+      sendMutation.mutate(`Let's start studying: ${topicTitle}`);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [topicParam, history]);
+  }, [topicTitle, history]);
 
   // Auto-scroll to bottom whenever messages change
   useEffect(() => {

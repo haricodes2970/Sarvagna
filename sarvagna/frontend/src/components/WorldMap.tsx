@@ -36,7 +36,7 @@ interface WorldMapProps {
   layout: MapLayout;
   mapImage: string;
   topicStatuses: TopicStatus[];
-  onNodeClick: (nodeId: string) => void;
+  onNodeClick: (nodeId: string, nodeTitle: string) => void;
   /** Pixel dimensions of the SVG canvas */
   width?: number;
   height?: number;
@@ -316,7 +316,7 @@ export default function WorldMap({
       });
       return;
     }
-    onNodeClick(node.id);
+    onNodeClick(node.id, node.title);
   }, [topicStatuses, onNodeClick]);
 
   // Determine road status: unlocked if both endpoints are not locked

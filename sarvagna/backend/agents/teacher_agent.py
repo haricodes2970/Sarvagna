@@ -16,7 +16,7 @@ settings = get_settings()
 
 _GROQ_MODEL = "llama-3.3-70b-versatile"
 _TOP_K = 8
-_SCORE_THRESHOLD = 0.65
+_SCORE_THRESHOLD = 0.5
 _CACHE_TTL = 86_400  # 24 hours in seconds
 
 
