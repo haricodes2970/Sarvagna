@@ -71,6 +71,11 @@ export const subjectsApi = {
 
   scrape: (id: string) =>
     api.post<{ task_id: string; message: string }>(`/subjects/${id}/scrape`),
+
+  catalog: (branch: string, semester: number) =>
+    api.get<{ branch: string; semester: number; subjects: string[] }>(
+      `/subjects/catalog?branch=${encodeURIComponent(branch)}&semester=${semester}`
+    ),
 };
 
 // ─── Query ───────────────────────────────────────────────────────────────────

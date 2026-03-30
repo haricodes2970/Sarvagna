@@ -5,26 +5,48 @@ import toast from "react-hot-toast";
 import { subjectsApi, type Subject } from "../lib/api";
 import { useAuthStore } from "../store/authStore";
 
+const SCHEMES = ["2022", "2021", "2018", "2015"];
+const BRANCHES: Record<string, string> = {
+  AIML: "AI & Machine Learning",
+  CS: "Computer Science",
+  CSE: "CSE",
+  IS: "Information Science",
+  ECE: "Electronics & Communication",
+  ME: "Mechanical Engineering",
+  CV: "Civil Engineering",
+};
+const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { user, logout } = useAuthStore();
 
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: "", branch: "", semester: 1 });
+  const [scheme, setScheme] = useState("2022");
+  const [branch, setBranch] = useState("AIML");
+  const [semester, setSemester] = useState(6);
+  const [selectedSubject, setSelectedSubject] = useState("");
 
   const { data: subjects = [], isLoading } = useQuery({
     queryKey: ["subjects"],
     queryFn: () => subjectsApi.list().then((r) => r.data),
   });
 
+  const { data: catalog, isFetching: catalogLoading } = useQuery({
+    queryKey: ["catalog", branch, semester],
+    queryFn: () => subjectsApi.catalog(branch, semester).then((r) => r.data.subjects),
+    enabled: showForm,
+    staleTime: 60_000,
+  });
+
   const addMutation = useMutation({
-    mutationFn: () => subjectsApi.add(form.name, form.branch, form.semester),
+    mutationFn: () => subjectsApi.add(selectedSubject, branch, semester),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subjects"] });
-      setForm({ name: "", branch: "", semester: 1 });
+      setSelectedSubject("");
       setShowForm(false);
-      toast.success("Subject added!");
+      toast.success("Subject added! Scraping content in background…");
     },
     onError: (err: any) =>
       toast.error(err.response?.data?.detail ?? "Failed to add subject"),
@@ -90,33 +112,74 @@ export default function DashboardPage() {
       {/* Add form */}
       {showForm && (
         <div style={styles.formCard}>
-          <input
-            style={styles.input}
-            placeholder="Subject name"
-            value={form.name}
-            onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
-          />
-          <input
-            style={styles.input}
-            placeholder="Branch (e.g. CSE)"
-            value={form.branch}
-            onChange={(e) => setForm((p) => ({ ...p, branch: e.target.value }))}
-          />
-          <input
-            style={styles.input}
-            type="number"
-            min={1}
-            max={8}
-            placeholder="Semester"
-            value={form.semester}
-            onChange={(e) => setForm((p) => ({ ...p, semester: Number(e.target.value) }))}
-          />
+          {/* Row 1: Scheme / Branch / Semester */}
+          <div style={styles.filterRow}>
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>Scheme</label>
+              <select
+                style={styles.select}
+                value={scheme}
+                onChange={(e) => { setScheme(e.target.value); setSelectedSubject(""); }}
+              >
+                {SCHEMES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>Branch</label>
+              <select
+                style={styles.select}
+                value={branch}
+                onChange={(e) => { setBranch(e.target.value); setSelectedSubject(""); }}
+              >
+                {Object.entries(BRANCHES).map(([key, label]) => (
+                  <option key={key} value={key}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div style={styles.filterGroup}>
+              <label style={styles.filterLabel}>Semester</label>
+              <select
+                style={styles.select}
+                value={semester}
+                onChange={(e) => { setSemester(Number(e.target.value)); setSelectedSubject(""); }}
+              >
+                {SEMESTERS.map((s) => <option key={s} value={s}>Sem {s}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Row 2: Subject picker */}
+          <div>
+            <label style={styles.filterLabel}>
+              {catalogLoading ? "Loading subjects…" : `Choose Subject (${catalog?.length ?? 0} found)`}
+            </label>
+            {catalogLoading ? (
+              <div style={styles.subjectGrid}>
+                {[1,2,3,4].map((i) => <div key={i} style={styles.subjectSkeletonBtn} />)}
+              </div>
+            ) : catalog && catalog.length > 0 ? (
+              <div style={styles.subjectGrid}>
+                {catalog.map((name) => (
+                  <button
+                    key={name}
+                    style={selectedSubject === name ? styles.subjectBtnActive : styles.subjectBtn}
+                    onClick={() => setSelectedSubject(name)}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p style={styles.noSubjects}>No subjects found for {branch} Sem {semester}</p>
+            )}
+          </div>
+
           <button
             style={styles.primaryBtn}
             onClick={() => addMutation.mutate()}
-            disabled={addMutation.isPending || !form.name || !form.branch}
+            disabled={addMutation.isPending || !selectedSubject}
           >
-            {addMutation.isPending ? "Adding…" : "Add Subject"}
+            {addMutation.isPending ? "Adding…" : selectedSubject ? `Add "${selectedSubject}"` : "Select a subject above"}
           </button>
         </div>
       )}
@@ -237,7 +300,16 @@ const styles: Record<string, React.CSSProperties> = {
   slotFill: { height: "100%", background: "#7c3aed", borderRadius: 4, transition: "width 0.3s" },
   toolbar: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" },
   sectionTitle: { margin: 0, color: "#e5e7eb" },
-  formCard: { background: "#1a1a2e", borderRadius: 12, padding: "1.25rem", marginBottom: "1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" },
+  formCard: { background: "#1a1a2e", borderRadius: 12, padding: "1.25rem", marginBottom: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" },
+  filterRow: { display: "flex", gap: "0.75rem", flexWrap: "wrap" as const },
+  filterGroup: { display: "flex", flexDirection: "column" as const, gap: "0.3rem", flex: 1, minWidth: 100 },
+  filterLabel: { fontSize: "0.75rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em" },
+  select: { padding: "0.55rem 0.75rem", borderRadius: 8, border: "1px solid #374151", background: "#0f0f1a", color: "#f3f4f6", fontSize: "0.9rem", outline: "none", cursor: "pointer" },
+  subjectGrid: { display: "flex", flexWrap: "wrap" as const, gap: "0.5rem", marginTop: "0.5rem" },
+  subjectBtn: { padding: "0.45rem 0.85rem", borderRadius: 8, border: "1px solid #374151", background: "#0f0f1a", color: "#d1d5db", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.15s" },
+  subjectBtnActive: { padding: "0.45rem 0.85rem", borderRadius: 8, border: "1px solid #7c3aed", background: "#3b1e6e", color: "#fff", fontSize: "0.85rem", cursor: "pointer", fontWeight: 700 },
+  subjectSkeletonBtn: { width: 140, height: 34, borderRadius: 8, background: "#2e2e42" },
+  noSubjects: { color: "#6b7280", fontSize: "0.85rem", marginTop: "0.5rem" },
   input: { padding: "0.65rem 1rem", borderRadius: 8, border: "1px solid #374151", background: "#0f0f1a", color: "#f3f4f6", fontSize: "0.95rem", outline: "none" },
   grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" },
   card: { background: "#1a1a2e", borderRadius: 12, padding: "1.25rem" },

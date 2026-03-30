@@ -16,6 +16,7 @@ from core.config import get_settings
 from core.database import get_db
 from core.gamification import SUBJECT_SLOT_CONFIG
 from models.db_models import Subject, User
+from services.syllabus_loader import get_subjects as _get_subjects
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +52,26 @@ class ScrapeResponse(BaseModel):
     message: str
 
 
+class CatalogResponse(BaseModel):
+    branch: str
+    semester: int
+    subjects: list[str]
+
+
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+
+@router.get("/catalog", response_model=CatalogResponse)
+async def get_catalog(
+    branch: str,
+    semester: int,
+    _: User = Depends(current_user_dep),
+):
+    """Return subject names from the syllabus for a given branch + semester."""
+    subjects = _get_subjects(branch, semester)
+    return CatalogResponse(branch=branch, semester=semester, subjects=subjects)
 
 @router.get("", response_model=list[SubjectOut])
 async def list_subjects(
