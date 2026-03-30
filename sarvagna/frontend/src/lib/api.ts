@@ -314,4 +314,7 @@ export const importantQuestionsApi = {
 
   list: (subject_id: string) =>
     api.get<ImportantQuestion[]>(`/important-questions/${subject_id}`),
+
+  delete: (subject_id: string, question_id: string) =>
+    api.delete(`/important-questions/${subject_id}/${question_id}`),
 };

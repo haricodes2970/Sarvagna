@@ -161,3 +161,25 @@ async def get_questions(
         )
         for r in rows
     ]
+
+
+@router.delete("/{subject_id}/{question_id}", status_code=204)
+async def delete_question(
+    subject_id: str,
+    question_id: str,
+    user: User = Depends(current_user_dep),
+    db: AsyncSession = Depends(get_db),
+):
+    await _verify_subject(db, subject_id, user.id)
+
+    result = await db.execute(
+        select(ImportantQuestion).where(
+            ImportantQuestion.id == uuid.UUID(question_id),
+            ImportantQuestion.user_id == user.id,
+        )
+    )
+    row = result.scalar_one_or_none()
+    if row is None:
+        raise HTTPException(status_code=404, detail="Question not found")
+    await db.delete(row)
+    await db.commit()
