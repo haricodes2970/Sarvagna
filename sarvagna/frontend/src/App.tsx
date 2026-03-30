@@ -11,6 +11,7 @@ import DashboardPage from "./pages/DashboardPage";
 import SubjectPage from "./pages/SubjectPage";
 import RoadmapPage from "./pages/RoadmapPage";
 import ProgressPage from "./pages/ProgressPage";
+import ChatPage from "./pages/ChatPage";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -40,6 +41,7 @@ function AppRoutes() {
       <Route path="/subject/:id" element={<RequireAuth><SubjectPage /></RequireAuth>} />
       <Route path="/roadmap/:subject_id" element={<RequireAuth><RoadmapPage /></RequireAuth>} />
       <Route path="/progress" element={<RequireAuth><ProgressPage /></RequireAuth>} />
+      <Route path="/chat/:subjectId/:moduleNumber" element={<RequireAuth><ChatPage /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

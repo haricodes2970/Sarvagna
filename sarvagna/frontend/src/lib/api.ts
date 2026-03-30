@@ -160,3 +160,33 @@ export const progressApi = {
       module_number,
     }),
 };
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  created_at: string;
+}
+
+export interface ChatHistoryResponse {
+  subject_id: string;
+  module_number: number;
+  messages: ChatMessage[];
+  total: number;
+  page: number;
+}
+
+export interface SendMessageResponse {
+  user_message: ChatMessage;
+  ai_message: ChatMessage;
+}
+
+export const chatApi = {
+  getHistory: (subject_id: string, module_number: number, page = 1) =>
+    api.get<ChatHistoryResponse>(`/chat/${subject_id}/${module_number}?page=${page}`),
+
+  sendMessage: (subject_id: string, module_number: number, content: string) =>
+    api.post<SendMessageResponse>(`/chat/${subject_id}/${module_number}`, { content }),
+};

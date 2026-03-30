@@ -92,6 +92,75 @@ def _extract_json(text: str) -> dict:
     return json.loads(text)
 
 
+async def teach_module(
+    subject: str,
+    module_number: int,
+    user_message: str,
+    chat_history: list[dict],
+    user_id: str,
+) -> str:
+    """
+    Teaching-mode conversation for a specific module.
+    Uses RAG context from Qdrant + full chat_history for multi-turn dialogue.
+    Returns the assistant's reply as a plain string.
+    """
+    vector = await _embed_question(user_message)
+
+    # Search Qdrant scoped to this specific module collection
+    collection = f"{_collection_name(subject)}_module_{module_number}"
+    qdrant = AsyncQdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
+    context_chunks: list[str] = []
+    try:
+        results: list[ScoredPoint] = await qdrant.search(
+            collection_name=collection,
+            query_vector=vector,
+            limit=_TOP_K,
+            score_threshold=_SCORE_THRESHOLD,
+        )
+        context_chunks = [hit.payload.get("text", "") for hit in results]
+    except Exception as exc:
+        logger.warning("Qdrant search failed for teach_module: %s", exc)
+    finally:
+        await qdrant.close()
+
+    context = "\n\n---\n\n".join(context_chunks) if context_chunks else "No textbook content available yet."
+
+    system_prompt = f"""You are Sarvagna, an expert AI teacher for VTU engineering students.
+
+You are teaching Module {module_number} of {subject}.
+
+TEXTBOOK CONTEXT:
+{context}
+
+TEACHING RULES:
+- Teach one concept at a time, clearly and concisely.
+- After explaining each concept, ask: "Did you understand? Do you have any doubts?"
+- If the student has doubts, clarify them thoroughly before moving on.
+- Only move to the next concept when the student says they are ready or understood.
+- Ground all explanations strictly in the provided textbook context.
+- Use simple language, analogies, and examples suitable for engineering students.
+- If the student greets or asks to start, introduce the module and begin with the first topic."""
+
+    messages = [{"role": "system", "content": system_prompt}]
+
+    # Append full conversation history (already formatted as role/content dicts)
+    for msg in chat_history:
+        messages.append({"role": msg["role"], "content": msg["content"]})
+
+    # Append the latest user message
+    messages.append({"role": "user", "content": user_message})
+
+    groq_client = AsyncGroq(api_key=settings.GROQ_API_KEY)
+    completion = await groq_client.chat.completions.create(
+        model=_GROQ_MODEL,
+        messages=messages,
+        temperature=0.5,
+        max_tokens=1024,
+    )
+
+    return completion.choices[0].message.content or ""
+
+
 async def answer_question(question: str, subject: str, user_id: str) -> dict:
     """
     Embed question → search Qdrant → call Groq → return JSON answer.

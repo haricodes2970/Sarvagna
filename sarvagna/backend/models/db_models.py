@@ -24,6 +24,7 @@ class User(Base):
     subjects: Mapped[list["Subject"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     queries: Mapped[list["Query"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     progress: Mapped[list["Progress"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    chat_messages: Mapped[list["ChatMessage"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Subject(Base):
@@ -41,6 +42,7 @@ class Subject(Base):
     user: Mapped["User"] = relationship(back_populates="subjects")
     queries: Mapped[list["Query"]] = relationship(back_populates="subject", cascade="all, delete-orphan")
     progress: Mapped[list["Progress"]] = relationship(back_populates="subject", cascade="all, delete-orphan")
+    chat_messages: Mapped[list["ChatMessage"]] = relationship(back_populates="subject", cascade="all, delete-orphan")
 
 
 class Query(Base):
@@ -71,3 +73,18 @@ class Progress(Base):
 
     user: Mapped["User"] = relationship(back_populates="progress")
     subject: Mapped["Subject"] = relationship(back_populates="progress")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    module_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    role: Mapped[str] = mapped_column(String(20), nullable=False)  # "user" or "assistant"
+    content: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="chat_messages")
+    subject: Mapped["Subject"] = relationship(back_populates="chat_messages")

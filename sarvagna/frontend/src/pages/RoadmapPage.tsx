@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Lock, Play, Star, ArrowLeft, Trophy, Info } from "lucide-react";
+import { Check, Lock, Play, Star, ArrowLeft, Trophy, Info, BookOpen } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -182,18 +182,30 @@ const RoadmapPage = () => {
                     {module.description}
                   </p>
 
-                  <Button
-                    variant={isCurrent ? "default" : "secondary"}
-                    disabled={isLocked || completeMutation.isPending}
-                    onClick={() => {
-                      if (isCurrent) completeMutation.mutate(module.id);
-                    }}
-                    className={`w-full rounded-xl font-black text-xs uppercase tracking-widest transition-all
-                      ${isCurrent ? 'bg-amber-500 text-black hover:bg-amber-400 hover:scale-[1.02]' : 'bg-zinc-800 text-zinc-400 hover:text-white'}
-                    `}
-                  >
-                    {isCompleted ? "Review Module" : isCurrent ? "Continue Learning" : "Locked"}
-                  </Button>
+                  <div className="flex flex-col gap-2">
+                    {isCurrent && (
+                      <Button
+                        variant="default"
+                        onClick={() => navigate(`/chat/${subject_id}/${module.id}`)}
+                        className="w-full rounded-xl font-black text-xs uppercase tracking-widest bg-violet-600 text-white hover:bg-violet-500 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                      >
+                        <BookOpen size={14} /> Study Module
+                      </Button>
+                    )}
+                    <Button
+                      variant={isCurrent ? "default" : "secondary"}
+                      disabled={isLocked || completeMutation.isPending}
+                      onClick={() => {
+                        if (isCurrent) completeMutation.mutate(module.id);
+                        else if (isCompleted) navigate(`/chat/${subject_id}/${module.id}`);
+                      }}
+                      className={`w-full rounded-xl font-black text-xs uppercase tracking-widest transition-all
+                        ${isCurrent ? 'bg-amber-500 text-black hover:bg-amber-400 hover:scale-[1.02]' : 'bg-zinc-800 text-zinc-400 hover:text-white'}
+                      `}
+                    >
+                      {isCompleted ? "Review Module" : isCurrent ? "Continue Learning" : "Locked"}
+                    </Button>
+                  </div>
                 </div>
 
                 {/* Path Node Indicator */}
