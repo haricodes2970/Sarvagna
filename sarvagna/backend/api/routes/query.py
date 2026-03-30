@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, date
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -8,10 +8,41 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.orchestrator import handle_query
 from api.routes.auth import current_user_dep
+from core.config import get_settings
 from core.database import get_db
 from models.db_models import Query, Subject, User
 
 router = APIRouter(prefix="/query", tags=["query"])
+
+_DAILY_LIMIT = 10
+
+
+# ---------------------------------------------------------------------------
+# Rate limit helper (Redis)
+# ---------------------------------------------------------------------------
+
+async def _check_rate_limit(user_id: str) -> None:
+    """Raise HTTP 429 if the user has exceeded the daily query limit."""
+    try:
+        import redis.asyncio as aioredis
+        settings = get_settings()
+        r = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        today = date.today().isoformat()
+        key = f"rate:{user_id}:{today}"
+        count = await r.incr(key)
+        if count == 1:
+            await r.expire(key, 86400)  # 24-hour TTL on first write
+        await r.aclose()
+        if count > _DAILY_LIMIT:
+            raise HTTPException(
+                status_code=429,
+                detail=f"Daily limit reached ({_DAILY_LIMIT} queries/day). Resets at midnight.",
+            )
+    except HTTPException:
+        raise
+    except Exception:
+        # Redis unavailable — fail open (don't block the user)
+        pass
 
 
 # ---------------------------------------------------------------------------
@@ -56,6 +87,8 @@ async def ask_question(
     user: User = Depends(current_user_dep),
     db: AsyncSession = Depends(get_db),
 ):
+    await _check_rate_limit(str(user.id))
+
     subject_result = await db.execute(
         select(Subject).where(
             Subject.id == uuid.UUID(body.subject_id),

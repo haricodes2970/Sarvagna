@@ -3,7 +3,7 @@ import { Check, Lock, Play, Star } from "lucide-react";
 
 export interface ModuleNodeData {
   moduleNumber: number;
-  title: string;
+  title: string;       // topic name from syllabus e.g. "Introduction to Machine Learning"
   xp: number;
   status: "completed" | "current" | "locked";
   onClick: () => void;
@@ -22,7 +22,7 @@ export default function ModuleNode({ data }: { data: ModuleNodeData }) {
       <div
         onClick={isLocked ? undefined : onClick}
         className={`
-          relative w-48 p-4 rounded-2xl border transition-all duration-300 select-none
+          relative w-52 p-4 rounded-2xl border transition-all duration-300 select-none
           ${isCompleted ? "bg-zinc-900 border-emerald-500/60 shadow-[0_0_20px_rgba(16,185,129,0.3)] cursor-pointer hover:border-emerald-500" : ""}
           ${isCurrent ? "bg-zinc-900 border-amber-500 shadow-[0_0_30px_rgba(245,158,11,0.5)] cursor-pointer scale-105 animate-pulse" : ""}
           ${isLocked ? "bg-zinc-950 border-zinc-800/50 opacity-50 cursor-not-allowed" : ""}
@@ -35,19 +35,19 @@ export default function ModuleNode({ data }: { data: ModuleNodeData }) {
           </div>
         )}
 
-        {/* Phase label */}
-        <div className="flex items-center justify-between mb-2">
+        {/* Phase label + XP */}
+        <div className="flex items-center justify-between mb-1.5">
           <span className="text-[9px] font-black uppercase tracking-widest text-zinc-500">
-            Phase {String(moduleNumber).padStart(2, "0")}
+            Module {String(moduleNumber).padStart(2, "0")}
           </span>
           <div className={`flex items-center gap-1 ${isLocked ? "text-zinc-700" : "text-amber-500"}`}>
             <Star size={10} className={!isLocked ? "fill-amber-500" : ""} />
-            <span className="text-[10px] font-bold">{xp}</span>
+            <span className="text-[10px] font-bold">{xp} XP</span>
           </div>
         </div>
 
-        {/* Title */}
-        <p className={`text-sm font-black leading-tight mb-3 ${isLocked ? "text-zinc-700" : "text-white"}`}>
+        {/* Topic title */}
+        <p className={`text-[11px] font-black leading-tight mb-3 ${isLocked ? "text-zinc-700" : "text-white"}`}>
           {title}
         </p>
 

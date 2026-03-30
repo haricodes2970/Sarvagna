@@ -13,6 +13,7 @@ import RoadmapPage from "./pages/RoadmapPage";
 import ProgressPage from "./pages/ProgressPage";
 import ChatPage from "./pages/ChatPage";
 import MapPage from "./pages/MapPage";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
@@ -38,12 +39,12 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+      <Route path="/dashboard" element={<RequireAuth><ErrorBoundary><DashboardPage /></ErrorBoundary></RequireAuth>} />
       <Route path="/subject/:id" element={<RequireAuth><SubjectPage /></RequireAuth>} />
       <Route path="/roadmap/:subject_id" element={<RequireAuth><RoadmapPage /></RequireAuth>} />
       <Route path="/progress" element={<RequireAuth><ProgressPage /></RequireAuth>} />
-      <Route path="/chat/:subjectId/:moduleNumber" element={<RequireAuth><ChatPage /></RequireAuth>} />
-      <Route path="/map/:subjectId" element={<RequireAuth><MapPage /></RequireAuth>} />
+      <Route path="/chat/:subjectId/:moduleNumber" element={<RequireAuth><ErrorBoundary><ChatPage /></ErrorBoundary></RequireAuth>} />
+      <Route path="/map/:subjectId" element={<RequireAuth><ErrorBoundary><MapPage /></ErrorBoundary></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );

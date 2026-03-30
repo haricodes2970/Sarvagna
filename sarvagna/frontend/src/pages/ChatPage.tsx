@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
 import { chatApi, subjectsApi, type ChatMessage } from "@/lib/api";
 
@@ -209,12 +210,25 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       </div>
 
       {/* Bubble */}
-      <div className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
+      <div className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
         isUser
-          ? "bg-violet-600/30 border border-violet-500/20 rounded-tr-sm text-zinc-100"
+          ? "bg-violet-600/30 border border-violet-500/20 rounded-tr-sm text-zinc-100 whitespace-pre-wrap"
           : "bg-zinc-900 border border-zinc-800 rounded-tl-sm text-zinc-200"
       }`}>
-        {message.content}
+        {isUser ? (
+          message.content
+        ) : (
+          <div className="prose prose-sm prose-invert max-w-none
+            prose-p:my-1 prose-p:leading-relaxed
+            prose-headings:text-zinc-100 prose-headings:font-bold prose-headings:mt-2 prose-headings:mb-1
+            prose-strong:text-zinc-100 prose-strong:font-semibold
+            prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5
+            prose-ol:my-1 prose-ol:pl-4
+            prose-code:bg-zinc-800 prose-code:text-amber-400 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
+            prose-pre:bg-zinc-800 prose-pre:rounded-lg prose-pre:p-3 prose-pre:my-2 prose-pre:overflow-x-auto">
+            <ReactMarkdown>{message.content}</ReactMarkdown>
+          </div>
+        )}
         <p className={`text-[10px] mt-1.5 ${isUser ? "text-violet-400/60 text-right" : "text-zinc-600"}`}>
           {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </p>

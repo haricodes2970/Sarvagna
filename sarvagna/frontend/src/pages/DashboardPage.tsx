@@ -123,7 +123,11 @@ export default function DashboardPage() {
 
       {/* Subject list */}
       {isLoading ? (
-        <p style={styles.empty}>Loading subjects…</p>
+        <div style={styles.grid}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
       ) : subjects.length === 0 ? (
         <p style={styles.empty}>No subjects yet. Add one to get started!</p>
       ) : (
@@ -185,6 +189,27 @@ function SubjectCard({
     </div>
   );
 }
+
+function SkeletonCard() {
+  return (
+    <div style={{ ...skeletonStyles.card, animation: "pulse 1.5s ease-in-out infinite" }}>
+      <div style={skeletonStyles.line} />
+      <div style={{ ...skeletonStyles.line, width: "60%", marginTop: "0.5rem" }} />
+      <div style={{ ...skeletonStyles.line, width: "40%", marginTop: "0.75rem" }} />
+      <div style={skeletonStyles.btnRow}>
+        <div style={skeletonStyles.btn} />
+        <div style={skeletonStyles.btn} />
+      </div>
+    </div>
+  );
+}
+
+const skeletonStyles: Record<string, React.CSSProperties> = {
+  card: { background: "#1a1a2e", borderRadius: 12, padding: "1.25rem" },
+  line: { height: 14, borderRadius: 6, background: "#2e2e42", width: "80%" },
+  btnRow: { display: "flex", gap: "0.5rem", marginTop: "1rem" },
+  btn: { height: 34, width: 100, borderRadius: 8, background: "#2e2e42" },
+};
 
 const styles: Record<string, React.CSSProperties> = {
   page: { minHeight: "100vh", background: "#0f0f1a", color: "#f3f4f6", padding: "2rem" },
