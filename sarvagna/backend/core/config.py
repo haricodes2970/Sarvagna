@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     REDIS_URL: str
     QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
+    REPLICATE_API_KEY: str = ""
     GROQ_API_KEY: str
     GEMINI_API_KEY: str
     APIFY_API_KEY: str

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -43,6 +43,7 @@ class Subject(Base):
     queries: Mapped[list["Query"]] = relationship(back_populates="subject", cascade="all, delete-orphan")
     progress: Mapped[list["Progress"]] = relationship(back_populates="subject", cascade="all, delete-orphan")
     chat_messages: Mapped[list["ChatMessage"]] = relationship(back_populates="subject", cascade="all, delete-orphan")
+    module_images: Mapped[list["ModuleImage"]] = relationship(back_populates="subject", cascade="all, delete-orphan")
 
 
 class Query(Base):
@@ -88,3 +89,20 @@ class ChatMessage(Base):
 
     user: Mapped["User"] = relationship(back_populates="chat_messages")
     subject: Mapped["Subject"] = relationship(back_populates="chat_messages")
+
+
+class ModuleImage(Base):
+    __tablename__ = "module_images"
+    __table_args__ = (
+        UniqueConstraint("subject_id", "module_number", name="uq_module_images_subject_module_number"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    subject_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False
+    )
+    module_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    image_url: Mapped[str] = mapped_column(Text, nullable=False)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    subject: Mapped["Subject"] = relationship(back_populates="module_images")
