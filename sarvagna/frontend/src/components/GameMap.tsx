@@ -1,7 +1,16 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+/**
+ * ModuleMap — dark-fantasy game world map for Sarvagna.
+ *
+ * Visual style: organic island with golden glowing castles for completed
+ * modules, pulsing amber beacon for the current module, teal glowing river
+ * paths between nodes, fog-of-war over locked territory.
+ */
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import toast from "react-hot-toast";
 
-// --- Types ---
-export type NodeStatus = 'completed' | 'current' | 'locked';
+// ── Types ──────────────────────────────────────────────────────────────────
+
+export type NodeStatus = "completed" | "current" | "locked";
 
 export interface Subtopic {
   id: string;
@@ -9,428 +18,461 @@ export interface Subtopic {
   status: NodeStatus;
 }
 
-export interface Module {
+export interface Topic {
   id: string;
   title: string;
   status: NodeStatus;
   subtopics: Subtopic[];
 }
 
-export interface GameWorldMapProps {
-  modules?: Module[];
-  onNodeClick?: (node: Module | Subtopic, type: 'module' | 'subtopic') => void;
+export interface ModuleMapProps {
+  topics: Topic[];
+  onTopicClick: (topicId: string) => void;
+  moduleTitle?: string;
 }
 
-// --- Dummy Data (if no props provided) ---
-const defaultModules: Module[] = [
-  {
-    id: 'm1',
-    title: 'Foundations of Compute',
-    status: 'completed',
-    subtopics: [
-      { id: 's1', title: 'Variables', status: 'completed' },
-      { id: 's2', title: 'Data Types', status: 'completed' },
-      { id: 's3', title: 'Operators', status: 'completed' },
-    ],
-  },
-  {
-    id: 'm2',
-    title: 'Control Structures',
-    status: 'completed',
-    subtopics: [
-      { id: 's4', title: 'If/Else', status: 'completed' },
-      { id: 's5', title: 'Switch', status: 'completed' },
-      { id: 's6', title: 'Loops', status: 'completed' },
-    ],
-  },
-  {
-    id: 'm3',
-    title: 'Data Structures',
-    status: 'current',
-    subtopics: [
-      { id: 's7', title: 'Arrays', status: 'completed' },
-      { id: 's8', title: 'Hash Maps', status: 'current' },
-      { id: 's9', title: 'Linked Lists', status: 'locked' },
-      { id: 's10', title: 'Trees', status: 'locked' },
-    ],
-  },
-  {
-    id: 'm4',
-    title: 'Advanced Algorithms',
-    status: 'locked',
-    subtopics: [
-      { id: 's11', title: 'Sorting', status: 'locked' },
-      { id: 's12', title: 'Search', status: 'locked' },
-      { id: 's13', title: 'Dynamic Programming', status: 'locked' },
-    ],
-  },
-  {
-    id: 'm5',
-    title: 'System Design',
-    status: 'locked',
-    subtopics: [
-      { id: 's14', title: 'Scaling', status: 'locked' },
-      { id: 's15', title: 'Databases', status: 'locked' },
-    ],
-  },
-];
+// ── Layout constants ────────────────────────────────────────────────────────
 
-// --- Map Generator Math ---
-const SPACING_X = 400;
-const START_X = 1000;
-const START_Y = 2000;
+const W = 2400;   // virtual canvas width
+const H = 1600;   // virtual canvas height
+const CX = W / 2; // center X
+const CY = H / 2; // center Y
 
-// Generates stable coordinates for organic map layout
-const generateMapLayout = (modules: Module[]) => {
-  return modules.map((mod, i) => {
-    const x = START_X + i * SPACING_X;
-    // Winding sine-wave path for the main modules
-    const y = START_Y + Math.sin(i * 1.2) * 350 + Math.cos(i * 0.5) * 150;
+/** Deterministic pseudo-random from a seed string */
+function seededRand(seed: string, index: number): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(31, h) + seed.charCodeAt(i) | 0;
+  h = Math.imul(h ^ (index * 2654435761), 1664525) >>> 0;
+  return (h & 0xffff) / 0xffff;
+}
 
-    const subtopics = mod.subtopics.map((sub, j) => {
-      // Fan out subtopics in an organic circle around the main module
-      const angle = (j / mod.subtopics.length) * Math.PI * 2 + (i * 0.8);
-      const radius = 120 + (j % 2 === 0 ? 25 : -10); // varied distance
-      return {
-        ...sub,
-        x: x + Math.cos(angle) * radius,
-        y: y + Math.sin(angle) * radius,
-      };
+interface PlacedTopic extends Topic {
+  x: number;
+  y: number;
+  subtopics: (Subtopic & { x: number; y: number })[];
+}
+
+function layoutTopics(topics: Topic[]): PlacedTopic[] {
+  const n = topics.length;
+  if (n === 0) return [];
+
+  // Arrange in a rough radial spiral so nodes feel organic, not grid-like
+  const placed: PlacedTopic[] = topics.map((topic, i) => {
+    // Evenly spread angle with a golden-ratio twist
+    const angle = i * 2.399963 + seededRand(topic.id, 0) * 0.6 - 0.3;
+    // Radius grows with index but wobbles
+    const r = 180 + i * (Math.min(560, 80 * Math.sqrt(n))) / n
+              + seededRand(topic.id, 1) * 120 - 60;
+
+    const x = CX + Math.cos(angle) * r;
+    const y = CY + Math.sin(angle) * r * 0.65; // flatten vertically
+
+    // Subtopics fan around the parent
+    const subs = topic.subtopics.map((sub, j) => {
+      const sa = angle + (j - (topic.subtopics.length - 1) / 2) * 0.55 + 0.1;
+      const sr = 95 + seededRand(sub.id, 0) * 30;
+      return { ...sub, x: x + Math.cos(sa) * sr, y: y + Math.sin(sa) * sr };
     });
 
-    return { ...mod, x, y, subtopics };
+    return { ...topic, x, y, subtopics: subs };
   });
+
+  return placed;
+}
+
+// ── Colour palette ──────────────────────────────────────────────────────────
+
+const COLORS = {
+  completed: { stroke: "#c8860a", glow: "#f5a623", fill: "#1a1000", text: "#fde68a", pathStroke: "#0dd3c5" },
+  current:   { stroke: "#f59e0b", glow: "#fbbf24", fill: "#120d00", text: "#fef3c7", pathStroke: "#0dd3c5" },
+  locked:    { stroke: "#334155", glow: "#475569", fill: "#080c14", text: "#64748b", pathStroke: "#1e3a3a" },
+  sub: {
+    completed: { stroke: "#0dd3c5", fill: "#001a18" },
+    current:   { stroke: "#f59e0b", fill: "#120d00" },
+    locked:    { stroke: "#1e3a3a", fill: "#06090f" },
+  },
 };
 
-export default function GameWorldMap({
-  modules = defaultModules,
-  onNodeClick = (node) => console.log('Clicked:', node.title),
-}: GameWorldMapProps) {
+// ── Main component ──────────────────────────────────────────────────────────
+
+export default function ModuleMap({ topics, onTopicClick, moduleTitle: _moduleTitle = "Module Map" }: ModuleMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
-  // --- State ---
-  const mapData = useMemo(() => generateMapLayout(modules), [modules]);
-  const [transform, setTransform] = useState({ x: 0, y: 0, scale: 0.8 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const placed = useMemo(() => layoutTopics(topics), [topics]);
 
-  const transformRef = useRef(transform);
-  transformRef.current = transform;
+  const [tf, setTf] = useState({ x: 0, y: 0, scale: 1 });
+  const tfRef = useRef(tf);
+  tfRef.current = tf;
 
-  // --- Initial Centering ---
-  const centerOnCurrentNode = () => {
-    const currentMod = mapData.find((m) => m.status === 'current') || mapData[0];
-    if (currentMod && containerRef.current) {
-      const rect = containerRef.current.getBoundingClientRect();
-      const scale = 0.8;
-      setTransform({
-        x: rect.width / 2 - currentMod.x * scale,
-        y: rect.height / 2 - currentMod.y * scale,
-        scale,
-      });
-    }
-  };
+  const drag = useRef<{ startX: number; startY: number; tfX: number; tfY: number } | null>(null);
 
-  useEffect(() => {
-    centerOnCurrentNode();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mapData]);
+  // Centre on current (or first) node on mount
+  const centreOnCurrent = useCallback(() => {
+    const node = placed.find((p) => p.status === "current") ?? placed[0];
+    if (!node || !containerRef.current) return;
+    const { width, height } = containerRef.current.getBoundingClientRect();
+    const scale = 0.85;
+    setTf({ scale, x: width / 2 - node.x * scale, y: height / 2 - node.y * scale });
+  }, [placed]);
 
-  // --- Pan & Zoom Handlers ---
+  useEffect(() => { centreOnCurrent(); }, [centreOnCurrent]);
+
+  // Wheel zoom toward cursor
   useEffect(() => {
     const el = svgRef.current;
     if (!el) return;
-
-    // We use a manual event listener for wheel to cleanly prevent default browser scroll
-    const handleWheel = (e: WheelEvent) => {
+    const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-      const current = transformRef.current;
-      const newScale = Math.max(0.15, Math.min(current.scale * zoomFactor, 3));
-
-      // Zoom towards mouse cursor
+      const factor = e.deltaY < 0 ? 1.1 : 0.9;
+      const cur = tfRef.current;
+      const next = Math.max(0.25, Math.min(cur.scale * factor, 2.5));
       const rect = el.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      const scaleRatio = newScale / current.scale;
-      const newX = mouseX - (mouseX - current.x) * scaleRatio;
-      const newY = mouseY - (mouseY - current.y) * scaleRatio;
-
-      setTransform({ x: newX, y: newY, scale: newScale });
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const ratio = next / cur.scale;
+      setTf({ scale: next, x: mx - (mx - cur.x) * ratio, y: my - (my - cur.y) * ratio });
     };
-
-    el.addEventListener('wheel', handleWheel, { passive: false });
-    return () => el.removeEventListener('wheel', handleWheel);
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX, y: e.clientY });
+  const onMouseDown = (e: React.MouseEvent) => {
+    drag.current = { startX: e.clientX, startY: e.clientY, tfX: tfRef.current.x, tfY: tfRef.current.y };
   };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const dx = e.clientX - dragStart.x;
-    const dy = e.clientY - dragStart.y;
-    setTransform((prev) => ({ ...prev, x: prev.x + dx, y: prev.y + dy }));
-    setDragStart({ x: e.clientX, y: e.clientY });
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (!drag.current) return;
+    setTf((prev) => ({
+      ...prev,
+      x: drag.current!.tfX + (e.clientX - drag.current!.startX),
+      y: drag.current!.tfY + (e.clientY - drag.current!.startY),
+    }));
   };
+  const onMouseUp = () => { drag.current = null; };
 
-  const handleMouseUp = () => setIsDragging(false);
-
-  // --- Visual Helpers ---
-  const getStatusColors = (status: NodeStatus) => {
-    switch (status) {
-      case 'completed': return { base: '#06b6d4', glow: '#22d3ee', path: '#0891b2', text: '#cffafe' };
-      case 'current': return { base: '#f59e0b', glow: '#fbbf24', path: '#d97706', text: '#fef3c7' };
-      case 'locked': return { base: '#334155', glow: '#475569', path: '#1e293b', text: '#94a3b8' };
+  const handleTopicClick = (topic: PlacedTopic, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (topic.status === "locked") {
+      toast("🔒 Complete previous topics first", { style: { background: "#1a1a2e", color: "#f3f4f6" } });
+      return;
     }
+    onTopicClick(topic.id);
   };
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full min-h-[600px] overflow-hidden bg-slate-950 font-sans select-none"
+      className="relative w-full h-full overflow-hidden select-none"
+      style={{ background: "#06080f" }}
     >
-      {/* UI Overlay */}
-      <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-        <div className="bg-slate-900/80 backdrop-blur border border-slate-700 p-4 rounded-xl shadow-2xl">
-          <h1 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400">
+      {/* ── HUD ── */}
+      <div className="absolute top-4 left-4 z-10 pointer-events-none">
+        <div
+          className="pointer-events-auto rounded-2xl border px-4 py-3 flex flex-col gap-2"
+          style={{ background: "rgba(6,8,15,0.85)", border: "1px solid rgba(13,211,197,0.2)", backdropFilter: "blur(8px)" }}
+        >
+          <p className="text-[10px] font-black uppercase tracking-[0.2em]" style={{ color: "#0dd3c5" }}>
             Sarvagna Realm
-          </h1>
-          <p className="text-sm text-slate-400 mt-1">Drag to pan, Scroll to zoom</p>
+          </p>
+          <p className="text-xs text-slate-500">Drag · Scroll to zoom</p>
           <button
-            onClick={centerOnCurrentNode}
-            className="mt-3 w-full py-2 bg-slate-800 hover:bg-slate-700 text-cyan-300 text-sm font-semibold rounded-lg transition-colors border border-slate-600"
+            onClick={centreOnCurrent}
+            className="mt-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+            style={{ background: "rgba(13,211,197,0.1)", color: "#0dd3c5", border: "1px solid rgba(13,211,197,0.3)" }}
           >
             Locate Current
           </button>
         </div>
       </div>
 
+      {/* ── Legend ── */}
+      <div
+        className="absolute bottom-4 right-4 z-10 rounded-2xl border px-3 py-2 flex flex-col gap-1.5"
+        style={{ background: "rgba(6,8,15,0.85)", border: "1px solid rgba(255,255,255,0.07)" }}
+      >
+        {[
+          { color: "#c8860a", label: "Completed" },
+          { color: "#f59e0b", label: "Current" },
+          { color: "#334155", label: "Locked" },
+        ].map(({ color, label }) => (
+          <div key={label} className="flex items-center gap-2">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ background: color }} />
+            <span className="text-[10px]" style={{ color: "#94a3b8" }}>{label}</span>
+          </div>
+        ))}
+      </div>
+
       <svg
         ref={svgRef}
-        className={`w-full h-full outline-none touch-none ${
-          isDragging ? 'cursor-grabbing' : 'cursor-grab'
-        }`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        className="w-full h-full touch-none outline-none"
+        style={{ cursor: drag.current ? "grabbing" : "grab" }}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseUp}
       >
         <defs>
-          {/* Blueprint Grid Pattern */}
-          <pattern id="grid" width="80" height="80" patternUnits="userSpaceOnUse">
-            <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(34, 211, 238, 0.05)" strokeWidth="1" />
-            <circle cx="80" cy="80" r="1.5" fill="rgba(34, 211, 238, 0.15)" />
+          {/* Parchment-grid background */}
+          <pattern id="pg" width="60" height="60" patternUnits="userSpaceOnUse">
+            <rect width="60" height="60" fill="#06080f" />
+            <path d="M60 0H0V60" fill="none" stroke="rgba(13,211,197,0.04)" strokeWidth="0.8" />
           </pattern>
 
-          {/* Glow Filters */}
-          <filter id="glow-completed" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="10" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+          {/* Golden glow — completed nodes */}
+          <filter id="f-gold" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
 
-          <filter id="glow-current" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="15" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
+          {/* Amber pulse glow — current node */}
+          <filter id="f-amber" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="18" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
 
-          {/* Fog Gradient Hole Maker */}
-          <radialGradient id="fog-hole" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="black" stopOpacity="1" />
-            <stop offset="40%" stopColor="black" stopOpacity="0.8" />
-            <stop offset="100%" stopColor="white" stopOpacity="1" />
-          </radialGradient>
+          {/* Teal glow — paths & subtopic nodes */}
+          <filter id="f-teal" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
 
-          {/* Fog of War Mask */}
+          {/* Fog-of-war: punch transparent holes over unlocked nodes */}
           <mask id="fog-mask">
-            {/* White means fog is visible */}
-            <rect x="-10000" y="-10000" width="20000" height="20000" fill="white" />
-            {/* Punch holes for non-locked modules */}
-            {mapData.map((m) => {
-              if (m.status === 'locked') return null;
-              // Hole size is larger for current module
-              const radius = m.status === 'current' ? 900 : 700;
-              return <circle key={`hole-${m.id}`} cx={m.x} cy={m.y} r={radius} fill="url(#fog-hole)" />;
+            <rect x="-10000" y="-10000" width="30000" height="30000" fill="white" />
+            {placed.map((p) => {
+              if (p.status === "locked") return null;
+              const r = p.status === "current" ? 420 : 320;
+              return (
+                <radialGradient key={`rg-${p.id}`} id={`rg-${p.id}`} cx="50%" cy="50%" r="50%">
+                  <stop offset="0%"   stopColor="black" stopOpacity="1" />
+                  <stop offset="55%"  stopColor="black" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor="white" stopOpacity="1" />
+                  <circle cx={p.x} cy={p.y} r={r} fill={`url(#rg-${p.id})`} />
+                </radialGradient>
+              );
+            })}
+            {/* Separate circles referencing the gradients */}
+            {placed.map((p) => {
+              if (p.status === "locked") return null;
+              const r = p.status === "current" ? 420 : 320;
+              return <circle key={`fog-${p.id}`} cx={p.x} cy={p.y} r={r} fill={`url(#rg-${p.id})`} />;
             })}
           </mask>
 
-          {/* Inline CSS for specific animations */}
-          <style>
-            {`
-              .pulse-ring { transform-origin: center; animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-              .spin-slow { transform-origin: center; animation: spin 10s linear infinite; }
-              @keyframes pulse {
-                0% { transform: scale(0.9); opacity: 0.8; }
-                50% { transform: scale(1.4); opacity: 0; }
-                100% { transform: scale(0.9); opacity: 0; }
-              }
-              @keyframes spin {
-                100% { transform: rotate(360deg); }
-              }
-              .map-text { paint-order: stroke fill; stroke: #020617; stroke-width: 4px; stroke-linejoin: round; }
-            `}
-          </style>
+          {/* Animated glow pulse for current node */}
+          <style>{`
+            @keyframes ring-pulse {
+              0%   { r: 42px; opacity: 0.9; }
+              70%  { r: 72px; opacity: 0; }
+              100% { r: 72px; opacity: 0; }
+            }
+            @keyframes ring-pulse2 {
+              0%   { r: 42px; opacity: 0.6; }
+              100% { r: 90px; opacity: 0; }
+            }
+            .pulse-r1 { animation: ring-pulse  2.4s ease-out infinite; }
+            .pulse-r2 { animation: ring-pulse2 2.4s ease-out 0.9s infinite; }
+            @keyframes castle-bob {
+              0%,100% { transform: translateY(0); }
+              50%      { transform: translateY(-4px); }
+            }
+            .castle-bob { animation: castle-bob 3s ease-in-out infinite; }
+          `}</style>
         </defs>
 
-        <g transform={`translate(${transform.x}, ${transform.y}) scale(${transform.scale})`}>
-          {/* Background Grid Layer */}
-          <rect x="-10000" y="-10000" width="20000" height="20000" fill="url(#grid)" />
+        <g transform={`translate(${tf.x},${tf.y}) scale(${tf.scale})`}>
 
-          {/* Fog Layer (rendered below interactive nodes, over the grid) */}
+          {/* Background */}
+          <rect x="-10000" y="-10000" width="30000" height="30000" fill="url(#pg)" />
+
+          {/* ── PATHS (drawn first, beneath nodes) ── */}
+          {placed.map((src, i) => {
+            const dst = placed[i + 1];
+            if (!dst) return null;
+            const isActive = src.status !== "locked";
+            // Cubic bezier: control points offset for organic curve
+            const cpx1 = src.x + (dst.x - src.x) * 0.4 + (seededRand(src.id, 3) - 0.5) * 180;
+            const cpy1 = src.y + (dst.y - src.y) * 0.1 + (seededRand(src.id, 4) - 0.5) * 140;
+            const cpx2 = src.x + (dst.x - src.x) * 0.6 + (seededRand(dst.id, 3) - 0.5) * 180;
+            const cpy2 = src.y + (dst.y - src.y) * 0.9 + (seededRand(dst.id, 4) - 0.5) * 140;
+            const d = `M ${src.x} ${src.y} C ${cpx1} ${cpy1}, ${cpx2} ${cpy2}, ${dst.x} ${dst.y}`;
+            return (
+              <g key={`path-${src.id}`}>
+                {/* Wide dim underlay */}
+                <path d={d} fill="none" stroke={isActive ? "#0a4040" : "#0d1a1a"} strokeWidth="10" />
+                {/* Glowing teal river */}
+                {isActive && (
+                  <path d={d} fill="none" stroke="#0dd3c5" strokeWidth="3.5"
+                    strokeDasharray={dst.status === "locked" ? "12 8" : "none"}
+                    filter="url(#f-teal)" opacity="0.85" />
+                )}
+                {/* Subtle dim dashes for locked segment */}
+                {!isActive && (
+                  <path d={d} fill="none" stroke="#1e3a3a" strokeWidth="2"
+                    strokeDasharray="8 10" opacity="0.4" />
+                )}
+              </g>
+            );
+          })}
+
+          {/* Subtopic branch paths */}
+          {placed.map((mod) =>
+            mod.subtopics.map((sub) => {
+              const isActive = sub.status !== "locked";
+              const cpx = (mod.x + sub.x) / 2 + (seededRand(sub.id, 5) - 0.5) * 40;
+              const cpy = (mod.y + sub.y) / 2 + (seededRand(sub.id, 6) - 0.5) * 40;
+              const d = `M ${mod.x} ${mod.y} Q ${cpx} ${cpy} ${sub.x} ${sub.y}`;
+              return (
+                <path key={`sp-${sub.id}`} d={d} fill="none"
+                  stroke={isActive ? "#0dd3c5" : "#1e3a3a"}
+                  strokeWidth={isActive ? 2 : 1.2}
+                  strokeDasharray={sub.status === "locked" ? "5 6" : "none"}
+                  filter={isActive ? "url(#f-teal)" : "none"}
+                  opacity={isActive ? 0.7 : 0.3} />
+              );
+            })
+          )}
+
+          {/* ── FOG OF WAR ── */}
           <rect
-            x="-10000"
-            y="-10000"
-            width="20000"
-            height="20000"
-            fill="rgba(2, 6, 23, 0.95)"
+            x="-10000" y="-10000" width="30000" height="30000"
+            fill="rgba(4,6,12,0.92)"
             mask="url(#fog-mask)"
             pointerEvents="none"
           />
 
-          {/* --- PATHS LAYER --- */}
-          {mapData.map((mod, i) => {
-            const nextMod = mapData[i + 1];
-            const modColors = getStatusColors(mod.status);
-
-            return (
-              <g key={`paths-${mod.id}`}>
-                {/* Module to Module Path */}
-                {nextMod && (
-                  <path
-                    d={`M ${mod.x} ${mod.y} C ${(mod.x + nextMod.x) / 2} ${mod.y}, ${(mod.x + nextMod.x) / 2} ${nextMod.y}, ${nextMod.x} ${nextMod.y}`}
-                    fill="none"
-                    stroke={nextMod.status === 'locked' ? '#1e293b' : modColors.path}
-                    strokeWidth="8"
-                    strokeDasharray={nextMod.status === 'locked' ? '10 10' : 'none'}
-                    opacity="0.6"
-                  />
-                )}
-
-                {/* Module to Subtopics Paths */}
-                {mod.subtopics.map((sub) => {
-                  const subColors = getStatusColors(sub.status);
-                  return (
-                    <path
-                      key={`path-${sub.id}`}
-                      d={`M ${mod.x} ${mod.y} Q ${(mod.x + sub.x) / 2 + 30} ${(mod.y + sub.y) / 2 - 30} ${sub.x} ${sub.y}`}
-                      fill="none"
-                      stroke={subColors.path}
-                      strokeWidth="3"
-                      strokeDasharray={sub.status === 'locked' ? '5 5' : 'none'}
-                      opacity="0.8"
-                    />
-                  );
-                })}
-              </g>
-            );
-          })}
-
-          {/* --- NODES LAYER --- */}
-          {mapData.map((mod) => {
-            const colors = getStatusColors(mod.status);
-            const isCurrent = mod.status === 'current';
-            const isLocked = mod.status === 'locked';
-
-            return (
-              <g key={`nodes-${mod.id}`}>
-                {/* Subtopic Nodes */}
-                {mod.subtopics.map((sub) => {
-                  const subColors = getStatusColors(sub.status);
-                  return (
-                    <g
-                      key={sub.id}
-                      transform={`translate(${sub.x}, ${sub.y})`}
-                      className="cursor-pointer transition-transform hover:scale-110 active:scale-95"
-                      onClick={(e) => { e.stopPropagation(); onNodeClick(sub, 'subtopic'); }}
-                    >
-                      {/* Subtopic Point */}
-                      <circle
-                        r="12"
-                        fill="#0f172a"
-                        stroke={subColors.base}
-                        strokeWidth="3"
-                        filter={sub.status !== 'locked' ? 'url(#glow-completed)' : ''}
-                      />
-                      <circle r="4" fill={subColors.base} />
-
-                      {/* Subtopic Label */}
-                      <text
-                        y="30"
-                        textAnchor="middle"
-                        fill={subColors.text}
-                        fontSize="16"
-                        fontWeight="600"
-                        className="map-text drop-shadow-md tracking-wide"
-                        opacity={sub.status === 'locked' ? 0.5 : 1}
-                      >
-                        {sub.title}
-                      </text>
-                    </g>
-                  );
-                })}
-
-                {/* Main Module Node */}
-                <g
-                  transform={`translate(${mod.x}, ${mod.y})`}
-                  className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
-                  onClick={(e) => { e.stopPropagation(); onNodeClick(mod, 'module'); }}
-                >
-                  {/* Outer glowing rings for Current node */}
-                  {isCurrent && (
-                    <>
-                      <circle r="60" fill="none" stroke={colors.glow} strokeWidth="2" className="pulse-ring" />
-                      <circle r="55" fill="none" stroke={colors.base} strokeWidth="1" strokeDasharray="6 6" className="spin-slow" />
-                    </>
-                  )}
-
-                  {/* Main Node Shape */}
-                  <circle
-                    r="36"
-                    fill="#020617"
-                    stroke={colors.base}
-                    strokeWidth="6"
-                    filter={!isLocked ? (isCurrent ? 'url(#glow-current)' : 'url(#glow-completed)') : ''}
-                  />
-
-                  {/* Inner Diamond */}
-                  <rect
-                    x="-14"
-                    y="-14"
-                    width="28"
-                    height="28"
-                    fill={colors.base}
-                    transform="rotate(45)"
-                    opacity={isLocked ? 0.3 : 1}
-                  />
-
-                  {/* Module Label */}
-                  <text
-                    y="65"
-                    textAnchor="middle"
-                    fill={colors.text}
-                    fontSize="24"
-                    fontWeight="800"
-                    className="map-text uppercase tracking-widest drop-shadow-xl"
-                    opacity={isLocked ? 0.6 : 1}
-                  >
-                    {mod.title}
+          {/* ── SUBTOPIC NODES ── */}
+          {placed.map((mod) =>
+            mod.subtopics.map((sub) => {
+              const sc = COLORS.sub[sub.status];
+              const active = sub.status !== "locked";
+              return (
+                <g key={sub.id} transform={`translate(${sub.x},${sub.y})`}
+                  style={{ cursor: active ? "pointer" : "default" }}
+                  onClick={(e) => { e.stopPropagation(); if (!active) return; onTopicClick(sub.id); }}>
+                  {/* Outer ring */}
+                  <circle r={14} fill={sc.fill} stroke={sc.stroke} strokeWidth={active ? 2.5 : 1.5}
+                    filter={active ? "url(#f-teal)" : "none"} opacity={active ? 1 : 0.45} />
+                  {/* Crystal inner dot */}
+                  <circle r={5} fill={sc.stroke} opacity={active ? 0.9 : 0.3} />
+                  {/* Label */}
+                  <text y={26} textAnchor="middle" fill={active ? "#a5f3fc" : "#334155"}
+                    fontSize={11} fontWeight={600}
+                    style={{ paintOrder: "stroke fill", stroke: "#06080f", strokeWidth: 3 }}>
+                    {sub.title}
                   </text>
                 </g>
+              );
+            })
+          )}
+
+          {/* ── MODULE NODES ── */}
+          {placed.map((mod) => {
+            const c = COLORS[mod.status];
+            const isCompleted = mod.status === "completed";
+            const isCurrent = mod.status === "current";
+            const isLocked = mod.status === "locked";
+            const clickable = !isLocked;
+
+            return (
+              <g key={mod.id} transform={`translate(${mod.x},${mod.y})`}
+                style={{ cursor: clickable ? "pointer" : "default" }}
+                onClick={(e) => handleTopicClick(mod, e)}>
+
+                {/* Pulse rings for current */}
+                {isCurrent && (
+                  <>
+                    <circle cx="0" cy="0" r="42" fill="none" stroke="#f59e0b" strokeWidth="2.5"
+                      className="pulse-r1" />
+                    <circle cx="0" cy="0" r="42" fill="none" stroke="#fbbf24" strokeWidth="1.5"
+                      className="pulse-r2" />
+                  </>
+                )}
+
+                {/* Outer glow disc */}
+                {!isLocked && (
+                  <circle r={isCompleted ? 50 : 46} fill={c.glow}
+                    filter={isCurrent ? "url(#f-amber)" : "url(#f-gold)"}
+                    opacity={isCurrent ? 0.35 : 0.22} />
+                )}
+
+                {/* Castle base — large ring */}
+                <circle r={38} fill={c.fill} stroke={c.stroke}
+                  strokeWidth={isCurrent ? 4 : isCompleted ? 3.5 : 2}
+                  filter={!isLocked ? (isCurrent ? "url(#f-amber)" : "url(#f-gold)") : "none"}
+                  opacity={isLocked ? 0.5 : 1} />
+
+                {/* Castle inner ring */}
+                <circle r={26} fill="none" stroke={c.stroke} strokeWidth={1.2}
+                  strokeDasharray={isLocked ? "4 4" : "none"} opacity={isLocked ? 0.3 : 0.6} />
+
+                {/* Castle icon — stylised tower using SVG polygons */}
+                {!isLocked && (
+                  <g className={isCompleted ? "castle-bob" : ""} opacity={isCompleted ? 1 : 0.9}>
+                    {/* Main tower body */}
+                    <rect x={-9} y={-12} width={18} height={16} rx={1}
+                      fill={isCurrent ? "#3d1f00" : "#2a1800"} stroke={c.stroke} strokeWidth={1.2} />
+                    {/* Battlements */}
+                    {[-8, -3, 2, 7].map((bx) => (
+                      <rect key={bx} x={bx} y={-18} width={4} height={7} rx={0.5}
+                        fill={isCurrent ? "#3d1f00" : "#2a1800"} stroke={c.stroke} strokeWidth={1} />
+                    ))}
+                    {/* Gate arch */}
+                    <path d="M -5 4 L -5 -2 Q 0 -6 5 -2 L 5 4 Z"
+                      fill={c.glow} opacity={0.7} />
+                    {/* Left side tower */}
+                    <rect x={-16} y={-8} width={9} height={12} rx={1}
+                      fill={isCurrent ? "#3d1f00" : "#2a1800"} stroke={c.stroke} strokeWidth={1} />
+                    <rect x={-15} y={-13} width={4} height={6} rx={0.5}
+                      fill={isCurrent ? "#3d1f00" : "#2a1800"} stroke={c.stroke} strokeWidth={1} />
+                    {/* Right side tower */}
+                    <rect x={7} y={-8} width={9} height={12} rx={1}
+                      fill={isCurrent ? "#3d1f00" : "#2a1800"} stroke={c.stroke} strokeWidth={1} />
+                    <rect x={11} y={-13} width={4} height={6} rx={0.5}
+                      fill={isCurrent ? "#3d1f00" : "#2a1800"} stroke={c.stroke} strokeWidth={1} />
+                    {/* Warm glow window dots */}
+                    {[[0, -5], [-12, -4], [12, -4]].map(([wx, wy]) => (
+                      <circle key={`${wx}${wy}`} cx={wx} cy={wy} r={2.2}
+                        fill={c.glow} opacity={0.9} filter="url(#f-gold)" />
+                    ))}
+                  </g>
+                )}
+
+                {/* Lock icon for locked nodes */}
+                {isLocked && (
+                  <g opacity={0.45}>
+                    <rect x={-7} y={-4} width={14} height={11} rx={2} fill="#1e293b" stroke="#334155" strokeWidth={1.5} />
+                    <path d="M -4 -4 Q -4 -13 0 -13 Q 4 -13 4 -4" fill="none" stroke="#334155" strokeWidth={2} />
+                    <circle cx={0} cy={2} r={2.5} fill="#334155" />
+                  </g>
+                )}
+
+                {/* Module number badge */}
+                <text y={-44} textAnchor="middle"
+                  fill={isLocked ? "#334155" : "#0dd3c5"}
+                  fontSize={9} fontWeight={800} letterSpacing="0.15em"
+                  opacity={isLocked ? 0.4 : 0.85}
+                  style={{ paintOrder: "stroke fill", stroke: "#06080f", strokeWidth: 2 }}>
+                  {`MODULE ${mod.id.replace(/^m/, "").padStart(2, "0")}`}
+                </text>
+
+                {/* Module title */}
+                <text y={58} textAnchor="middle"
+                  fill={c.text} fontSize={13} fontWeight={700}
+                  opacity={isLocked ? 0.4 : 1}
+                  style={{ paintOrder: "stroke fill", stroke: "#06080f", strokeWidth: 4, strokeLinejoin: "round" }}>
+                  {mod.title.length > 22 ? mod.title.slice(0, 21) + "…" : mod.title}
+                </text>
               </g>
             );
           })}
+
         </g>
       </svg>
     </div>
   );
 }
+
+// Re-export as GameWorldMap alias so existing imports keep working
+export { ModuleMap as GameWorldMap };
+export type { Topic as Module };

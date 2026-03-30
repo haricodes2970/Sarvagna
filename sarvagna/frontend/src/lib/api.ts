@@ -161,6 +161,31 @@ export const progressApi = {
     }),
 };
 
+// ─── Map ──────────────────────────────────────────────────────────────────────
+
+export interface MapModuleNode {
+  module_number: number;
+  title: string;
+  status: "completed" | "current" | "locked";
+  xp: number;
+  completion_date: string | null;
+  connections: { from: number; to: number; type: string }[];
+}
+
+export interface MapResponse {
+  subject_id: string;
+  subject_name: string;
+  total_modules: number;
+  completed_modules: number;
+  completion_percentage: number;
+  modules: MapModuleNode[];
+}
+
+export const mapApi = {
+  getMap: (subject_id: string) =>
+    api.get<MapResponse>(`/map/${subject_id}`),
+};
+
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
 export interface ChatMessage {

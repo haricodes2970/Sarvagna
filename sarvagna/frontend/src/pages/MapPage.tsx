@@ -3,54 +3,43 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Map } from "lucide-react";
 import toast from "react-hot-toast";
-import { progressApi } from "@/lib/api";
-import GameWorldMap, { type Module, type NodeStatus } from "@/components/GameMap";
+import { mapApi, type MapModuleNode } from "@/lib/api";
+import ModuleMap, { type Topic } from "@/components/GameMap";
 
-// Map API ModuleNode → GameWorldMap Module
-function toGameModules(nodes: any[]): Module[] {
-  const firstIncompleteIdx = nodes.findIndex((n) => !n.is_completed);
-
-  return nodes.map((node, idx) => {
-    let status: NodeStatus;
-    if (node.is_completed) status = "completed";
-    else if (idx === firstIncompleteIdx) status = "current";
-    else status = "locked";
-
-    return {
-      id: `m${node.module_number}`,
-      title: node.title ?? `Module ${node.module_number}`,
-      status,
-      subtopics: [],  // subtopic data not yet in API — nodes render as main nodes only
-    };
-  });
+// Map API MapModuleNode → ModuleMap Topic
+function toTopics(nodes: MapModuleNode[]): Topic[] {
+  return nodes.map((node) => ({
+    id: `m${node.module_number}`,
+    title: node.title,
+    status: node.status,
+    subtopics: [],
+  }));
 }
 
 export default function MapPage() {
   const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
 
-  // ── API calls unchanged ──────────────────────────────────────────────────
-  const { data: roadmap, isLoading } = useQuery({
-    queryKey: ["roadmap", subjectId],
-    queryFn: () => progressApi.roadmap(subjectId!).then((r) => r.data),
+  const { data: mapData, isLoading } = useQuery({
+    queryKey: ["map", subjectId],
+    queryFn: () => mapApi.getMap(subjectId!).then((r) => r.data),
     enabled: !!subjectId,
   });
 
-  const handleNodeClick = useCallback(
-    (node: { id: string; status: NodeStatus }, type: "module" | "subtopic") => {
-      if (type !== "module") return;
+  const handleTopicClick = useCallback(
+    (topicId: string) => {
+      if (!mapData) return;
+      const node = mapData.modules.find((m) => `m${m.module_number}` === topicId);
+      if (!node) return;
       if (node.status === "locked") {
         toast("Complete previous modules to unlock this one", { icon: "🔒" });
         return;
       }
-      // id is "m{module_number}"
-      const moduleNumber = node.id.replace(/^m/, "");
-      navigate(`/chat/${subjectId}/${moduleNumber}`);
+      navigate(`/chat/${subjectId}/${node.module_number}`);
     },
-    [subjectId, navigate]
+    [subjectId, navigate, mapData]
   );
 
-  // ── Loading / error states ───────────────────────────────────────────────
   if (isLoading) {
     return (
       <div className="h-screen bg-slate-950 flex items-center justify-center">
@@ -59,7 +48,7 @@ export default function MapPage() {
     );
   }
 
-  if (!roadmap) {
+  if (!mapData) {
     return (
       <div className="h-screen bg-slate-950 flex items-center justify-center">
         <p className="text-slate-500 text-sm">Map not found.</p>
@@ -67,7 +56,7 @@ export default function MapPage() {
     );
   }
 
-  const modules = toGameModules(roadmap.modules);
+  const topics = toTopics(mapData.modules);
 
   return (
     <div className="h-screen bg-slate-950 flex flex-col">
@@ -85,21 +74,25 @@ export default function MapPage() {
           </div>
           <div>
             <h1 className="text-base font-bold text-white leading-none">
-              {roadmap.subject_name}
+              {mapData.subject_name}
             </h1>
             <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
-              Module Map · {roadmap.completed_modules}/{roadmap.total_modules} Complete
+              Module Map · {mapData.completed_modules}/{mapData.total_modules} Complete
             </p>
           </div>
         </div>
         <div className="ml-auto text-[10px] font-black text-amber-500 uppercase tracking-widest">
-          {roadmap.completion_percentage}%
+          {mapData.completion_percentage}%
         </div>
       </div>
 
       {/* Map canvas */}
       <div className="flex-1 relative">
-        <GameWorldMap modules={modules} onNodeClick={handleNodeClick} />
+        <ModuleMap
+          topics={topics}
+          onTopicClick={handleTopicClick}
+          moduleTitle={mapData.subject_name}
+        />
       </div>
     </div>
   );
