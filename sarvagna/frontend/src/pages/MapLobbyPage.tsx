@@ -1,21 +1,53 @@
-/**
- * MapLobbyPage — PUBG-style map skin selector before entering a module.
- * User picks one of 6 static fantasy map backgrounds, then launches the module map.
- */
-import { useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Swords, ChevronRight } from "lucide-react";
-import { mapSelectionApi, modulemapApi } from "@/lib/api";
+import { useState, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { mapSelectionApi, subjectsApi } from '@/lib/api';
 
-const MAPS = [
-  { id: "map1", name: "The Verdant Realm",  flavor: "Ancient forests & mystical rivers" },
-  { id: "map2", name: "The Iron Citadel",   flavor: "Fortress of dark stone & fire" },
-  { id: "map3", name: "The Frozen Wastes",  flavor: "Tundra beyond the northern wall" },
-  { id: "map4", name: "The Desert Sands",   flavor: "Lost temples beneath burning skies" },
-  { id: "map5", name: "The Storm Coast",    flavor: "Cliffs battered by arcane lightning" },
-  { id: "map6", name: "The Shadow Vale",    flavor: "Where light fears to tread" },
+const maps = [
+  {
+    id: "map1",
+    name: "ANCIENT FOREST KINGDOM",
+    description: "Master the foundations in the depths of an ancient realm",
+    image: "/maps/map1.jpg",
+    theme: "Forest"
+  },
+  {
+    id: "map2",
+    name: "DESERT RUINS EMPIRE",
+    description: "Uncover knowledge buried beneath golden sands",
+    image: "/maps/map2.jpg",
+    theme: "Desert"
+  },
+  {
+    id: "map3",
+    name: "FROZEN TUNDRA REALM",
+    description: "Brave the cold and conquer complex concepts",
+    image: "/maps/map3.jpg",
+    theme: "Ice"
+  },
+  {
+    id: "map4",
+    name: "VOLCANIC DARK LANDS",
+    description: "Forge your understanding in the fires of challenge",
+    image: "/maps/map4.jpg",
+    theme: "Volcanic"
+  },
+  {
+    id: "map5",
+    name: "MYSTICAL FLOATING ISLANDS",
+    description: "Elevate your mind to new heights of understanding",
+    image: "/maps/map5.jpg",
+    theme: "Mystic"
+  },
+  {
+    id: "map6",
+    name: "NEON CYBER CITY",
+    description: "Navigate the digital frontier of modern knowledge",
+    image: "/maps/map6.jpg",
+    theme: "Cyber"
+  }
 ];
 
 export default function MapLobbyPage() {
@@ -23,217 +55,207 @@ export default function MapLobbyPage() {
   const navigate = useNavigate();
   const modNum = Number(moduleNumber);
 
-  // Fetch module title
-  const { data: moduleData } = useQuery({
-    queryKey: ["modulemap", subjectId, moduleNumber],
-    queryFn: () => modulemapApi.getModuleMap(subjectId!, modNum).then((r) => r.data),
-    enabled: !!subjectId && Number.isFinite(modNum),
-  });
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [direction, setDirection] = useState(0);
 
-  // Fetch previously saved map for this module
+  // Get subject name from subjects list
+  const { data: subjects } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: () => subjectsApi.list().then((r) => r.data),
+  });
+  const subject = subjects?.find((s) => s.id === subjectId);
+  const subjectName = subject?.name ?? 'Subject';
+
+  // Load previously saved map selection and pre-select it
   const { data: savedSelection } = useQuery({
-    queryKey: ["mapselection", subjectId, moduleNumber],
+    queryKey: ['mapselection', subjectId, moduleNumber],
     queryFn: () => mapSelectionApi.getSelectedMap(subjectId!, modNum).then((r) => r.data),
     enabled: !!subjectId && Number.isFinite(modNum),
   });
 
-  const defaultMapId = `map${((modNum - 1) % 6) + 1}`;
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  useEffect(() => {
+    if (savedSelection?.selected_map) {
+      const idx = maps.findIndex((m) => m.id === savedSelection.selected_map);
+      if (idx !== -1) setCurrentIndex(idx);
+    }
+  }, [savedSelection]);
 
-  // Use saved selection, then local state, then default
-  const activeMapId = selectedId ?? savedSelection?.selected_map ?? defaultMapId;
-  const activeMap = MAPS.find((m) => m.id === activeMapId) ?? MAPS[0];
-
-  // Save + navigate
-  const { mutate: begin, isPending } = useMutation({
-    mutationFn: () =>
-      mapSelectionApi.saveSelectedMap(subjectId!, modNum, activeMapId).then((r) => r.data),
+  // Save selection + navigate
+  const { mutate: selectMap, isPending } = useMutation({
+    mutationFn: (mapId: string) =>
+      mapSelectionApi.saveSelectedMap(subjectId!, modNum, mapId).then((r) => r.data),
     onSuccess: () => navigate(`/modulemap/${subjectId}/${moduleNumber}`),
-    onError: () => navigate(`/modulemap/${subjectId}/${moduleNumber}`), // still proceed on error
+    onError: () => navigate(`/modulemap/${subjectId}/${moduleNumber}`),
   });
 
-  const moduleTitle = moduleData?.module_title ?? `Module ${moduleNumber}`;
-  const subjectName = moduleData?.subject_name ?? "Subject";
+  const handleNext = useCallback(() => {
+    setDirection(1);
+    setCurrentIndex((prev) => (prev === maps.length - 1 ? 0 : prev + 1));
+  }, []);
+
+  const handlePrev = useCallback(() => {
+    setDirection(-1);
+    setCurrentIndex((prev) => (prev === 0 ? maps.length - 1 : prev - 1));
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowRight') handleNext();
+      if (e.key === 'ArrowLeft') handlePrev();
+      if (e.key === 'Enter') selectMap(maps[currentIndex].id);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleNext, handlePrev, currentIndex, selectMap]);
+
+  const currentMap = maps[currentIndex];
+
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? 1000 : -1000,
+      opacity: 0,
+      scale: 1.1
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 0.6, ease: [0.25, 1, 0.5, 1] as const }
+    },
+    exit: (dir: number) => ({
+      x: dir < 0 ? 1000 : -1000,
+      opacity: 0,
+      scale: 0.9,
+      transition: { duration: 0.5, ease: [0.25, 1, 0.5, 1] as const }
+    })
+  };
+
+  const textVariants = {
+    initial: { y: 40, opacity: 0 },
+    animate: {
+      y: 0,
+      opacity: 1,
+      transition: { duration: 0.5, delay: 0.2, ease: "easeOut" as const }
+    },
+    exit: {
+      y: -40,
+      opacity: 0,
+      transition: { duration: 0.3 }
+    }
+  };
 
   return (
-    <div className="h-screen bg-[#06080e] text-white flex flex-col overflow-hidden">
+    <div className="relative h-screen w-screen bg-[#0a0a0f] text-white overflow-hidden font-sans select-none flex flex-col justify-between">
 
-      {/* ── Header ── */}
-      <div className="shrink-0 z-20 bg-black/70 backdrop-blur border-b border-white/5 px-4 py-3 flex items-center gap-3">
+      {/* Background Map Image */}
+      <AnimatePresence initial={false} custom={direction}>
+        <motion.img
+          key={currentIndex}
+          src={currentMap.image}
+          alt={currentMap.name}
+          custom={direction}
+          variants={slideVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          className="absolute inset-0 w-full h-full object-cover z-0"
+        />
+      </AnimatePresence>
+
+      {/* Vignette overlays */}
+      <div className="absolute inset-0 z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-[#0a0a0f]/60 to-[#0a0a0f] pointer-events-none" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#0a0a0f] via-transparent to-[#0a0a0f]/80 pointer-events-none" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#0a0a0f] via-transparent to-[#0a0a0f] pointer-events-none" />
+
+      {/* Top Stats Bar */}
+      <div className="relative z-20 w-full p-8 flex justify-between items-start">
+        <div className="flex flex-col gap-1">
+          <div className="text-amber-500 text-sm font-bold tracking-widest uppercase">
+            Module {moduleNumber}
+          </div>
+          <div className="text-3xl font-black tracking-widest uppercase opacity-90 drop-shadow-lg">
+            {subjectName}
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <div className="text-gray-400 text-sm font-bold tracking-widest uppercase">
+            Sarvagna Platform
+          </div>
+          <div className="text-xl font-bold tracking-wider text-teal-400 opacity-80 drop-shadow-md">
+            LOBBY
+          </div>
+        </div>
+      </div>
+
+      {/* Left/Right Navigation Arrows */}
+      <div className="absolute top-1/2 left-0 w-full -translate-y-1/2 flex justify-between px-8 z-30 pointer-events-none">
         <button
-          onClick={() => navigate(`/map/${subjectId}`)}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+          onClick={handlePrev}
+          className="pointer-events-auto bg-[#0a0a0f]/60 hover:bg-[#0a0a0f]/90 border border-white/10 text-white p-4 rounded-full backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 group"
         >
-          <ArrowLeft size={18} />
+          <ChevronLeft size={36} className="group-hover:-translate-x-1 transition-transform" />
         </button>
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-500">
-            Select Your Realm
-          </p>
-          <h1 className="text-sm font-bold truncate text-white/90">
-            {subjectName} · {moduleTitle}
-          </h1>
-        </div>
-        <div className="text-[10px] font-black uppercase tracking-widest text-slate-600">
-          Map Lobby
-        </div>
-      </div>
-
-      {/* ── Main content ── */}
-      <div className="flex-1 flex overflow-hidden">
-
-        {/* Left — large map preview */}
-        <div className="relative flex-1 overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={activeMapId}
-              src={`/maps/${activeMapId}.jpg`}
-              alt={activeMap.name}
-              className="absolute inset-0 w-full h-full object-cover"
-              initial={{ opacity: 0, scale: 1.04 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.97 }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
-            />
-          </AnimatePresence>
-
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-[#06080e] via-[#06080e]/30 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#06080e]/60 via-transparent to-[#06080e]" />
-
-          {/* Map name overlay (bottom-left) */}
-          <motion.div
-            key={`label-${activeMapId}`}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-            className="absolute bottom-8 left-8 z-10"
-          >
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-400 mb-1">
-              Selected Realm
-            </p>
-            <h2 className="text-3xl font-black text-white drop-shadow-lg leading-tight">
-              {activeMap.name}
-            </h2>
-            <p className="text-sm text-slate-400 mt-1 italic">{activeMap.flavor}</p>
-          </motion.div>
-        </div>
-
-        {/* Right — map selection panel */}
-        <div
-          className="w-72 shrink-0 flex flex-col border-l border-white/5"
-          style={{ background: "rgba(6,8,14,0.95)", backdropFilter: "blur(12px)" }}
+        <button
+          onClick={handleNext}
+          className="pointer-events-auto bg-[#0a0a0f]/60 hover:bg-[#0a0a0f]/90 border border-white/10 text-white p-4 rounded-full backdrop-blur-md transition-all duration-200 hover:scale-110 active:scale-95 group"
         >
-          <div className="px-4 pt-4 pb-2">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-              Choose Realm
-            </p>
-          </div>
+          <ChevronRight size={36} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+      </div>
 
-          {/* Map tiles */}
-          <div className="flex-1 overflow-y-auto px-3 pb-3 flex flex-col gap-2">
-            {MAPS.map((m, i) => {
-              const isActive = m.id === activeMapId;
-              return (
-                <motion.button
-                  key={m.id}
-                  onClick={() => setSelectedId(m.id)}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05, duration: 0.25 }}
-                  className="relative w-full rounded-xl overflow-hidden border transition-all text-left"
-                  style={{
-                    borderColor: isActive ? "rgba(245,158,11,0.7)" : "rgba(255,255,255,0.06)",
-                    boxShadow: isActive ? "0 0 16px rgba(245,158,11,0.25)" : "none",
-                  }}
-                >
-                  {/* Thumbnail */}
-                  <div className="relative h-16 overflow-hidden">
-                    <img
-                      src={`/maps/${m.id}.jpg`}
-                      alt={m.name}
-                      className="w-full h-full object-cover transition-transform duration-300"
-                      style={{ transform: isActive ? "scale(1.05)" : "scale(1)" }}
-                    />
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background: isActive
-                          ? "linear-gradient(135deg, rgba(245,158,11,0.15), transparent)"
-                          : "linear-gradient(135deg, rgba(0,0,0,0.5), rgba(0,0,0,0.2))",
-                      }}
-                    />
-                    {/* Map number badge */}
-                    <div
-                      className="absolute top-1.5 left-1.5 w-5 h-5 rounded-md flex items-center justify-center text-[9px] font-black"
-                      style={{
-                        background: isActive ? "#f59e0b" : "rgba(0,0,0,0.6)",
-                        color: isActive ? "#000" : "#94a3b8",
-                      }}
-                    >
-                      {i + 1}
-                    </div>
-                    {/* Active checkmark */}
-                    {isActive && (
-                      <div className="absolute top-1.5 right-1.5 w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center">
-                        <svg viewBox="0 0 10 8" className="w-2.5 h-2.5" fill="none">
-                          <path d="M1 4l3 3 5-6" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                  {/* Label */}
-                  <div
-                    className="px-2.5 py-1.5"
-                    style={{ background: isActive ? "rgba(245,158,11,0.08)" : "rgba(10,12,20,0.9)" }}
-                  >
-                    <p
-                      className="text-[11px] font-bold truncate"
-                      style={{ color: isActive ? "#fde68a" : "#cbd5e1" }}
-                    >
-                      {m.name}
-                    </p>
-                  </div>
-                </motion.button>
-              );
-            })}
-          </div>
+      {/* Bottom Content Area */}
+      <div className="relative z-20 w-full px-12 pb-12 flex flex-col items-center">
 
-          {/* BEGIN CONQUEST button */}
-          <div className="shrink-0 p-4 border-t border-white/5">
-            <motion.button
-              onClick={() => begin()}
-              disabled={isPending}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              className="w-full py-4 rounded-xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2.5 transition-all"
-              style={{
-                background: isPending
-                  ? "rgba(100,80,10,0.4)"
-                  : "linear-gradient(135deg, #f59e0b, #d97706)",
-                color: isPending ? "#a16207" : "#000",
-                boxShadow: isPending ? "none" : "0 0 28px rgba(245,158,11,0.35)",
-              }}
+        {/* Map Name and Description */}
+        <div className="flex flex-col items-center text-center h-32 justify-end mb-12">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentIndex}
+              variants={textVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="flex flex-col items-center"
             >
-              {isPending ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-amber-700 border-t-amber-400 rounded-full animate-spin" />
-                  Entering…
-                </>
-              ) : (
-                <>
-                  <Swords size={16} />
-                  Begin Conquest
-                  <ChevronRight size={14} />
-                </>
-              )}
-            </motion.button>
-            <p className="text-center text-[10px] text-slate-600 mt-2 uppercase tracking-wider font-bold">
-              {activeMap.name}
-            </p>
+              <h1 className="text-6xl font-black tracking-[0.2em] uppercase text-white drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] mb-4">
+                {currentMap.name}
+              </h1>
+              <p className="text-xl text-gray-300 font-medium tracking-wide drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] max-w-2xl">
+                {currentMap.description}
+              </p>
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Action Bar */}
+        <div className="w-full flex justify-between items-end border-t border-white/10 pt-8">
+
+          <button
+            onClick={() => navigate(`/map/${subjectId}`)}
+            className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors duration-200 font-bold tracking-widest uppercase group"
+          >
+            <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
+            Back
+          </button>
+
+          <div className="text-gray-500 font-bold tracking-[0.3em] text-lg flex items-center h-full pb-4">
+            {currentIndex + 1} / {maps.length}
           </div>
+
+          <button
+            onClick={() => selectMap(currentMap.id)}
+            disabled={isPending}
+            className="bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-[#0a0a0f] px-12 py-5 font-black text-2xl tracking-widest uppercase transform transition-all duration-300 shadow-[0_0_30px_rgba(245,158,11,0.4)] hover:shadow-[0_0_50px_rgba(245,158,11,0.8)] hover:-translate-y-1 active:translate-y-0"
+            style={{
+              clipPath: 'polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px)'
+            }}
+          >
+            {isPending ? 'Entering…' : 'Begin Conquest'}
+          </button>
+
         </div>
       </div>
+
     </div>
   );
 }
