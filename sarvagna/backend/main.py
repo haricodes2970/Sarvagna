@@ -2,13 +2,21 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import auth, chat, map, mapimage, modulemap, progress, query, subjects
+from api.routes import auth, chat, map, modulemap, progress, query, subjects
 
 app = FastAPI(title="Sarvagna API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:5175",
+        "http://localhost:5176",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:5175",
+    ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allow_headers=["*", "Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"],
@@ -36,7 +44,6 @@ app.include_router(subjects.router, prefix="/api/v1")
 app.include_router(progress.router, prefix="/api/v1")
 app.include_router(chat.router, prefix="/api/v1")
 app.include_router(map.router, prefix="/api/v1")
-app.include_router(mapimage.router, prefix="/api/v1")
 app.include_router(modulemap.router, prefix="/api/v1")
 
 

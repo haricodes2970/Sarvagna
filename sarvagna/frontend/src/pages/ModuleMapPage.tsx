@@ -31,9 +31,12 @@ export default function ModuleMapPage() {
   });
 
   const topics = useMemo(() => toTopics(data?.topics ?? []), [data]);
-
   const subjectName = data?.subject_name ?? "Subject";
   const moduleTitle = data?.module_title ?? `Module ${moduleNumber}`;
+
+  // Static map image — cycles through map1.jpg–map5.jpg by module number
+  const mapIndex = ((modNum - 1) % 5) + 1;
+  const backgroundUrl = `/maps/map${mapIndex}.jpg`;
 
   if (isLoading) {
     return (
@@ -74,13 +77,14 @@ export default function ModuleMapPage() {
         </div>
       </div>
 
-      {/* Fantasy map — full height */}
+      {/* Map canvas */}
       <div className="flex-1 relative overflow-hidden">
         <FantasyMap
           topics={topics}
           moduleTitle={moduleTitle}
+          backgroundUrl={backgroundUrl}
           onTopicClick={(topicId) => {
-            const topic = data.topics.find((t) => t.id === topicId);
+            const topic = data.topics[0]?.subtopics?.find((t) => t.id === topicId);
             if (!topic || topic.status === "locked") return;
             navigate(`/chat/${subjectId}/${moduleNumber}`);
           }}

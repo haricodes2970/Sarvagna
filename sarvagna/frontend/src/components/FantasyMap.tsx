@@ -34,6 +34,8 @@ export interface FantasyMapProps {
   onTopicClick: (topicId: string) => void;
   onStartStudying?: () => void;
   moduleTitle?: string;
+  /** If provided, used as CSS background-image. SVG terrain is hidden. */
+  backgroundUrl?: string;
 }
 
 // ── Virtual canvas ──────────────────────────────────────────────────────────
@@ -171,6 +173,7 @@ export default function FantasyMap({
   topics,
   onTopicClick,
   onStartStudying,
+  backgroundUrl,
 }: FantasyMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef       = useRef<SVGSVGElement>(null);
@@ -255,7 +258,11 @@ export default function FantasyMap({
     <div
       ref={containerRef}
       className="relative w-full h-full overflow-hidden select-none"
-      style={{ background: "#04060d" }}
+      style={
+        backgroundUrl
+          ? { backgroundImage: `url(${backgroundUrl})`, backgroundSize: "cover", backgroundPosition: "center" }
+          : { background: "#04060d" }
+      }
     >
       {/* ── HUD ─────────────────────────────────────────────── */}
       <div className="absolute top-4 left-4 z-10 pointer-events-none">
@@ -414,43 +421,34 @@ export default function FantasyMap({
 
         <g transform={`translate(${tf.x},${tf.y}) scale(${tf.scale})`}>
 
-          {/* ── BACKGROUND ────────────────────────────────── */}
-          <rect x="-5000" y="-5000" width="15000" height="15000" fill="url(#bg)" />
-
-          {/* Warm centre terrain glow */}
-          <ellipse cx={CX} cy={CY} rx={700} ry={460} fill="url(#terrain-warm)" />
-
-          {/* ── MOUNTAINS ─────────────────────────────────── */}
-          {/* Blurred base for mountains */}
-          {mountains.map((m, i) => {
-            const [topStr] = m.pts.split(" ");
-            const [tx, ty] = topStr.split(",").map(Number);
-            return (
-              <g key={`mb-${i}`} filter="url(#fmtn)">
-                <polygon points={m.pts}
-                  fill="#16162a" opacity={m.opacity * 0.7} />
-                {/* Snow cap highlight */}
-                <circle cx={tx} cy={ty} r={3.5} fill="#2a2850" opacity={m.opacity * 0.5} />
-              </g>
-            );
-          })}
-          {/* Sharp mountain on top */}
-          {mountains.map((m, i) => (
-            <polygon key={`ms-${i}`} points={m.pts}
-              fill="#1b1930" stroke="#252348" strokeWidth="0.6"
-              opacity={m.opacity * 0.9} />
-          ))}
-
-          {/* ── FORESTS ───────────────────────────────────── */}
-          {forests.map((t, i) => (
-            <g key={`tr-${i}`}>
-              <circle cx={t.x} cy={t.y} r={t.r * 1.3}
-                fill="#0a1a0e" opacity={0.45} />
-              <circle cx={t.x} cy={t.y} r={t.r}
-                fill="#0d2214" stroke="#122818" strokeWidth="0.8"
-                opacity={0.65} />
-            </g>
-          ))}
+          {/* ── BACKGROUND + TERRAIN (SVG mode only) ──────── */}
+          {!backgroundUrl && (
+            <>
+              <rect x="-5000" y="-5000" width="15000" height="15000" fill="url(#bg)" />
+              <ellipse cx={CX} cy={CY} rx={700} ry={460} fill="url(#terrain-warm)" />
+              {mountains.map((m, i) => {
+                const [topStr] = m.pts.split(" ");
+                const [tx, ty] = topStr.split(",").map(Number);
+                return (
+                  <g key={`mb-${i}`} filter="url(#fmtn)">
+                    <polygon points={m.pts} fill="#16162a" opacity={m.opacity * 0.7} />
+                    <circle cx={tx} cy={ty} r={3.5} fill="#2a2850" opacity={m.opacity * 0.5} />
+                  </g>
+                );
+              })}
+              {mountains.map((m, i) => (
+                <polygon key={`ms-${i}`} points={m.pts}
+                  fill="#1b1930" stroke="#252348" strokeWidth="0.6" opacity={m.opacity * 0.9} />
+              ))}
+              {forests.map((t, i) => (
+                <g key={`tr-${i}`}>
+                  <circle cx={t.x} cy={t.y} r={t.r * 1.3} fill="#0a1a0e" opacity={0.45} />
+                  <circle cx={t.x} cy={t.y} r={t.r} fill="#0d2214" stroke="#122818"
+                    strokeWidth="0.8" opacity={0.65} />
+                </g>
+              ))}
+            </>
+          )}
 
           {/* ── RIVER PATHS (centre → each topic) ─────────── */}
           {placed.map((t) => {
