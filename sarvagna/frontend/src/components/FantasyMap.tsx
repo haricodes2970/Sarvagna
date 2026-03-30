@@ -224,12 +224,11 @@ export default function FantasyMap({
   const onMD = (e: React.MouseEvent) =>
     (drag.current = { sx: e.clientX, sy: e.clientY, tx: tfRef.current.x, ty: tfRef.current.y });
   const onMM = (e: React.MouseEvent) => {
-    if (!drag.current) return;
-    setTf((p) => ({
-      ...p,
-      x: drag.current!.tx + (e.clientX - drag.current!.sx),
-      y: drag.current!.ty + (e.clientY - drag.current!.sy),
-    }));
+    const d = drag.current;
+    if (!d) return;
+    const cx = e.clientX;
+    const cy = e.clientY;
+    setTf((p) => ({ ...p, x: d.tx + (cx - d.sx), y: d.ty + (cy - d.sy) }));
   };
   const onMU = () => (drag.current = null);
 
