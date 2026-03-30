@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import { modulemapApi, type ModuleMapTopic } from "@/lib/api";
+import { mapSelectionApi, modulemapApi, type ModuleMapTopic } from "@/lib/api";
 import FantasyMap, { type Topic } from "@/components/FantasyMap";
 
 function toTopics(raw: ModuleMapTopic[]): Topic[] {
@@ -30,13 +30,20 @@ export default function ModuleMapPage() {
     enabled,
   });
 
+  // Fetch the map skin chosen in the lobby
+  const { data: mapSelection } = useQuery({
+    queryKey: ["mapselection", subjectId, moduleNumber],
+    queryFn: () => mapSelectionApi.getSelectedMap(subjectId!, modNum).then((r) => r.data),
+    enabled,
+  });
+
   const topics = useMemo(() => toTopics(data?.topics ?? []), [data]);
   const subjectName = data?.subject_name ?? "Subject";
   const moduleTitle = data?.module_title ?? `Module ${moduleNumber}`;
 
-  // Static map image — cycles through map1.jpg–map5.jpg by module number
-  const mapIndex = ((modNum - 1) % 5) + 1;
-  const backgroundUrl = `/maps/map${mapIndex}.jpg`;
+  // Use saved selection; fall back to cycling through maps by module number
+  const defaultMap = `map${((modNum - 1) % 6) + 1}`;
+  const backgroundUrl = `/maps/${mapSelection?.selected_map ?? defaultMap}.jpg`;
 
   if (isLoading) {
     return (
@@ -59,7 +66,7 @@ export default function ModuleMapPage() {
       {/* Header */}
       <div className="shrink-0 z-10 bg-black/80 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex items-center gap-3">
         <button
-          onClick={() => navigate(`/map/${subjectId}`)}
+          onClick={() => navigate(`/lobby/${subjectId}/${moduleNumber}`)}
           className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
         >
           <ArrowLeft size={20} />
