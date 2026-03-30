@@ -133,7 +133,7 @@ export default function DashboardPage() {
               key={s.id}
               subject={s}
               onOpen={() => navigate(`/subject/${s.id}`)}
-              onRoadmap={() => navigate(`/roadmap/${s.id}`)}
+              onRoadmap={() => navigate(`/map/${s.id}`)}
               onRemove={() => removeMutation.mutate(s.id)}
               removing={removeMutation.isPending}
             />
@@ -179,7 +179,7 @@ function SubjectCard({
           Ask Questions
         </button>
         <button style={styles.outlineBtn} onClick={onRoadmap}>
-          Roadmap
+          Open Map
         </button>
       </div>
     </div>

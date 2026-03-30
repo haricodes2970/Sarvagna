@@ -127,3 +127,25 @@ def get_modules(branch: str, semester: int, subject: str) -> List[str]:
         if isinstance(modules, dict):
             return list(modules.keys())
     return []
+
+
+_STOP_WORDS = frozenset(
+    ["and", "or", "of", "the", "in", "to", "a", "an", "with", "for",
+     "its", "their", "this", "that", "is", "are", "be", "by", "on"]
+)
+
+
+def get_topic_keywords(branch: str, semester: int, subject: str, module_number: int) -> List[str]:
+    """Return meaningful keywords for a specific module (1-indexed).
+
+    Splits the module title/description into lowercase tokens, strips stop words
+    and short tokens.  Returns an empty list if the syllabus or module is not found.
+    """
+    modules = get_modules(branch, semester, subject)
+    idx = module_number - 1
+    if idx < 0 or idx >= len(modules):
+        return []
+
+    module_text = modules[idx]
+    tokens = module_text.lower().replace(",", " ").replace(":", " ").replace(";", " ").split()
+    return [t for t in tokens if len(t) > 3 and t not in _STOP_WORDS]

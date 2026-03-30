@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, Send, Bot, User } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { chatApi, subjectsApi, type ChatMessage } from "@/lib/api";
 
@@ -128,9 +129,11 @@ export default function ChatPage() {
             </div>
           </div>
         ) : (
-          localMessages.map((msg) => (
-            <MessageBubble key={msg.id} message={msg} />
-          ))
+          <AnimatePresence initial={false}>
+            {localMessages.map((msg) => (
+              <MessageBubble key={msg.id} message={msg} />
+            ))}
+          </AnimatePresence>
         )}
 
         {/* Thinking indicator */}
@@ -162,7 +165,7 @@ export default function ChatPage() {
             onKeyDown={handleKeyDown}
             placeholder="Ask a question or say 'Let's start'…"
             rows={1}
-            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 resize-none outline-none focus:border-amber-500/50 transition-colors max-h-32 overflow-y-auto"
+            className="flex-1 bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 text-sm text-zinc-100 placeholder-zinc-600 resize-none outline-none focus:border-amber-500 focus:shadow-[0_0_0_2px_rgba(245,158,11,0.15)] transition-all max-h-32 overflow-y-auto"
             style={{ lineHeight: "1.5" }}
             disabled={sendMutation.isPending}
           />
@@ -186,7 +189,13 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
 
   return (
-    <div className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : ""}`}>
+    <motion.div
+      className={`flex items-start gap-3 ${isUser ? "flex-row-reverse" : ""}`}
+      initial={{ opacity: 0, x: isUser ? 20 : -20, y: 4 }}
+      animate={{ opacity: 1, x: 0, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+    >
       {/* Avatar */}
       <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
         isUser
@@ -210,6 +219,6 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
