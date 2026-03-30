@@ -75,8 +75,6 @@ async def get_or_generate_module_image(
         )
 
     image_url = await generate_module_map(
-        subject_id=str(subject_uuid),
-        module_number=module_number,
         module_title=module_title,
         topics_list=topics_list,
     )
