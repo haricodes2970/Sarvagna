@@ -4,7 +4,7 @@ import logging
 
 from groq import Groq
 
-from core.config import settings
+from core.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,7 @@ Return ONLY this exact JSON structure, no explanation:
 }}"""
 
     try:
-        client = Groq(api_key=settings.GROQ_API_KEY)
+        client = Groq(api_key=get_settings().GROQ_API_KEY)
         response = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],

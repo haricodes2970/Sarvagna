@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from api.routes.auth import current_user_dep
-from core.config import settings
+from core.config import get_settings
 from core.database import get_db
 from models.db_models import ModuleImage, Subject, User
 from services.groq_map_placer import generate_map_layout
@@ -119,7 +119,7 @@ async def get_map_graph(
     redis_client = None
 
     try:
-        redis_client = aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        redis_client = aioredis.from_url(get_settings().REDIS_URL, decode_responses=True)
         cached = await redis_client.get(cache_key)
         if cached:
             layout = json.loads(cached)
