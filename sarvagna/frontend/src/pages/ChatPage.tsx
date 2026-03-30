@@ -21,12 +21,19 @@ export default function ChatPage() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Fetch subject name for header
+  // Fetch subject (poll while scraping incomplete)
   const { data: subjects = [] } = useQuery({
     queryKey: ["subjects"],
     queryFn: () => subjectsApi.list().then((r) => r.data),
+    refetchInterval: (query) => {
+      const subj = query.state.data?.find((s) => s.id === subjectId);
+      // Stop polling once all 5 modules are scraped
+      return subj && subj.modules_scraped >= 5 ? false : 8000;
+    },
   });
   const subject = subjects.find((s) => s.id === subjectId);
+  const modulesScraped = subject?.modules_scraped ?? 0;
+  const moduleReady = modNum === 0 ? modulesScraped > 0 : modulesScraped >= modNum;
 
   // Load chat history
   const { data: history, isLoading } = useQuery({
@@ -42,16 +49,15 @@ export default function ChatPage() {
     }
   }, [history]);
 
-  // Auto-send opening message when arriving from map with a topicTitle param
+  // Auto-send opening message when arriving from map/important-questions with a topicTitle param
   useEffect(() => {
     if (
       topicTitle &&
       !autoSentRef.current &&
-      history !== undefined &&        // history loaded
-      history.messages.length === 0   // fresh session only
+      history !== undefined   // history loaded (send regardless of existing messages)
     ) {
       autoSentRef.current = true;
-      sendMutation.mutate(`Let's start studying: ${topicTitle}`);
+      sendMutation.mutate(`Teach me this topic: ${topicTitle}`);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicTitle, history]);
@@ -126,6 +132,21 @@ export default function ChatPage() {
           <span className="text-xs text-zinc-400">Sarvagna AI</span>
         </div>
       </div>
+
+      {/* ── Scrape status banner ── */}
+      {subject && (
+        moduleReady ? (
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-950/60 border-b border-emerald-800/40 text-emerald-400 text-xs font-medium">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
+            Textbook content ready — {modulesScraped}/5 modules scraped
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 px-4 py-2 bg-amber-950/60 border-b border-amber-800/40 text-amber-400 text-xs font-medium">
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+            Scraping content… {modulesScraped}/5 modules done — AI will teach from general knowledge until ready
+          </div>
+        )
+      )}
 
       {/* ── Messages ── */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">

@@ -98,8 +98,10 @@ async def list_subjects(
     ]
 
 
-async def _background_scrape(subject_name: str, branch: str, semester: int) -> None:
+async def _background_scrape(subject_id: str, subject_name: str, branch: str, semester: int) -> None:
     """Scrape all 5 modules in parallel after subject creation."""
+    from core.database import async_session
+
     async def _scrape_one(module_number: int) -> None:
         try:
             content = await _scrape_subject(
@@ -111,6 +113,15 @@ async def _background_scrape(subject_name: str, branch: str, semester: int) -> N
             if content and len(content) > 100:
                 await chunk_and_store(content, subject_name, module_number)
                 logger.info("Auto-scrape done: %s module %d", subject_name, module_number)
+                # Mark this module as scraped in DB
+                async with async_session() as db:
+                    result = await db.execute(
+                        select(Subject).where(Subject.id == uuid.UUID(subject_id))
+                    )
+                    subj = result.scalar_one_or_none()
+                    if subj:
+                        subj.modules_scraped = (subj.modules_scraped or 0) + 1
+                        await db.commit()
             else:
                 logger.warning("Auto-scrape: no content for %s module %d", subject_name, module_number)
         except Exception as exc:
@@ -149,7 +160,7 @@ async def add_subject(
     await db.refresh(subject)
 
     # Kick off parallel scrape of all 5 modules in the background
-    background_tasks.add_task(_background_scrape, body.name, body.branch, body.semester)
+    background_tasks.add_task(_background_scrape, str(subject.id), body.name, body.branch, body.semester)
 
     return SubjectOut(
         id=str(subject.id),
