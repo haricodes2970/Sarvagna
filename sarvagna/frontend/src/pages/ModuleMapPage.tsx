@@ -2,21 +2,8 @@ import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
-import { mapSelectionApi, modulemapApi, type ModuleMapTopic } from "@/lib/api";
-import FantasyMap, { type Topic } from "@/components/FantasyMap";
-
-function toTopics(raw: ModuleMapTopic[]): Topic[] {
-  return raw.map((t) => ({
-    id: t.id,
-    title: t.title,
-    status: t.status,
-    subtopics: (t.subtopics ?? []).map((s) => ({
-      id: s.id,
-      title: s.title,
-      status: s.status,
-    })),
-  }));
-}
+import { mapGraphApi, modulemapApi, type MapGraphLayout } from "@/lib/api";
+import WorldMap, { type TopicStatus } from "@/components/WorldMap";
 
 export default function ModuleMapPage() {
   const { subjectId, moduleNumber } = useParams<{ subjectId: string; moduleNumber: string }>();
@@ -24,42 +11,66 @@ export default function ModuleMapPage() {
   const modNum = useMemo(() => Number(moduleNumber), [moduleNumber]);
   const enabled = !!subjectId && Number.isFinite(modNum);
 
-  const { data, isLoading } = useQuery({
+  // Fetch Groq layout + selected map
+  const {
+    data: graphData,
+    isLoading: graphLoading,
+  } = useQuery({
+    queryKey: ["mapgraph", subjectId, moduleNumber],
+    queryFn: () => mapGraphApi.getMapGraph(subjectId!, modNum).then((r) => r.data),
+    enabled,
+  });
+
+  // Fetch topic statuses from modulemap
+  const { data: moduleData, isLoading: moduleLoading } = useQuery({
     queryKey: ["modulemap", subjectId, moduleNumber],
     queryFn: () => modulemapApi.getModuleMap(subjectId!, modNum).then((r) => r.data),
     enabled,
   });
 
-  // Fetch the map skin chosen in the lobby
-  const { data: mapSelection } = useQuery({
-    queryKey: ["mapselection", subjectId, moduleNumber],
-    queryFn: () => mapSelectionApi.getSelectedMap(subjectId!, modNum).then((r) => r.data),
-    enabled,
-  });
+  const subjectName = moduleData?.subject_name ?? "Subject";
+  const moduleTitle = moduleData?.module_title ?? `Module ${moduleNumber}`;
 
-  const topics = useMemo(() => toTopics(data?.topics ?? []), [data]);
-  const subjectName = data?.subject_name ?? "Subject";
-  const moduleTitle = data?.module_title ?? `Module ${moduleNumber}`;
+  // Flatten topic statuses from modulemap response into a flat id→status list
+  const topicStatuses = useMemo((): TopicStatus[] => {
+    if (!moduleData) return [];
+    const out: TopicStatus[] = [];
+    for (const topic of moduleData.topics) {
+      out.push({ id: topic.id, status: topic.status });
+      for (const sub of topic.subtopics ?? []) {
+        out.push({ id: sub.id, status: sub.status });
+      }
+    }
+    // Also map the "main" capital id used by Groq layout
+    if (moduleData.topics[0]) {
+      out.push({ id: "main", status: moduleData.topics[0].status });
+    }
+    return out;
+  }, [moduleData]);
 
-  // Use saved selection; fall back to cycling through maps by module number
-  const defaultMap = `map${((modNum - 1) % 6) + 1}`;
-  const backgroundUrl = `/maps/${mapSelection?.selected_map ?? defaultMap}.jpg`;
+  const isLoading = graphLoading || moduleLoading;
 
   if (isLoading) {
     return (
-      <div className="h-screen bg-slate-950 flex items-center justify-center">
-        <p className="text-slate-500 text-sm">Loading module map…</p>
+      <div className="h-screen bg-slate-950 flex flex-col items-center justify-center gap-3">
+        <div className="w-10 h-10 rounded-full border-2 border-amber-500 border-t-transparent animate-spin" />
+        <p className="text-slate-400 text-sm tracking-wider uppercase font-bold">
+          {graphLoading ? "Generating realm layout…" : "Loading module…"}
+        </p>
       </div>
     );
   }
 
-  if (!data) {
+  if (!graphData || !moduleData) {
     return (
       <div className="h-screen bg-slate-950 flex items-center justify-center">
         <p className="text-slate-500 text-sm">Module map not found.</p>
       </div>
     );
   }
+
+  const layout = graphData.layout as MapGraphLayout;
+  const mapImage = graphData.map_image;
 
   return (
     <div className="h-screen bg-[#07090f] text-zinc-100 flex flex-col">
@@ -73,7 +84,7 @@ export default function ModuleMapPage() {
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-base font-bold truncate">
-            {subjectName} — Module {data.module_number}
+            {subjectName} — Module {moduleData.module_number}
           </h1>
           <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold truncate">
             {moduleTitle}
@@ -86,16 +97,11 @@ export default function ModuleMapPage() {
 
       {/* Map canvas */}
       <div className="flex-1 relative overflow-hidden">
-        <FantasyMap
-          topics={topics}
-          moduleTitle={moduleTitle}
-          backgroundUrl={backgroundUrl}
-          onTopicClick={(topicId) => {
-            const topic = data.topics[0]?.subtopics?.find((t) => t.id === topicId);
-            if (!topic || topic.status === "locked") return;
-            navigate(`/chat/${subjectId}/${moduleNumber}`);
-          }}
-          onStartStudying={() => navigate(`/chat/${subjectId}/${moduleNumber}`)}
+        <WorldMap
+          layout={layout}
+          mapImage={mapImage}
+          topicStatuses={topicStatuses}
+          onNodeClick={() => navigate(`/chat/${subjectId}/${moduleNumber}`)}
         />
       </div>
     </div>

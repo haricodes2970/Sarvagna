@@ -231,6 +231,41 @@ export const mapSelectionApi = {
     api.post<MapSelectionResponse>(`/mapselection/${subject_id}/${module_number}`, { map_id }),
 };
 
+// ─── Map Graph (Groq layout) ──────────────────────────────────────────────────
+
+export interface MapGraphNode {
+  id: string;
+  title: string;
+  x: number;
+  y: number;
+  type: "capital" | "city" | "village";
+  parent?: string;
+}
+
+export interface MapGraphRoad {
+  from: string;
+  to: string;
+  type: "river" | "path" | "dotted";
+}
+
+export interface MapGraphLayout {
+  capital: MapGraphNode;
+  cities: MapGraphNode[];
+  villages: MapGraphNode[];
+  roads: MapGraphRoad[];
+}
+
+export interface MapGraphResponse {
+  layout: MapGraphLayout;
+  selected_map: string;
+  map_image: string;
+}
+
+export const mapGraphApi = {
+  getMapGraph: (subject_id: string, module_number: number) =>
+    api.get<MapGraphResponse>(`/mapgraph/${subject_id}/${module_number}`),
+};
+
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
 export interface ChatMessage {
