@@ -139,6 +139,8 @@ export default function DashboardPage() {
               onOpen={() => navigate(`/subject/${s.id}`)}
               onRoadmap={() => navigate(`/map/${s.id}`)}
               onRemove={() => removeMutation.mutate(s.id)}
+              onMainChat={() => navigate(`/chat/${s.id}/0`)}
+              onImportantQs={() => navigate(`/important-questions/${s.id}`)}
               removing={removeMutation.isPending}
             />
           ))}
@@ -153,12 +155,16 @@ function SubjectCard({
   onOpen,
   onRoadmap,
   onRemove,
+  onMainChat,
+  onImportantQs,
   removing,
 }: {
   subject: Subject;
   onOpen: () => void;
   onRoadmap: () => void;
   onRemove: () => void;
+  onMainChat: () => void;
+  onImportantQs: () => void;
   removing: boolean;
 }) {
   return (
@@ -184,6 +190,14 @@ function SubjectCard({
         </button>
         <button style={styles.outlineBtn} onClick={onRoadmap}>
           Open Map
+        </button>
+      </div>
+      <div style={{ ...styles.cardActions, marginTop: "0.4rem" }}>
+        <button style={styles.tealBtn} onClick={onMainChat}>
+          💬 Main Chat
+        </button>
+        <button style={styles.amberBtn} onClick={onImportantQs}>
+          📝 Important Qs
         </button>
       </div>
     </div>
@@ -234,5 +248,7 @@ const styles: Record<string, React.CSSProperties> = {
   primaryBtn: { padding: "0.5rem 1rem", borderRadius: 8, border: "none", background: "#7c3aed", color: "#fff", fontWeight: 600, cursor: "pointer", fontSize: "0.9rem" },
   outlineBtn: { padding: "0.5rem 1rem", borderRadius: 8, border: "1px solid #374151", background: "transparent", color: "#d1d5db", cursor: "pointer", fontSize: "0.9rem" },
   dangerBtn: { padding: "0.3rem 0.6rem", borderRadius: 6, border: "none", background: "#3b1e1e", color: "#ef4444", cursor: "pointer" },
+  tealBtn: { flex: 1, padding: "0.5rem 0.75rem", borderRadius: 8, border: "none", background: "#0d3d3d", color: "#2dd4bf", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem" },
+  amberBtn: { flex: 1, padding: "0.5rem 0.75rem", borderRadius: 8, border: "none", background: "#3d2e0a", color: "#fbbf24", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem" },
   empty: { color: "#6b7280", textAlign: "center", marginTop: "3rem" },
 };

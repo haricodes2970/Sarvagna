@@ -295,3 +295,23 @@ export const chatApi = {
   sendMessage: (subject_id: string, module_number: number, content: string) =>
     api.post<SendMessageResponse>(`/chat/${subject_id}/${module_number}`, { content }),
 };
+
+// ─── Important Questions ───────────────────────────────────────────────────
+
+export interface ImportantQuestion {
+  id: string;
+  question: string;
+  module_number: number;
+  created_at: string;
+}
+
+export const importantQuestionsApi = {
+  upload: (subject_id: string, text: string, module_number = 0) =>
+    api.post<{ count: number; questions: string[] }>(`/important-questions/${subject_id}`, {
+      text,
+      module_number,
+    }),
+
+  list: (subject_id: string) =>
+    api.get<ImportantQuestion[]>(`/important-questions/${subject_id}`),
+};

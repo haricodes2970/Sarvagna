@@ -135,6 +135,7 @@ async def send_message(
         user_message=body.content,
         chat_history=chat_history,
         user_id=str(user.id),
+        subject_id=subject_id,
     )
 
     # Save AI message

@@ -186,6 +186,37 @@ When ALL topics are completed:
 - Do NOT continue teaching beyond module
 
 -----------------------------------
+ALGORITHM & CODE FORMATTING (MANDATORY)
+-----------------------------------
+Whenever you explain an algorithm, procedure, or step-by-step process, use:
+
+⚡ ALGORITHM: <Algorithm Name>
+Step 1: ...
+Step 2: ...
+...
+
+Whenever you show a solved numerical example or worked problem, use:
+
+📝 SOLVED EXAMPLE:
+Given: ...
+Find: ...
+Solution:
+Step 1: ...
+...
+Answer: ...
+
+Whenever a concept is known to appear in VTU exams, mark it:
+
+🎯 VTU IMPORTANT: <brief note on how it is asked>
+
+Whenever you present comparison or structured data, use a markdown table:
+
+📊 TABLE: <Table Title>
+| Col1 | Col2 | Col3 |
+|------|------|------|
+| ...  | ...  | ...  |
+
+-----------------------------------
 STRICT BOUNDARIES
 -----------------------------------
 - NEVER go off-topic from the given module subject
@@ -239,28 +270,71 @@ async def teach_module(
     user_message: str,
     chat_history: list[dict],
     user_id: str,
+    subject_id: str = "",
 ) -> str:
     """
     Teaching-mode conversation for a specific module.
     Uses RAG context from Qdrant + full chat_history for multi-turn dialogue.
+    Module 0 = full-subject chat (searches all module collections).
     Returns the assistant's reply as a plain string.
     """
     vector = await _embed_question(user_message)
 
-    # Search Qdrant scoped to this specific module collection
-    collection = f"{_collection_name(subject)}_module_{module_number}"
     qdrant = AsyncQdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
     context_chunks: list[str] = []
+    important_chunks: list[str] = []
+
     try:
-        results: list[ScoredPoint] = await qdrant.search(
-            collection_name=collection,
-            query_vector=vector,
-            limit=_TOP_K,
-            score_threshold=_SCORE_THRESHOLD,
-        )
-        context_chunks = [hit.payload.get("text", "") for hit in results]
-    except Exception as exc:
-        logger.warning("Qdrant search failed for teach_module: %s", exc)
+        subject_slug = _collection_name(subject)
+
+        if module_number == 0:
+            # Full-subject chat: search all module collections
+            all_collections_resp = await qdrant.get_collections()
+            module_collections = [
+                c.name for c in all_collections_resp.collections
+                if c.name.startswith(subject_slug + "_module_")
+            ]
+            for col in module_collections:
+                try:
+                    results: list[ScoredPoint] = await qdrant.search(
+                        collection_name=col,
+                        query_vector=vector,
+                        limit=4,
+                        score_threshold=_SCORE_THRESHOLD,
+                    )
+                    context_chunks.extend([hit.payload.get("text", "") for hit in results])
+                except Exception:
+                    pass
+            context_chunks = context_chunks[:_TOP_K]
+        else:
+            collection = f"{subject_slug}_module_{module_number}"
+            try:
+                results: list[ScoredPoint] = await qdrant.search(
+                    collection_name=collection,
+                    query_vector=vector,
+                    limit=_TOP_K,
+                    score_threshold=_SCORE_THRESHOLD,
+                )
+                context_chunks = [hit.payload.get("text", "") for hit in results]
+            except Exception as exc:
+                logger.warning("Qdrant search failed for teach_module: %s", exc)
+
+        # Search professor's important questions for this subject
+        if subject_id:
+            important_collection = f"important_{subject_id}"
+            try:
+                imp_results: list[ScoredPoint] = await qdrant.search(
+                    collection_name=important_collection,
+                    query_vector=vector,
+                    limit=5,
+                    score_threshold=0.6,
+                )
+                important_chunks = [
+                    f"⚠️ PROFESSOR MARKED THIS AS IMPORTANT: {hit.payload.get('question', '')}"
+                    for hit in imp_results
+                ]
+            except Exception:
+                pass  # collection may not exist yet
     finally:
         await qdrant.close()
 
@@ -275,6 +349,9 @@ async def teach_module(
             "> ⚠️ Note: Teaching from general knowledge — textbook content loading...\n"
             "After that note, proceed with normal teaching. Do NOT repeat the note in later messages."
         )
+
+    if important_chunks:
+        context += "\n\n---\n\nPROFESSOR'S IMPORTANT QUESTIONS (prioritise these in your teaching):\n" + "\n".join(important_chunks)
 
     system_prompt = SARVAGNA_SYSTEM_PROMPT + f"""
 

@@ -1,17 +1,23 @@
+import asyncio
+import logging
 import uuid
 from datetime import datetime, timezone
 
 from celery import Celery
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from agents.chunker_agent import chunk_and_store
+from agents.scraper_agent import scrape_subject as _scrape_subject
 from api.routes.auth import current_user_dep
 from core.config import get_settings
 from core.database import get_db
 from core.gamification import SUBJECT_SLOT_CONFIG
 from models.db_models import Subject, User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 settings = get_settings()
@@ -31,6 +37,7 @@ class SubjectOut(BaseModel):
     modules_scraped: int
     is_completed: bool
     added_at: datetime
+    scraping: str | None = None
 
 
 class AddSubjectRequest(BaseModel):
@@ -73,9 +80,31 @@ async def list_subjects(
     ]
 
 
+async def _background_scrape(subject_name: str, branch: str, semester: int) -> None:
+    """Scrape all 5 modules in parallel after subject creation."""
+    async def _scrape_one(module_number: int) -> None:
+        try:
+            content = await _scrape_subject(
+                subject_name=subject_name,
+                module_number=module_number,
+                branch=branch,
+                semester=semester,
+            )
+            if content and len(content) > 100:
+                await chunk_and_store(content, subject_name, module_number)
+                logger.info("Auto-scrape done: %s module %d", subject_name, module_number)
+            else:
+                logger.warning("Auto-scrape: no content for %s module %d", subject_name, module_number)
+        except Exception as exc:
+            logger.error("Auto-scrape failed for %s module %d: %s", subject_name, module_number, exc)
+
+    await asyncio.gather(*[_scrape_one(n) for n in range(1, 6)])
+
+
 @router.post("/add", response_model=SubjectOut, status_code=status.HTTP_201_CREATED)
 async def add_subject(
     body: AddSubjectRequest,
+    background_tasks: BackgroundTasks,
     user: User = Depends(current_user_dep),
     db: AsyncSession = Depends(get_db),
 ):
@@ -101,6 +130,9 @@ async def add_subject(
     await db.commit()
     await db.refresh(subject)
 
+    # Kick off parallel scrape of all 5 modules in the background
+    background_tasks.add_task(_background_scrape, body.name, body.branch, body.semester)
+
     return SubjectOut(
         id=str(subject.id),
         name=subject.name,
@@ -109,6 +141,7 @@ async def add_subject(
         modules_scraped=subject.modules_scraped,
         is_completed=subject.is_completed,
         added_at=subject.added_at,
+        scraping="started",
     )
 
 

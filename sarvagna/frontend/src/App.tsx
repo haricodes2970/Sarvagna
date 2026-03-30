@@ -15,6 +15,7 @@ import ChatPage from "./pages/ChatPage";
 import MapPage from "./pages/MapPage";
 import ModuleMapPage from "./pages/ModuleMapPage";
 import MapLobbyPage from "./pages/MapLobbyPage";
+import ImportantQuestionsPage from "./pages/ImportantQuestionsPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient({
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Route path="/map/:subjectId" element={<RequireAuth><ErrorBoundary><MapPage /></ErrorBoundary></RequireAuth>} />
       <Route path="/lobby/:subjectId/:moduleNumber" element={<RequireAuth><ErrorBoundary><MapLobbyPage /></ErrorBoundary></RequireAuth>} />
       <Route path="/modulemap/:subjectId/:moduleNumber" element={<RequireAuth><ErrorBoundary><ModuleMapPage /></ErrorBoundary></RequireAuth>} />
+      <Route path="/important-questions/:subjectId" element={<RequireAuth><ErrorBoundary><ImportantQuestionsPage /></ErrorBoundary></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
