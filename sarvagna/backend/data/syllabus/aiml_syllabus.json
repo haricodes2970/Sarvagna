@@ -8,27 +8,27 @@
       {
         "number": 1,
         "title": "Differential Calculus-I",
-        "topics": ["Introduction to polar coordinates", "Polar curves", "Angle between radius vector and tangent", "Angle between two curves", "Pedal equations", "Derivative of arc length", "Curvature and radius of curvature in Cartesian and polar forms"]
+        "subtopics": ["Introduction to polar coordinates and polar curves", "Angle between radius vector and tangent", "Angle between two curves and pedal equations", "Derivative of arc length in Cartesian and polar forms", "Curvature and radius of curvature calculations"]
       },
       {
         "number": 2,
         "title": "Differential Calculus-II",
-        "topics": ["Taylor's and Maclaurin's theorems for one variable", "Indeterminate forms", "Partial derivatives", "Euler's theorem", "Total derivatives", "Chain rule of partial differentiation", "Jacobians"]
+        "subtopics": ["Taylor's and Maclaurin's theorems for one variable", "Indeterminate forms and L'Hospital's rule", "Partial derivatives and Euler's theorem", "Total derivatives and chain rule of partial differentiation", "Jacobians and their applications"]
       },
       {
         "number": 3,
         "title": "Vector Calculus",
-        "topics": ["Derivative of vector-valued functions", "Velocity and acceleration", "Scalar and vector point functions", "Gradient", "Divergence and Curl", "Solenoidal and irrotational fields", "Vector identities"]
+        "subtopics": ["Derivative of vector-valued functions", "Velocity and acceleration vectors", "Scalar and vector point functions", "Gradient, divergence and curl operations", "Solenoidal and irrotational vector fields"]
       },
       {
         "number": 4,
         "title": "Integral Calculus",
-        "topics": ["Reduction formulae for trigonometric integrals", "Evaluation of integrals with standard limits", "Double integrals", "Change of order of integration", "Triple integrals", "Applications to area and volume"]
+        "subtopics": ["Reduction formulae for trigonometric integrals", "Evaluation of integrals with standard limits", "Double integrals and change of order of integration", "Triple integrals and their evaluation", "Applications to area and volume calculations"]
       },
       {
         "number": 5,
         "title": "Linear Algebra",
-        "topics": ["Rank of matrix by elementary transformation", "Solution of linear equations", "Gauss elimination and Gauss-Jordan methods", "Gauss-Seidel method", "Eigenvalues and eigenvectors", "Rayleigh's power method", "Diagonalization of matrices"]
+        "subtopics": ["Rank of matrix by elementary transformation", "Solution of linear equations using direct methods", "Gauss elimination and Gauss-Jordan methods", "Gauss-Seidel iterative method", "Eigenvalues, eigenvectors and diagonalization of matrices"]
       }
     ],
     "reference_books": ["B.S. Grewal: Higher Engineering Mathematics", "E. Kreyszig: Advanced Engineering Mathematics", "N.P. Bali: Engineering Mathematics"],
@@ -43,27 +43,27 @@
       {
         "number": 1,
         "title": "Modern Physics and Quantum Mechanics",
-        "topics": ["Black body radiation", "Planck's law", "Wave-particle dualism", "de Broglie hypothesis", "Compton effect", "Heisenberg's uncertainty principle", "Time-independent Schrodinger wave equation", "Particle in a box"]
+        "subtopics": ["Black body radiation and Planck's quantum hypothesis", "Wave-particle dualism and de Broglie hypothesis", "Compton effect and its significance", "Heisenberg's uncertainty principle", "Time-independent Schrodinger wave equation and particle in a box"]
       },
       {
         "number": 2,
         "title": "Electrical Properties of Materials",
-        "topics": ["Free-electron concept", "Drift velocity and relaxation time", "Quantum free electron theory", "Fermi-Dirac statistics", "Electrical conductivity", "Semiconductor conductivity", "Law of mass action"]
+        "subtopics": ["Free-electron concept and drift velocity", "Quantum free electron theory and Fermi-Dirac statistics", "Electrical conductivity in metals", "Semiconductor conductivity and law of mass action", "Fermi level in intrinsic and extrinsic semiconductors"]
       },
       {
         "number": 3,
         "title": "Lasers and Optical Fibers",
-        "topics": ["Einstein coefficients", "Laser action", "CO2 laser", "Semiconductor laser", "Laser applications", "Optical fiber principles", "Numerical aperture", "Attenuation in fibers", "Fiber optic communication"]
+        "subtopics": ["Einstein coefficients and laser action principles", "CO2 laser and semiconductor laser construction", "Laser applications in industry and medicine", "Optical fiber principles and numerical aperture", "Attenuation mechanisms and fiber optic communication"]
       },
       {
         "number": 4,
         "title": "Crystal Structure",
-        "topics": ["Space lattice", "Bravais lattice", "Unit cell", "Miller indices", "Inter-planar spacing", "Coordination number", "Atomic packing factors", "Bragg's law", "X-ray diffraction"]
+        "subtopics": ["Space lattice and Bravais lattice types", "Unit cell parameters and Miller indices", "Inter-planar spacing calculations", "Coordination number and atomic packing factors", "Bragg's law and X-ray diffraction techniques"]
       },
       {
         "number": 5,
         "title": "Shock Waves and Nanomaterials",
-        "topics": ["Mach number", "Shock waves", "Shock tube", "Nanoscience fundamentals", "Density of states", "Top-down and bottom-up approaches", "Carbon nanotubes", "Fullerenes", "SEM principle"]
+        "subtopics": ["Mach number and shock wave formation", "Shock tube and its applications", "Nanoscience fundamentals and density of states", "Top-down and bottom-up synthesis approaches", "Carbon nanotubes, fullerenes and SEM principle"]
       }
     ],
     "reference_books": ["S.O. Pillai: Solid State Physics", "M.N. Avadhanulu: Engineering Physics", "S. K. Srivastava: Nanotechnology"],
@@ -78,27 +78,27 @@
       {
         "number": 1,
         "title": "Introduction to Programming",
-        "topics": ["Introduction to C language", "Structure of C program", "Variables and data types", "Operators and expressions", "Input/output operations", "Control structures", "Decision making statements"]
+        "subtopics": ["Introduction to C language and its features", "Structure of C program and compilation process", "Variables, data types and operators", "Input/output operations using printf and scanf", "Control structures and decision making statements"]
       },
       {
         "number": 2,
         "title": "Arrays and Strings",
-        "topics": ["One-dimensional arrays", "Two-dimensional arrays", "Array operations", "String handling functions", "String manipulation", "Character arrays", "Multi-dimensional arrays"]
+        "subtopics": ["One-dimensional arrays and operations", "Two-dimensional arrays and matrix operations", "String handling functions in C", "String manipulation and character arrays", "Multi-dimensional arrays applications"]
       },
       {
         "number": 3,
         "title": "Functions and Recursion",
-        "topics": ["Function definition and declaration", "Function call", "Parameter passing", "Storage classes", "Recursion concepts", "Recursive functions", "Tower of Hanoi"]
+        "subtopics": ["Function definition, declaration and call mechanisms", "Parameter passing by value and reference", "Storage classes in C", "Recursion concepts and recursive functions", "Tower of Hanoi problem solving"]
       },
       {
         "number": 4,
         "title": "Pointers and Structures",
-        "topics": ["Pointer concepts", "Pointer arithmetic", "Pointers and arrays", "Pointers and functions", "Structure definition", "Nested structures", "Array of structures", "Unions"]
+        "subtopics": ["Pointer concepts and pointer arithmetic", "Pointers and arrays relationship", "Pointers and functions interaction", "Structure definition and nested structures", "Array of structures and unions"]
       },
       {
         "number": 5,
         "title": "File Handling and Preprocessor",
-        "topics": ["File operations", "Opening and closing files", "Reading and writing files", "Random access", "Command line arguments", "Preprocessor directives", "Macros", "Header files"]
+        "subtopics": ["File operations and file modes", "Opening, closing, reading and writing files", "Random access file handling", "Command line arguments", "Preprocessor directives, macros and header files"]
       }
     ],
     "reference_books": ["E. Balagurusamy: Programming in ANSI C", "Yashavant Kanetkar: Let Us C", "Brian Kernighan: The C Programming Language"],
@@ -113,27 +113,27 @@
       {
         "number": 1,
         "title": "Laplace Transforms",
-        "topics": ["Laplace transform definition", "Transforms of standard functions", "Properties of Laplace transforms", "Initial and final value theorems", "Inverse Laplace transforms", "Convolution theorem", "Solution of differential equations"]
+        "subtopics": ["Laplace transform definition and existence conditions", "Laplace transforms of standard functions", "Properties of Laplace transforms", "Initial and final value theorems", "Inverse Laplace transforms and convolution theorem"]
       },
       {
         "number": 2,
         "title": "Fourier Series",
-        "topics": ["Periodic functions", "Fourier series expansion", "Even and odd functions", "Half-range Fourier series", "Parseval's identity", "Complex form of Fourier series", "Harmonic analysis"]
+        "subtopics": ["Periodic functions and Dirichlet's conditions", "Fourier series expansion of periodic functions", "Even and odd functions and Fourier series", "Half-range Fourier sine and cosine series", "Parseval's identity and harmonic analysis"]
       },
       {
         "number": 3,
         "title": "Fourier Transforms",
-        "topics": ["Infinite Fourier transforms", "Fourier sine and cosine transforms", "Properties of Fourier transforms", "Convolution theorem", "Parseval's identity", "Inverse Fourier transforms", "Applications to PDEs"]
+        "subtopics": ["Infinite Fourier transforms definition", "Fourier sine and cosine transforms", "Properties of Fourier transforms", "Convolution theorem for Fourier transforms", "Inverse Fourier transforms and applications to PDEs"]
       },
       {
         "number": 4,
         "title": "Partial Differential Equations",
-        "topics": ["Formation of PDEs", "First order PDEs", "Lagrange's linear equation", "Non-linear equations", "Homogeneous linear PDEs", "Method of separation of variables", "One-dimensional wave and heat equations"]
+        "subtopics": ["Formation of PDEs by eliminating arbitrary constants", "First order PDEs and Lagrange's linear equation", "Non-linear first order PDEs", "Homogeneous linear PDEs with constant coefficients", "Method of separation of variables for wave and heat equations"]
       },
       {
         "number": 5,
         "title": "Numerical Methods",
-        "topics": ["Finite differences", "Interpolation methods", "Newton's forward and backward", "Lagrange's interpolation", "Numerical integration", "Trapezoidal rule", "Simpson's rules", "Solution of algebraic equations"]
+        "subtopics": ["Finite differences and interpolation methods", "Newton's forward and backward interpolation", "Lagrange's interpolation formula", "Numerical integration using trapezoidal and Simpson's rules", "Solution of algebraic equations by iterative methods"]
       }
     ],
     "reference_books": ["B.S. Grewal: Higher Engineering Mathematics", "N.P. Bali: Engineering Mathematics", "Erwin Kreyszig: Advanced Engineering Mathematics"],
@@ -148,27 +148,27 @@
       {
         "number": 1,
         "title": "Electrochemistry and Battery Technology",
-        "topics": ["Nernst equation", "Reference electrodes", "Glass electrode", "pH measurement", "Battery characteristics", "Primary and secondary batteries", "Li-ion batteries", "Fuel cells"]
+        "subtopics": ["Nernst equation and electrode potential calculations", "Reference electrodes and glass electrode", "pH measurement using electrodes", "Battery characteristics and classifications", "Primary, secondary batteries and Li-ion batteries"]
       },
       {
         "number": 2,
         "title": "Corrosion and Metal Finishing",
-        "topics": ["Types of corrosion", "Corrosion mechanisms", "Corrosion prevention", "Protective coatings", "Electroplating", "Anodizing", "Electroless plating", "Metal finishing techniques"]
+        "subtopics": ["Types of corrosion and corrosion mechanisms", "Corrosion prevention methods", "Protective coatings and surface treatment", "Electroplating and anodizing processes", "Electroless plating and metal finishing techniques"]
       },
       {
         "number": 3,
         "title": "Fuels and Solar Energy",
-        "topics": ["Classification of fuels", "Calorific value", "Solid fuels", "Liquid fuels", "Knocking and octane number", "Solar energy", "Photovoltaic cells", "Solar grade silicon"]
+        "subtopics": ["Classification of fuels and calorific value determination", "Solid fuels and coal analysis", "Liquid fuels and petroleum refining", "Knocking in IC engines and octane number", "Solar energy and photovoltaic cells"]
       },
       {
         "number": 4,
         "title": "Polymers",
-        "topics": ["Types of polymerization", "Mechanism of polymerization", "Molecular weight of polymers", "Glass transition temperature", "Thermoplastics and thermosets", "Elastomers", "Conducting polymers", "Biodegradable polymers"]
+        "subtopics": ["Types of polymerization mechanisms", "Molecular weight determination of polymers", "Glass transition temperature and polymer properties", "Thermoplastics, thermosets and elastomers", "Conducting and biodegradable polymers"]
       },
       {
         "number": 5,
         "title": "Water Technology and Nanomaterials",
-        "topics": ["Hardness of water", "Boiler troubles", "Water softening", "Desalination", "Nanomaterials introduction", "Synthesis methods", "Carbon nanotubes", "Applications of nanomaterials"]
+        "subtopics": ["Hardness of water and its determination", "Boiler troubles and water softening methods", "Desalination techniques", "Nanomaterials introduction and synthesis methods", "Carbon nanotubes and applications of nanomaterials"]
       }
     ],
     "reference_books": ["P.C. Jain: Engineering Chemistry", "S.S. Dara: Engineering Chemistry", "M.M. Uppal: Engineering Chemistry"],
@@ -183,27 +183,27 @@
       {
         "number": 1,
         "title": "Semiconductor Devices",
-        "topics": ["Semiconductor basics", "PN junction diode", "Diode characteristics", "Rectifiers", "Zener diode", "Voltage regulation", "BJT construction and operation", "BJT characteristics"]
+        "subtopics": ["Semiconductor basics and PN junction theory", "Diode characteristics and applications", "Rectifiers: half-wave and full-wave", "Zener diode and voltage regulation", "BJT construction, operation and characteristics"]
       },
       {
         "number": 2,
         "title": "Operational Amplifiers",
-        "topics": ["Ideal op-amp characteristics", "Inverting amplifier", "Non-inverting amplifier", "Summing amplifier", "Difference amplifier", "Integrator", "Differentiator", "Comparator applications"]
+        "subtopics": ["Ideal op-amp characteristics and parameters", "Inverting and non-inverting amplifier configurations", "Summing and difference amplifiers", "Integrator and differentiator circuits", "Comparator applications and waveform generation"]
       },
       {
         "number": 3,
         "title": "Digital Electronics",
-        "topics": ["Number systems", "Binary arithmetic", "Boolean algebra", "Logic gates", "Karnaugh maps", "Combinational circuits", "Half and full adders", "Multiplexers and demultiplexers"]
+        "subtopics": ["Number systems and binary arithmetic", "Boolean algebra laws and theorems", "Logic gates and their truth tables", "Karnaugh maps for simplification", "Combinational circuits: adders, multiplexers, demultiplexers"]
       },
       {
         "number": 4,
         "title": "Flip-Flops and Microcontrollers",
-        "topics": ["RS flip-flop", "JK flip-flop", "D flip-flop", "T flip-flop", "Shift registers", "Counters", "Microcontroller introduction", "8051 architecture", "Stepper motor control"]
+        "subtopics": ["RS, JK, D and T flip-flops", "Shift registers and counters", "Microcontroller introduction and 8051 architecture", "8051 instruction set and programming", "Stepper motor control using 8051"]
       },
       {
         "number": 5,
         "title": "Communication Systems",
-        "topics": ["Communication elements", "Modulation", "Amplitude modulation", "Frequency modulation", "Demodulation techniques", "Transducers", "LVDT", "Piezoelectric transducers"]
+        "subtopics": ["Elements of communication systems", "Amplitude modulation and demodulation", "Frequency modulation and demodulation", "Transducers: LVDT and strain gauges", "Piezoelectric transducers and applications"]
       }
     ],
     "reference_books": ["R.L. Boylestad: Electronic Devices and Circuit Theory", "A.P. Malvino: Electronic Principles", "George Kennedy: Electronic Communication Systems"],
@@ -218,27 +218,27 @@
       {
         "number": 1,
         "title": "Probability and Distributions",
-        "topics": ["Probability concepts", "Random variables", "Discrete distributions", "Continuous distributions", "Expectation", "Variance", "Moments", "Moment generating functions"]
+        "subtopics": ["Probability concepts and axioms", "Random variables and probability distributions", "Discrete distributions: Binomial and Poisson", "Continuous distributions: Normal and Exponential", "Expectation, variance and moment generating functions"]
       },
       {
         "number": 2,
         "title": "Joint Probability and Markov Chains",
-        "topics": ["Joint probability distribution", "Covariance and correlation", "Stochastic processes", "Markov chains", "Transition probabilities", "Stationary distribution", "Absorbing states"]
+        "subtopics": ["Joint probability distributions", "Covariance and correlation coefficients", "Stochastic processes introduction", "Markov chains and transition probabilities", "Stationary distribution and absorbing states"]
       },
       {
         "number": 3,
         "title": "Statistical Inference-I",
-        "topics": ["Sampling distributions", "Standard error", "Testing of hypothesis", "Confidence intervals", "Z-tests", "T-tests", "Chi-square tests", "Goodness of fit"]
+        "subtopics": ["Sampling distributions and standard error", "Hypothesis testing fundamentals", "Z-tests for means and proportions", "T-tests for small samples", "Chi-square tests and goodness of fit"]
       },
       {
         "number": 4,
         "title": "Statistical Inference-II",
-        "topics": ["Analysis of variance", "One-way ANOVA", "Two-way ANOVA", "F-distribution", "Regression analysis", "Correlation analysis", "Least squares method"]
+        "subtopics": ["Analysis of variance (ANOVA) concepts", "One-way ANOVA and F-distribution", "Two-way ANOVA without interaction", "Regression analysis and correlation", "Least squares method for curve fitting"]
       },
       {
         "number": 5,
         "title": "Design of Experiments",
-        "topics": ["Principles of experimentation", "Completely randomized design", "Randomized block design", "Latin square design", "Factorial experiments", "Statistical quality control"]
+        "subtopics": ["Principles of experimental design", "Completely randomized design", "Randomized block design", "Latin square design", "Factorial experiments and statistical quality control"]
       }
     ],
     "reference_books": ["S.C. Gupta: Statistical Methods", "T. Veerarajan: Probability and Statistics", "R.E. Walpole: Probability and Statistics for Engineers"],
@@ -253,27 +253,27 @@
       {
         "number": 1,
         "title": "Number Systems and Boolean Algebra",
-        "topics": ["Binary number system", "Number system conversions", "Boolean algebra laws", "Logic gates", "Canonical forms", "Karnaugh maps", "Don't care conditions", "Quine-McCluskey method"]
+        "subtopics": ["Binary number system and conversions", "Boolean algebra laws and theorems", "Logic gates and universal gates", "Canonical forms of Boolean functions", "Karnaugh maps and Quine-McCluskey method"]
       },
       {
         "number": 2,
         "title": "Combinational Logic Circuits",
-        "topics": ["Adders and subtractors", "Magnitude comparator", "Decoders", "Encoders", "Multiplexers", "Demultiplexers", "Parity generators", "Code converters"]
+        "subtopics": ["Adders: half adder and full adder", "Subtractors and magnitude comparator", "Decoders and encoders", "Multiplexers and demultiplexers", "Parity generators and code converters"]
       },
       {
         "number": 3,
         "title": "Sequential Logic Circuits",
-        "topics": ["Flip-flops", "Flip-flop conversions", "Registers", "Shift registers", "Counters", "Synchronous counters", "Asynchronous counters", "Ring counters"]
+        "subtopics": ["Flip-flops: SR, JK, D and T types", "Flip-flop conversions and excitation tables", "Registers and shift registers", "Synchronous and asynchronous counters", "Ring counters and Johnson counters"]
       },
       {
         "number": 4,
         "title": "Computer Organization",
-        "topics": ["Functional units", "Bus structure", "Memory organization", "Cache memory", "Mapping functions", "Virtual memory", "I/O organization", "Interrupts"]
+        "subtopics": ["Functional units of computer", "Bus structure and interconnection", "Memory organization and hierarchy", "Cache memory mapping functions", "Virtual memory concepts"]
       },
       {
         "number": 5,
         "title": "Processing and Pipelining",
-        "topics": ["Instruction execution", "ALU design", "Control unit", "Hardwired control", "Microprogrammed control", "Pipelining concepts", "Pipeline hazards", "Performance measures"]
+        "subtopics": ["Instruction execution cycle", "ALU design and operations", "Control unit: hardwired and microprogrammed", "Pipelining concepts and performance", "Pipeline hazards and resolution"]
       }
     ],
     "reference_books": ["M. Morris Mano: Digital Logic and Computer Design", "Carl Hamacher: Computer Organization", "William Stallings: Computer Organization and Architecture"],
@@ -288,27 +288,27 @@
       {
         "number": 1,
         "title": "Introduction and Structures",
-        "topics": ["OS functions", "System calls", "System programs", "OS structure", "Virtual machines", "System boot", "Process concept", "Process scheduling"]
+        "subtopics": ["Operating system functions and services", "System calls and system programs", "OS structure: monolithic and layered", "Virtual machines and system boot", "Process concept and states"]
       },
       {
         "number": 2,
         "title": "Process Management",
-        "topics": ["Process operations", "Inter-process communication", "Threads", "Multithreading models", "Thread libraries", "Scheduling criteria", "Scheduling algorithms", "Multiprocessor scheduling"]
+        "subtopics": ["Process operations and PCB", "Inter-process communication methods", "Threads and multithreading models", "Thread libraries and implementation", "Multiprocessor scheduling algorithms"]
       },
       {
         "number": 3,
         "title": "Synchronization and Deadlocks",
-        "topics": ["Critical section problem", "Peterson's solution", "Semaphores", "Classical synchronization problems", "Deadlock characterization", "Deadlock prevention", "Deadlock avoidance", "Banker's algorithm"]
+        "subtopics": ["Critical section problem and solutions", "Peterson's solution and semaphores", "Classical synchronization problems", "Deadlock characterization and prevention", "Banker's algorithm for deadlock avoidance"]
       },
       {
         "number": 4,
         "title": "Memory Management",
-        "topics": ["Swapping", "Contiguous allocation", "Paging", "Segmentation", "Virtual memory", "Demand paging", "Page replacement algorithms", "Thrashing"]
+        "subtopics": ["Swapping and contiguous allocation", "Paging and segmentation techniques", "Virtual memory concepts", "Demand paging and page replacement", "Thrashing and working set model"]
       },
       {
         "number": 5,
         "title": "File Systems and Storage",
-        "topics": ["File concepts", "Access methods", "Directory structure", "File system mounting", "File sharing", "Allocation methods", "Free space management", "Disk scheduling"]
+        "subtopics": ["File concepts and access methods", "Directory structure and organization", "File system mounting and sharing", "Allocation methods: contiguous, linked, indexed", "Disk scheduling algorithms"]
       }
     ],
     "reference_books": ["Abraham Silberschatz: Operating System Concepts", "William Stallings: Operating Systems", "Andrew Tanenbaum: Modern Operating Systems"],
@@ -323,27 +323,27 @@
       {
         "number": 1,
         "title": "Introduction and Arrays",
-        "topics": ["Data structure classifications", "Operations", "Arrays", "Structures", "Polynomials", "Sparse matrices", "Stacks", "Expression evaluation"]
+        "subtopics": ["Data structure classifications and operations", "Array representations and operations", "Polynomial representation using arrays", "Sparse matrix representation", "Stacks and stack applications"]
       },
       {
         "number": 2,
         "title": "Queues and Linked Lists",
-        "topics": ["Queues", "Circular queues", "Priority queues", "Singly linked lists", "Doubly linked lists", "Circular linked lists", "Linked stacks and queues", "Polynomial representation"]
+        "subtopics": ["Queue operations and types", "Circular queues and priority queues", "Singly linked lists and operations", "Doubly linked lists and circular linked lists", "Linked stacks, queues and polynomial representation"]
       },
       {
         "number": 3,
         "title": "Trees",
-        "topics": ["Binary trees", "Tree traversals", "Threaded binary trees", "Binary search trees", "AVL trees", "B-trees", "Heaps", "Priority queues"]
+        "subtopics": ["Binary tree properties and representations", "Tree traversals: inorder, preorder, postorder", "Threaded binary trees", "Binary search trees and operations", "AVL trees and B-trees"]
       },
       {
         "number": 4,
         "title": "Graphs",
-        "topics": ["Graph representations", "BFS", "DFS", "Spanning trees", "Kruskal's algorithm", "Prim's algorithm", "Dijkstra's algorithm", "Shortest paths"]
+        "subtopics": ["Graph representations: adjacency matrix and list", "Graph traversals: BFS and DFS", "Spanning trees and minimum spanning trees", "Kruskal's and Prim's algorithms", "Dijkstra's shortest path algorithm"]
       },
       {
         "number": 5,
         "title": "Hashing and Advanced Topics",
-        "topics": ["Hash functions", "Collision resolution", "Open addressing", "Chaining", "Dynamic hashing", "Optimal binary search trees", "Digital search trees", "Tries"]
+        "subtopics": ["Hash functions and collision resolution", "Open addressing and chaining methods", "Dynamic hashing techniques", "Optimal binary search trees", "Digital search trees and tries"]
       }
     ],
     "reference_books": ["Ellis Horowitz: Fundamentals of Data Structures in C", "Seymour Lipschutz: Data Structures", "Jean-Paul Tremblay: Data Structures and Algorithms"],
@@ -358,27 +358,27 @@
       {
         "number": 1,
         "title": "Introduction and Search Strategies",
-        "topics": ["What is AI", "Intelligent agents", "Rationality", "Environment types", "Problem-solving agents", "Uninformed search", "BFS", "DFS", "Iterative deepening"]
+        "subtopics": ["What is AI and intelligent agents", "Rationality and environment types", "Problem-solving agents", "Uninformed search: BFS and DFS", "Iterative deepening search"]
       },
       {
         "number": 2,
         "title": "Heuristic Search",
-        "topics": ["Greedy best-first search", "A* search", "Optimality of A*", "Memory-bounded search", "Local search", "Hill-climbing", "Simulated annealing", "Genetic algorithms"]
+        "subtopics": ["Greedy best-first search", "A* search and optimality", "Memory-bounded heuristic search", "Local search algorithms", "Hill-climbing and simulated annealing"]
       },
       {
         "number": 3,
         "title": "Knowledge Representation",
-        "topics": ["Propositional logic", "First-order logic", "Syntax and semantics", "Knowledge engineering", "Inference rules", "Forward chaining", "Backward chaining", "Resolution"]
+        "subtopics": ["Propositional logic syntax and semantics", "First-order logic and quantifiers", "Knowledge engineering process", "Inference rules and forward chaining", "Backward chaining and resolution"]
       },
       {
         "number": 4,
         "title": "Machine Learning Basics",
-        "topics": ["Forms of learning", "Supervised learning", "Decision trees", "Ensemble learning", "Reinforcement learning", "Passive RL", "Active RL", "Generalization"]
+        "subtopics": ["Forms of learning: supervised, unsupervised, reinforcement", "Decision trees and learning algorithms", "Ensemble learning methods", "Reinforcement learning basics", "Generalization and overfitting"]
       },
       {
         "number": 5,
         "title": "NLP and Robotics",
-        "topics": ["Language models", "Text classification", "Information retrieval", "Robotics hardware", "Robotic perception", "Motion planning", "Robot learning", "AI applications"]
+        "subtopics": ["Language models and text classification", "Information retrieval basics", "Robotics hardware components", "Robotic perception and motion planning", "Robot learning and AI applications"]
       }
     ],
     "reference_books": ["Stuart Russell: Artificial Intelligence: A Modern Approach", "Elaine Rich: Artificial Intelligence", "Dan Patterson: Introduction to AI and Expert Systems"],
@@ -393,27 +393,27 @@
       {
         "number": 1,
         "title": "Introduction and Analysis",
-        "topics": ["Algorithm definition", "Algorithm specification", "Analysis framework", "Asymptotic notations", "Big-O", "Omega", "Theta", "Recurrence relations", "Substitution method"]
+        "subtopics": ["Algorithm definition and specification", "Analysis framework and asymptotic notations", "Big-O, Omega, and Theta notations", "Recurrence relations", "Substitution method for solving recurrences"]
       },
       {
         "number": 2,
         "title": "Divide and Conquer",
-        "topics": ["Binary search", "Merge sort", "Quick sort", "Strassen's matrix multiplication", "Decrease and conquer", "Insertion sort", "Topological sort", "Heaps and heapsort"]
+        "subtopics": ["Binary search algorithm", "Merge sort and quick sort", "Strassen's matrix multiplication", "Decrease and conquer strategy", "Insertion sort and topological sort"]
       },
       {
         "number": 3,
         "title": "Dynamic Programming and Greedy",
-        "topics": ["Knapsack problem", "Matrix chain multiplication", "Floyd-Warshall algorithm", "Optimal binary search trees", "Prim's algorithm", "Kruskal's algorithm", "Dijkstra's algorithm", "Huffman coding"]
+        "subtopics": ["Knapsack problem using DP", "Matrix chain multiplication", "Floyd-Warshall algorithm", "Optimal binary search trees", "Prim's and Kruskal's algorithms", "Dijkstra's algorithm and Huffman coding"]
       },
       {
         "number": 4,
         "title": "Backtracking and Branch-Bound",
-        "topics": ["n-Queens problem", "Subset sum", "Graph coloring", "Hamiltonian cycles", "Branch and bound", "Traveling salesman", "0/1 knapsack", "Approximation algorithms"]
+        "subtopics": ["n-Queens problem solution", "Subset sum and graph coloring", "Hamiltonian cycles", "Branch and bound technique", "Traveling salesman problem", "Approximation algorithms"]
       },
       {
         "number": 5,
         "title": "Complexity Theory",
-        "topics": ["P and NP classes", "NP-complete problems", "Cook's theorem", "Reductions", "Decision trees", "Lower bounds", "Backtracking analysis", "Amortized analysis"]
+        "subtopics": ["P and NP complexity classes", "NP-complete problems and Cook's theorem", "Polynomial time reductions", "Decision trees and lower bounds", "Amortized analysis techniques"]
       }
     ],
     "reference_books": ["Cormen: Introduction to Algorithms", "Anany Levitin: Introduction to Design and Analysis of Algorithms", "Aho, Hopcroft, Ullman: Design and Analysis of Algorithms"],
@@ -428,27 +428,27 @@
       {
         "number": 1,
         "title": "OOP and Java Fundamentals",
-        "topics": ["OOP paradigms", "Java buzzwords", "Data types", "Variables", "Operators", "Control statements", "Classes", "Objects", "Constructors", "Access specifiers"]
+        "subtopics": ["OOP paradigms and principles", "Java buzzwords and features", "Data types, variables and operators", "Control statements and arrays", "Classes, objects and constructors"]
       },
       {
         "number": 2,
         "title": "Inheritance and Packages",
-        "topics": ["Inheritance basics", "Types of inheritance", "Super keyword", "Method overriding", "Abstract classes", "Final keyword", "Packages", "Interfaces", "Static members"]
+        "subtopics": ["Inheritance basics and types", "Super keyword and method overriding", "Abstract classes and methods", "Final keyword and constants", "Packages and interfaces"]
       },
       {
         "number": 3,
         "title": "Exception Handling and Multithreading",
-        "topics": ["Exception handling basics", "Multiple catch clauses", "Nested try statements", "User-defined exceptions", "Thread model", "Creating threads", "Synchronization", "Inter-thread communication"]
+        "subtopics": ["Exception handling mechanisms", "Try-catch-finally blocks", "User-defined exceptions", "Thread creation and lifecycle", "Synchronization and inter-thread communication"]
       },
       {
         "number": 4,
         "title": "Collections and Generics",
-        "topics": ["Collection framework", "List interface", "Set interface", "Map interface", "ArrayList", "LinkedList", "HashMap", "Generics", "Autoboxing", "Enumerations"]
+        "subtopics": ["Collection framework overview", "List, Set and Map interfaces", "ArrayList, LinkedList and HashMap", "Generics and type safety", "Autoboxing, unboxing and enumerations"]
       },
       {
         "number": 5,
         "title": "Advanced Java",
-        "topics": ["JDBC", "Servlets", "JSP", "JavaBeans", "MVC architecture", "Spring basics", "Hibernate basics", "RESTful web services", "Microservices introduction"]
+        "subtopics": ["JDBC and database connectivity", "Servlets and JSP basics", "JavaBeans and MVC architecture", "Spring framework introduction", "Hibernate ORM basics"]
       }
     ],
     "reference_books": ["Herbert Schildt: Java: The Complete Reference", "Cay Horstmann: Core Java", "Y. Daniel Liang: Introduction to Java Programming"],
@@ -463,27 +463,27 @@
       {
         "number": 1,
         "title": "Introduction and ER Model",
-        "topics": ["Database concepts", "DBMS architecture", "Data models", "ER model", "Entity types", "Relationships", "Constraints", "ER diagrams", "Specialization", "Generalization"]
+        "subtopics": ["Database concepts and architecture", "DBMS three-level architecture", "Entity-Relationship model", "Entity types, attributes and relationships", "ER diagrams and constraints"]
       },
       {
         "number": 2,
         "title": "Relational Model",
-        "topics": ["Relational data model", "Relational algebra", "Selection", "Projection", "Join operations", "Integrity constraints", "Functional dependencies", "Normal forms", "Normalization"]
+        "subtopics": ["Relational data model concepts", "Relational algebra operations", "Tuple relational calculus", "Integrity constraints", "Functional dependencies and normal forms"]
       },
       {
         "number": 3,
         "title": "SQL and Advanced SQL",
-        "topics": ["SQL data types", "DDL statements", "DML statements", "DCL statements", "Subqueries", "Joins", "Views", "Triggers", "Stored procedures", "Cursors"]
+        "subtopics": ["SQL data definition language", "SQL data manipulation language", "Subqueries and joins", "Views and indexes", "Triggers and stored procedures"]
       },
       {
         "number": 4,
         "title": "Transaction Processing",
-        "topics": ["Transaction concepts", "ACID properties", "Serializability", "Concurrency control", "Locking", "Two-phase locking", "Deadlock handling", "Recovery techniques"]
+        "subtopics": ["Transaction concepts and ACID properties", "Serializability and concurrency control", "Lock-based protocols", "Two-phase locking and deadlock handling", "Recovery techniques and log-based recovery"]
       },
       {
         "number": 5,
         "title": "NoSQL and Big Data",
-        "topics": ["NoSQL databases", "CAP theorem", "Document stores", "MongoDB", "Key-value stores", "Column stores", "Graph databases", "Neo4j", "Big data storage"]
+        "subtopics": ["NoSQL databases and CAP theorem", "Document stores: MongoDB", "Key-value and column stores", "Graph databases: Neo4j", "Big data storage systems"]
       }
     ],
     "reference_books": ["Abraham Silberschatz: Database System Concepts", "R. Elmasri: Fundamentals of Database Systems", "Raghu Ramakrishnan: Database Management Systems"],
@@ -498,27 +498,27 @@
       {
         "number": 1,
         "title": "Introduction to Machine Learning",
-        "topics": ["Introduction to ML", "Types of learning", "Supervised learning", "Unsupervised learning", "Reinforcement learning", "Training and test sets", "Overfitting", "Underfitting", "Cross-validation", "Evaluation metrics"]
+        "subtopics": ["Introduction to ML and its applications", "Types of learning: supervised, unsupervised, reinforcement", "Training and test sets", "Overfitting and underfitting", "Cross-validation techniques", "Evaluation metrics for classification and regression"]
       },
       {
         "number": 2,
         "title": "Supervised Learning - Classification",
-        "topics": ["Classification models", "KNN", "Decision trees", "ID3 algorithm", "C4.5 algorithm", "Random forest", "SVM", "Kernel functions", "Naive Bayes", "Logistic regression"]
+        "subtopics": ["Classification problem formulation", "K-nearest neighbors algorithm", "Decision trees: ID3 and C4.5", "Random forest ensemble method", "Support Vector Machines and kernels", "Naive Bayes classifier", "Logistic regression"]
       },
       {
         "number": 3,
         "title": "Supervised Learning - Regression",
-        "topics": ["Linear regression", "Multiple linear regression", "Polynomial regression", "Ridge regression", "Lasso regression", "Elastic net", "Gradient descent", "Regularization"]
+        "subtopics": ["Linear regression and least squares", "Multiple linear regression", "Polynomial regression", "Ridge and Lasso regression", "Elastic net regularization", "Gradient descent optimization"]
       },
       {
         "number": 4,
         "title": "Unsupervised Learning",
-        "topics": ["Clustering algorithms", "K-means", "Hierarchical clustering", "DBSCAN", "Dimensionality reduction", "PCA", "LDA", "Association rules", "Apriori algorithm", "FP-growth"]
+        "subtopics": ["Clustering algorithms overview", "K-means clustering", "Hierarchical clustering methods", "DBSCAN density-based clustering", "Dimensionality reduction: PCA and LDA", "Association rule mining: Apriori and FP-growth"]
       },
       {
         "number": 5,
         "title": "Neural Networks and Deep Learning",
-        "topics": ["Perceptron", "Multilayer perceptron", "Backpropagation", "Activation functions", "CNN basics", "RNN basics", "LSTM", "GRU", "Transfer learning", "Model deployment"]
+        "subtopics": ["Perceptron and its limitations", "Multilayer perceptron architecture", "Backpropagation algorithm", "Activation functions and their properties", "Convolutional Neural Networks basics", "Recurrent Neural Networks basics", "Transfer learning concepts"]
       }
     ],
     "reference_books": ["Tom Mitchell: Machine Learning", "Christopher Bishop: Pattern Recognition and Machine Learning", "Aurelien Geron: Hands-On Machine Learning"],
@@ -533,27 +533,27 @@
       {
         "number": 1,
         "title": "Introduction and Physical Layer",
-        "topics": ["Network models", "OSI reference model", "TCP/IP protocol suite", "Transmission media", "Wireless transmission", "Digital modulation", "Multiplexing techniques", "Switching"]
+        "subtopics": ["Network models and OSI reference model", "TCP/IP protocol suite", "Transmission media types", "Wireless transmission methods", "Digital modulation techniques", "Multiplexing: FDM, TDM, WDM"]
       },
       {
         "number": 2,
         "title": "Data Link Layer",
-        "topics": ["Framing", "Error detection", "CRC", "Hamming code", "Flow control", "Stop-and-wait", "Sliding window protocols", "HDLC", "PPP"]
+        "subtopics": ["Framing methods", "Error detection: parity, CRC", "Error correction: Hamming code", "Flow control protocols", "Stop-and-wait protocol", "Sliding window protocols", "HDLC and PPP protocols"]
       },
       {
         "number": 3,
         "title": "Network Layer",
-        "topics": ["IP addressing", "Subnetting", "CIDR", "Routing algorithms", "Distance vector", "Link state", "BGP", "Congestion control", "QoS"]
+        "subtopics": ["IP addressing and subnetting", "CIDR notation", "Routing algorithms: distance vector and link state", "BGP protocol", "Congestion control mechanisms", "Quality of Service parameters"]
       },
       {
         "number": 4,
         "title": "Transport Layer",
-        "topics": ["TCP", "UDP", "Port numbers", "Connection management", "Flow control", "Congestion control", "Socket programming", "TCP vs UDP"]
+        "subtopics": ["TCP protocol and segment structure", "UDP protocol characteristics", "Port numbers and sockets", "TCP connection management", "Flow control in TCP", "Congestion control algorithms", "Socket programming basics"]
       },
       {
         "number": 5,
         "title": "Application Layer",
-        "topics": ["DNS", "Email protocols", "SMTP", "POP3", "IMAP", "HTTP", "FTP", "Web services", "Network security basics"]
+        "subtopics": ["DNS system and resolution", "Email protocols: SMTP, POP3, IMAP", "HTTP protocol and web caching", "FTP protocol", "Web services architecture", "Network security fundamentals"]
       }
     ],
     "reference_books": ["Andrew Tanenbaum: Computer Networks", "Behrouz Forouzan: Data Communications and Networking", "James Kurose: Computer Networking: A Top-Down Approach"],
@@ -568,27 +568,27 @@
       {
         "number": 1,
         "title": "Software Process Models",
-        "topics": ["Software process", "Waterfall model", "Iterative models", "Spiral model", "Agile methodology", "Scrum", "Extreme programming", "DevOps fundamentals"]
+        "subtopics": ["Software process concepts", "Waterfall model phases", "Iterative and incremental models", "Spiral model risk analysis", "Agile methodology principles", "Scrum framework and ceremonies", "Extreme programming practices"]
       },
       {
         "number": 2,
         "title": "Requirements Engineering",
-        "topics": ["Requirements elicitation", "Analysis", "Specification", "Validation", "Requirements management", "Use case modeling", "SRS documentation", "Change management"]
+        "subtopics": ["Requirements elicitation techniques", "Requirements analysis methods", "Software Requirements Specification", "Requirements validation", "Requirements management", "Use case modeling", "Change management process"]
       },
       {
         "number": 3,
         "title": "Design and Testing",
-        "topics": ["Architectural design", "Design patterns", "UML diagrams", "Testing fundamentals", "White box testing", "Black box testing", "Integration testing", "System testing"]
+        "subtopics": ["Software architecture design", "Design patterns overview", "UML diagrams for design", "Testing fundamentals and levels", "White box testing techniques", "Black box testing methods", "Integration and system testing"]
       },
       {
         "number": 4,
         "title": "Project Management",
-        "topics": ["Project planning", "Estimation techniques", "Risk management", "Quality assurance", "Configuration management", "Version control", "Project scheduling", "Team management"]
+        "subtopics": ["Project planning activities", "Estimation techniques: COCOMO", "Risk management process", "Software quality assurance", "Configuration management", "Version control systems", "Project scheduling methods"]
       },
       {
         "number": 5,
         "title": "Modern Practices",
-        "topics": ["CI/CD pipelines", "Containerization", "Docker", "Kubernetes", "Microservices", "Cloud-native development", "SRE practices", "Monitoring and logging"]
+        "subtopics": ["CI/CD pipeline concepts", "Containerization with Docker", "Kubernetes orchestration", "Microservices architecture", "Cloud-native development", "Site Reliability Engineering", "Monitoring and logging"]
       }
     ],
     "reference_books": ["Ian Sommerville: Software Engineering", "Roger Pressman: Software Engineering: A Practitioner's Approach", "Robert C. Martin: Clean Code"],
@@ -603,27 +603,27 @@
       {
         "number": 1,
         "title": "Introduction to Big Data",
-        "topics": ["Big Data characteristics", "Volume", "Velocity", "Variety", "Veracity", "Value", "Hadoop ecosystem", "HDFS", "MapReduce", "YARN"]
+        "subtopics": ["Big Data 5V characteristics", "Hadoop ecosystem overview", "HDFS architecture and operations", "MapReduce programming model", "YARN resource management"]
       },
       {
         "number": 2,
         "title": "Apache Spark",
-        "topics": ["Spark architecture", "RDDs", "Spark SQL", "DataFrames", "Spark Streaming", "MLlib", "GraphX", "Spark optimization"]
+        "subtopics": ["Spark architecture components", "Resilient Distributed Datasets", "Spark SQL and DataFrames", "Spark Streaming for real-time", "MLlib for machine learning", "GraphX for graph processing"]
       },
       {
         "number": 3,
         "title": "NoSQL Databases",
-        "topics": ["CAP theorem", "MongoDB", "Cassandra", "HBase", "Redis", "Neo4j", "Document stores", "Key-value stores", "Graph databases"]
+        "subtopics": ["CAP theorem and trade-offs", "MongoDB document store", "Cassandra column-family store", "HBase for big data", "Redis key-value store", "Neo4j graph database"]
       },
       {
         "number": 4,
         "title": "Data Processing and Analysis",
-        "topics": ["ETL processes", "Data warehousing", "Apache Hive", "Apache Pig", "Data mining", "Association rules", "Classification", "Clustering"]
+        "subtopics": ["ETL pipeline design", "Data warehousing concepts", "Apache Hive for SQL-like queries", "Apache Pig for data flow", "Data mining fundamentals", "Association rules and classification"]
       },
       {
         "number": 5,
         "title": "Machine Learning at Scale",
-        "topics": ["Distributed machine learning", "Feature engineering at scale", "Model deployment", "MLOps", "TensorFlow Extended", "MLflow", "Kubeflow"]
+        "subtopics": ["Distributed machine learning challenges", "Feature engineering at scale", "Model deployment strategies", "MLOps practices", "TensorFlow Extended", "MLflow and Kubeflow platforms"]
       }
     ],
     "reference_books": ["Tom White: Hadoop: The Definitive Guide", "Bill Chambers: Spark: The Definitive Guide", "Nathan Marz: Big Data"],
@@ -638,27 +638,27 @@
       {
         "number": 1,
         "title": "Introduction to Neural Networks",
-        "topics": ["Biological neurons", "Artificial neurons", "Activation functions", "MLP", "Forward propagation", "Backpropagation", "Weight initialization", "Glorot and He initialization"]
+        "subtopics": ["Biological inspiration for neural networks", "Artificial neuron model", "Activation functions: sigmoid, ReLU, tanh", "Multilayer perceptron architecture", "Forward propagation mechanism", "Backpropagation algorithm", "Weight initialization strategies"]
       },
       {
         "number": 2,
         "title": "Training Deep Neural Networks",
-        "topics": ["Vanishing gradients", "Exploding gradients", "Batch normalization", "Gradient clipping", "Optimizers", "SGD", "Momentum", "Adam", "Learning rate scheduling", "Regularization"]
+        "subtopics": ["Vanishing and exploding gradients", "Batch normalization technique", "Gradient clipping methods", "Optimization algorithms: SGD, Adam, RMSprop", "Learning rate scheduling", "Regularization: L1, L2, dropout", "Early stopping"]
       },
       {
         "number": 3,
         "title": "Convolutional Neural Networks",
-        "topics": ["Convolution operation", "Filters", "Padding", "Pooling", "CNN architectures", "LeNet", "AlexNet", "VGGNet", "ResNet", "Transfer learning", "Object detection", "YOLO"]
+        "subtopics": ["Convolution operation and filters", "Padding and stride concepts", "Pooling layers: max and average", "CNN architectures: LeNet, AlexNet", "VGGNet and ResNet", "Transfer learning approaches", "Object detection: YOLO"]
       },
       {
         "number": 4,
         "title": "Recurrent Neural Networks",
-        "topics": ["RNN architecture", "LSTM", "GRU", "Bidirectional RNNs", "Sequence to sequence models", "Attention mechanism", "Transformer architecture", "BERT", "GPT"]
+        "subtopics": ["RNN architecture and unrolling", "Long Short-Term Memory networks", "Gated Recurrent Units", "Bidirectional RNNs", "Sequence to sequence models", "Attention mechanism", "Transformer architecture", "BERT and GPT models"]
       },
       {
         "number": 5,
         "title": "Advanced Topics",
-        "topics": ["Autoencoders", "Variational autoencoders", "GANs", "DCGAN", "StyleGAN", "Deep reinforcement learning", "Model deployment", "Edge AI"]
+        "subtopics": ["Autoencoders and variants", "Variational autoencoders", "Generative Adversarial Networks", "DCGAN and StyleGAN", "Deep reinforcement learning basics", "Model deployment strategies", "Edge AI considerations"]
       }
     ],
     "reference_books": ["Ian Goodfellow: Deep Learning", "Francois Chollet: Deep Learning with Python", "Aurelien Geron: Hands-On Machine Learning"],
@@ -673,27 +673,27 @@
       {
         "number": 1,
         "title": "Introduction to NLP",
-        "topics": ["NLP applications", "Text preprocessing", "Tokenization", "Stemming", "Lemmatization", "Stop words removal", "POS tagging", "Named entity recognition"]
+        "subtopics": ["NLP applications and challenges", "Text preprocessing pipeline", "Tokenization methods", "Stemming algorithms: Porter, Snowball", "Lemmatization techniques", "Stop words removal", "Part-of-speech tagging", "Named entity recognition"]
       },
       {
         "number": 2,
         "title": "Text Representation",
-        "topics": ["Bag of words", "TF-IDF", "Word embeddings", "Word2Vec", "GloVe", "FastText", "Contextual embeddings", "ELMo", "BERT embeddings"]
+        "subtopics": ["Bag of Words representation", "TF-IDF weighting scheme", "Word embeddings concept", "Word2Vec: CBOW and Skip-gram", "GloVe embeddings", "FastText subword embeddings", "Contextual embeddings introduction"]
       },
       {
         "number": 3,
         "title": "Sequence Processing",
-        "topics": ["Language models", "N-grams", "RNNs for NLP", "LSTM for text", "Sequence labeling", "Text classification", "Sentiment analysis", "Topic modeling"]
+        "subtopics": ["N-gram language models", "RNNs for sequence modeling", "LSTM for text processing", "Sequence labeling tasks", "Text classification methods", "Sentiment analysis approaches", "Topic modeling: LDA"]
       },
       {
         "number": 4,
         "title": "Advanced NLP",
-        "topics": ["Machine translation", "Attention mechanism", "Transformer models", "BERT", "GPT", "T5", "Question answering", "Summarization"]
+        "subtopics": ["Machine translation systems", "Attention mechanism details", "Transformer architecture: encoder-decoder", "BERT model and fine-tuning", "GPT model series", "T5 text-to-text framework", "Question answering systems", "Text summarization techniques"]
       },
       {
         "number": 5,
         "title": "NLP Applications",
-        "topics": ["Chatbots", "Dialog systems", "Speech recognition", "Text generation", "Information extraction", "Relation extraction", "Knowledge graphs", "LLM fine-tuning"]
+        "subtopics": ["Chatbot development", "Dialog systems design", "Speech recognition pipeline", "Text generation methods", "Information extraction", "Relation extraction", "Knowledge graph construction", "LLM fine-tuning approaches"]
       }
     ],
     "reference_books": ["Dan Jurafsky: Speech and Language Processing", "Christopher Manning: Foundations of Statistical Natural Language Processing", "Yoav Goldberg: Neural Network Methods for NLP"],
@@ -708,27 +708,27 @@
       {
         "number": 1,
         "title": "Image Processing Fundamentals",
-        "topics": ["Image formation", "Color spaces", "Image filtering", "Edge detection", "Corner detection", "Histogram processing", "Morphological operations", "Image segmentation"]
+        "subtopics": ["Image formation and digital image representation", "Color spaces: RGB, HSV, CMYK", "Image filtering: linear and non-linear", "Edge detection operators: Sobel, Canny", "Corner detection: Harris, Shi-Tomasi", "Histogram processing", "Morphological operations", "Image segmentation techniques"]
       },
       {
         "number": 2,
         "title": "Feature Extraction",
-        "topics": ["SIFT", "SURF", "ORB", "HOG", "LBP", "Feature matching", "Image stitching", "Panorama creation", "Geometric transformations"]
+        "subtopics": ["Scale-Invariant Feature Transform", "Speeded Up Robust Features", "Oriented FAST and Rotated BRIEF", "Histogram of Oriented Gradients", "Local Binary Patterns", "Feature matching and correspondence", "Image stitching pipeline", "Geometric transformations"]
       },
       {
         "number": 3,
         "title": "Deep Learning for Vision",
-        "topics": ["CNN architectures for vision", "Transfer learning", "Fine-tuning", "Object detection", "R-CNN", "Fast R-CNN", "YOLO", "SSD"]
+        "subtopics": ["CNN architectures for image classification", "Transfer learning and fine-tuning", "Object detection frameworks", "R-CNN family of detectors", "You Only Look Once detector", "Single Shot MultiBox Detector", "Semantic segmentation approaches"]
       },
       {
         "number": 4,
         "title": "Advanced Vision Tasks",
-        "topics": ["Semantic segmentation", "Instance segmentation", "Mask R-CNN", "U-Net", "Image generation", "Style transfer", "GANs for vision", "Vision transformers"]
+        "subtopics": ["Instance segmentation: Mask R-CNN", "U-Net architecture for medical imaging", "Image generation with GANs", "Neural style transfer", "Vision transformers architecture", "Self-attention in computer vision", "Multi-modal learning"]
       },
       {
         "number": 5,
         "title": "Applications",
-        "topics": ["Face recognition", "Object tracking", "Optical flow", "Action recognition", "Scene understanding", "Medical image analysis", "Autonomous vehicles", "AR/VR applications"]
+        "subtopics": ["Face detection and recognition systems", "Object tracking algorithms", "Optical flow estimation", "Action recognition in videos", "Scene understanding", "Medical image analysis", "Autonomous vehicle perception", "Augmented and virtual reality"]
       }
     ],
     "reference_books": ["Richard Szeliski: Computer Vision: Algorithms and Applications", "David Forsyth: Computer Vision: A Modern Approach", "Simon Prince: Computer Vision: Models, Learning, and Inference"],
@@ -743,27 +743,27 @@
       {
         "number": 1,
         "title": "Introduction to RL",
-        "topics": ["RL framework", "Agent-environment interface", "Rewards", "Policy", "Value function", "Model-based vs model-free", "Exploration vs exploitation", "Markov decision processes"]
+        "subtopics": ["RL framework and agent-environment interface", "Rewards and returns", "Policies: deterministic and stochastic", "Value functions: state and action", "Model-based vs model-free RL", "Exploration vs exploitation dilemma", "Markov Decision Processes formulation"]
       },
       {
         "number": 2,
         "title": "Dynamic Programming",
-        "topics": ["Policy evaluation", "Policy improvement", "Policy iteration", "Value iteration", "Asynchronous DP", "Generalized policy iteration", "Bellman equations"]
+        "subtopics": ["Policy evaluation algorithm", "Policy improvement theorem", "Policy iteration method", "Value iteration algorithm", "Asynchronous dynamic programming", "Generalized policy iteration", "Bellman expectation and optimality equations"]
       },
       {
         "number": 3,
         "title": "Monte Carlo and TD Methods",
-        "topics": ["Monte Carlo prediction", "Monte Carlo control", "Temporal difference learning", "TD prediction", "SARSA", "Q-learning", "On-policy vs off-policy", "Expected SARSA"]
+        "subtopics": ["Monte Carlo prediction and control", "Exploring starts and epsilon-greedy", "Temporal difference learning", "TD prediction: TD(0)", "SARSA on-policy control", "Q-learning off-policy control", "Expected SARSA", "Maximization bias and double learning"]
       },
       {
         "number": 4,
         "title": "Deep Reinforcement Learning",
-        "topics": ["Function approximation", "DQN", "Experience replay", "Target networks", "Policy gradients", "REINFORCE", "Actor-critic methods", "A3C", "PPO"]
+        "subtopics": ["Function approximation with neural networks", "Deep Q-Network architecture", "Experience replay mechanism", "Target networks for stability", "Policy gradient methods", "REINFORCE algorithm", "Actor-critic methods", "Advantage Actor-Critic", "Proximal Policy Optimization"]
       },
       {
         "number": 5,
         "title": "Advanced Topics",
-        "topics": ["Model-based RL", "Planning", "AlphaGo", "MuZero", "Multi-agent RL", "Hierarchical RL", "Inverse RL", "RL applications in robotics", "RL for NLP"]
+        "subtopics": ["Model-based RL and planning", "AlphaGo and Monte Carlo Tree Search", "MuZero algorithm", "Multi-agent reinforcement learning", "Hierarchical reinforcement learning", "Inverse reinforcement learning", "RL applications in robotics", "RL for natural language processing"]
       }
     ],
     "reference_books": ["Richard Sutton: Reinforcement Learning: An Introduction", "Csaba Szepesvari: Algorithms for Reinforcement Learning", "Maxim Lapan: Deep Reinforcement Learning Hands-On"],
@@ -778,27 +778,27 @@
       {
         "number": 1,
         "title": "Introduction to Edge Computing",
-        "topics": ["Edge computing paradigms", "Cloudlet", "Fog computing", "MEC", "Hardware for edge", "AI hardware", "Edge frameworks", "Network virtualization"]
+        "subtopics": ["Edge computing paradigms and architecture", "Cloudlet and fog computing concepts", "Multi-access Edge Computing", "Hardware accelerators for AI", "Edge AI frameworks overview", "Network virtualization and slicing", "Edge vs cloud trade-offs"]
       },
       {
         "number": 2,
         "title": "AI Applications on Edge",
-        "topics": ["Real-time video analytics", "ML solutions", "Deep learning solutions", "Autonomous vehicles", "Smart manufacturing", "Smart home", "IoT integration"]
+        "subtopics": ["Real-time video analytics pipeline", "Machine learning inference at edge", "Deep learning model deployment", "Autonomous vehicles edge computing", "Smart manufacturing applications", "Smart home and IoT integration", "Healthcare edge AI"]
       },
       {
         "number": 3,
         "title": "Model Optimization",
-        "topics": ["Model compression", "Quantization", "Pruning", "Knowledge distillation", "Model optimization for edge", "Early exit", "Model sharing", "Distributed training"]
+        "subtopics": ["Model compression techniques", "Quantization: post-training and quantization-aware", "Pruning: unstructured and structured", "Knowledge distillation methods", "Model optimization for edge constraints", "Early exit mechanisms", "Model sharing and federated approaches"]
       },
       {
         "number": 4,
         "title": "Edge Hardware and Software",
-        "topics": ["Mobile CPUs and GPUs", "FPGA solutions", "TPU", "Edge data analysis", "Big data at edge", "Edge frameworks", "TensorFlow Lite", "ONNX"]
+        "subtopics": ["Mobile CPUs and GPUs for AI", "FPGA solutions for edge AI", "Tensor Processing Units", "Edge data analysis techniques", "Big data processing at edge", "TensorFlow Lite framework", "ONNX runtime", "Edge deployment tools"]
       },
       {
         "number": 5,
         "title": "Deployment and Security",
-        "topics": ["Model deployment at edge", "Containerization at edge", "Edge-cloud coordination", "Security challenges", "Privacy preservation", "Federated learning", "Edge AI case studies"]
+        "subtopics": ["Model deployment at edge devices", "Containerization for edge", "Edge-cloud coordination", "Security challenges in edge AI", "Privacy preservation techniques", "Federated learning architecture", "Edge AI case studies", "Future trends in edge computing"]
       }
     ],
     "reference_books": ["Edge Computing and AI by Xiaofei Wang", "TinyML by Pete Warden", "Edge AI by IEEE Computer Society"],
@@ -813,7 +813,7 @@
       {
         "number": 1,
         "title": "Seminar Preparation",
-        "topics": ["Topic selection", "Literature survey", "Research methodology", "Technical paper writing", "Presentation skills", "PowerPoint design", "Technical communication"]
+        "subtopics": ["Research topic selection criteria", "Literature survey methodology", "Research paper analysis", "Technical report writing", "Presentation skills development", "PowerPoint design principles", "Technical communication best practices"]
       }
     ],
     "reference_books": ["Meenakshi Raman: Technical Communication", "C.R. Kothari: Research Methodology"],
@@ -828,7 +828,7 @@
       {
         "number": 1,
         "title": "Internship Work",
-        "topics": ["Industry exposure", "Real-world problem solving", "Project development", "Technical documentation", "Professional ethics", "Team collaboration", "Industry best practices"]
+        "subtopics": ["Industry exposure and work culture", "Real-world problem identification", "Project development lifecycle", "Technical documentation writing", "Professional ethics and conduct", "Team collaboration skills", "Industry best practices application"]
       }
     ],
     "reference_books": ["Industrial Engineering and Management by O.P. Khanna"],

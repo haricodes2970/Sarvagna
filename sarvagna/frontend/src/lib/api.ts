@@ -186,6 +186,35 @@ export const mapApi = {
     api.get<MapResponse>(`/map/${subject_id}`),
 };
 
+// ─── Module Map ─────────────────────────────────────────────────────────────────────
+export type ModuleMapStatus = "completed" | "current" | "locked";
+
+export interface ModuleMapSubtopic {
+  id: string;
+  title: string;
+  status: ModuleMapStatus;
+}
+
+export interface ModuleMapTopic {
+  id: string;
+  title: string;
+  status: ModuleMapStatus;
+  subtopics: ModuleMapSubtopic[];
+}
+
+export interface ModuleMapResponse {
+  subject_id: string;
+  subject_name: string;
+  module_number: number;
+  module_title: string;
+  topics: ModuleMapTopic[];
+}
+
+export const modulemapApi = {
+  getModuleMap: (subject_id: string, module_number: number) =>
+    api.get<ModuleMapResponse>(`/modulemap/${subject_id}/${module_number}`),
+};
+
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
 export interface ChatMessage {

@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import auth, chat, map, progress, query, subjects
+from api.routes import auth, chat, map, modulemap, progress, query, subjects
 
 app = FastAPI(title="Sarvagna API")
 
@@ -20,6 +20,7 @@ app.include_router(subjects.router, prefix="/api/v1")
 app.include_router(progress.router, prefix="/api/v1")
 app.include_router(chat.router, prefix="/api/v1")
 app.include_router(map.router, prefix="/api/v1")
+app.include_router(modulemap.router, prefix="/api/v1")
 
 
 @app.get("/health")

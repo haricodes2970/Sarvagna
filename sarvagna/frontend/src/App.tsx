@@ -13,6 +13,7 @@ import RoadmapPage from "./pages/RoadmapPage";
 import ProgressPage from "./pages/ProgressPage";
 import ChatPage from "./pages/ChatPage";
 import MapPage from "./pages/MapPage";
+import ModuleMapPage from "./pages/ModuleMapPage";
 import ErrorBoundary from "./components/ErrorBoundary";
 
 const queryClient = new QueryClient({
@@ -45,6 +46,7 @@ function AppRoutes() {
       <Route path="/progress" element={<RequireAuth><ProgressPage /></RequireAuth>} />
       <Route path="/chat/:subjectId/:moduleNumber" element={<RequireAuth><ErrorBoundary><ChatPage /></ErrorBoundary></RequireAuth>} />
       <Route path="/map/:subjectId" element={<RequireAuth><ErrorBoundary><MapPage /></ErrorBoundary></RequireAuth>} />
+      <Route path="/modulemap/:subjectId/:moduleNumber" element={<RequireAuth><ErrorBoundary><ModuleMapPage /></ErrorBoundary></RequireAuth>} />
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
