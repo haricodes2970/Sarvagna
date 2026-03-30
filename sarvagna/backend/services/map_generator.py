@@ -1,7 +1,7 @@
 import asyncio
 from typing import List
 
-import replicate
+import httpx
 from redis.asyncio import Redis
 
 from core.config import get_settings
@@ -22,28 +22,15 @@ def _build_prompt(module_title: str, topics_list: List[str]) -> str:
   )
 
 
-def _extract_first_url(replicate_output: object) -> str | None:
-  # Replicate SDXL typically returns a list of URLs.
-  if isinstance(replicate_output, str):
-    return replicate_output
-  if isinstance(replicate_output, list) and replicate_output:
-    if isinstance(replicate_output[0], str):
-      return replicate_output[0]
-    try:
-      # Handle nested structures like [{ "url": "..." }]
-      if isinstance(replicate_output[0], dict) and replicate_output[0].get("url"):
-        return str(replicate_output[0]["url"])
-    except Exception:
-      return None
-  try:
-    # Try first element from any iterable (including generators).
-    first = next(iter(replicate_output))  # type: ignore[arg-type]
-    if isinstance(first, str):
-      return first
-    if isinstance(first, dict) and first.get("url"):
-      return str(first["url"])
-  except Exception:
-    return None
+def _extract_first_url(output: object) -> str | None:
+  # Replicate output is commonly a list of URLs, but can also be a single string.
+  if isinstance(output, str):
+    return output
+  if isinstance(output, list) and output:
+    if isinstance(output[0], str):
+      return output[0]
+    if isinstance(output[0], dict) and output[0].get("url"):
+      return str(output[0]["url"])
   return None
 
 
@@ -68,31 +55,52 @@ async def generate_module_map(
     await redis.aclose()
     raise RuntimeError("REPLICATE_API_KEY is not configured")
 
-  # Replicate's Python SDK uses the env var `REPLICATE_API_TOKEN` by default.
-  # We'll set it locally for this process as a best-effort.
-  # (We don't persist any secrets; this runs server-side only.)
-  import os
-
-  os.environ.setdefault("REPLICATE_API_TOKEN", settings.REPLICATE_API_KEY)
-
   prompt = _build_prompt(module_title, topics_list)
 
-  def _run_replicate() -> object:
-    return replicate.run(
-      "stability-ai/sdxl",
-      input={
-        "prompt": prompt,
-        "negative_prompt": "text, labels, watermark, logo, signatures",
-        "width": 1280,
-        "height": 800,
-        "num_outputs": 1,
-        "num_inference_steps": 35,
-        "guidance_scale": 7.5,
+  async with httpx.AsyncClient(timeout=60) as client:
+    # Create prediction
+    resp = await client.post(
+      "https://api.replicate.com/v1/models/stability-ai/sdxl/predictions",
+      headers={
+        "Authorization": f"Bearer {settings.REPLICATE_API_KEY}",
+        "Content-Type": "application/json",
+      },
+      json={
+        "input": {
+          "prompt": prompt,
+          "negative_prompt": "text, labels, watermark, logo, signatures",
+          "width": 1280,
+          "height": 800,
+          "num_outputs": 1,
+          "num_inference_steps": 35,
+          "guidance_scale": 7.5,
+        }
       },
     )
+    resp.raise_for_status()
+    prediction = resp.json()
+    prediction_id = prediction["id"]
 
-  replicate_output = await asyncio.to_thread(_run_replicate)
-  image_url = _extract_first_url(replicate_output)
+    # Poll for result
+    for _ in range(30):
+      await asyncio.sleep(3)
+      poll = await client.get(
+        f"https://api.replicate.com/v1/predictions/{prediction_id}",
+        headers={"Authorization": f"Bearer {settings.REPLICATE_API_KEY}"},
+      )
+      poll.raise_for_status()
+      result = poll.json()
+      if result.get("status") == "succeeded":
+        output = result.get("output")
+        image_url = _extract_first_url(output)
+        if image_url:
+          break
+        image_url = None
+      elif result.get("status") == "failed":
+        raise RuntimeError("Replicate image generation failed")
+    else:
+      raise RuntimeError("Timeout waiting for image")
+
   if not image_url:
     await redis.aclose()
     raise RuntimeError("Replicate did not return an image URL")

@@ -15,7 +15,6 @@ groq
 google-generativeai
 qdrant-client
 redis
-replicate
 celery
 langchain
 langchain-community
