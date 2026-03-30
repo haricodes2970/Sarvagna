@@ -215,6 +215,19 @@ export const modulemapApi = {
     api.get<ModuleMapResponse>(`/modulemap/${subject_id}/${module_number}`),
 };
 
+// ─── Module Map Images ───────────────────────────────────────────────────────────
+export interface ModuleImageResponse {
+  subject_id: string;
+  module_number: number;
+  image_url: string;
+  generated_at: string;
+}
+
+export const mapimageApi = {
+  getModuleImage: (subject_id: string, module_number: number) =>
+    api.get<ModuleImageResponse>(`/mapimage/${subject_id}/${module_number}`),
+};
+
 // ─── Chat ─────────────────────────────────────────────────────────────────────
 
 export interface ChatMessage {
