@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 import { mapGraphApi, modulemapApi, type MapGraphLayout } from "@/lib/api";
 import WorldMap, { type TopicStatus } from "@/components/WorldMap";
 
@@ -90,9 +90,13 @@ export default function ModuleMapPage() {
             {moduleTitle}
           </p>
         </div>
-        <div className="text-[10px] text-zinc-700 uppercase tracking-widest font-black">
-          Module Realm
-        </div>
+        <button
+          onClick={() => navigate(`/chat/${subjectId}/${moduleNumber}`)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 text-black text-xs font-bold hover:bg-amber-400 transition-all"
+        >
+          <MessageSquare size={13} />
+          Open Chat
+        </button>
       </div>
 
       {/* Map canvas */}

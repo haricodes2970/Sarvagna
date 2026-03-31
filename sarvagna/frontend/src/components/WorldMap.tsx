@@ -503,37 +503,42 @@ export default function WorldMap({
       {/* Zoom controls */}
       <div className="absolute bottom-4 right-4 flex flex-col gap-1 z-10">
         <button
-          onClick={() => setZoom((z) => Math.min(3, z + 0.2))}
-          className="w-8 h-8 bg-black/70 border border-slate-700 text-white text-lg font-bold rounded hover:bg-black/90 transition-colors"
+          onClick={() => setZoom((z) => Math.min(3, z + 0.25))}
+          className="w-9 h-9 bg-black/80 border border-slate-700 text-white text-base font-bold rounded-lg hover:bg-zinc-900 hover:border-slate-500 transition-all"
         >
           +
         </button>
         <button
-          onClick={() => setZoom((z) => Math.max(0.4, z - 0.2))}
-          className="w-8 h-8 bg-black/70 border border-slate-700 text-white text-lg font-bold rounded hover:bg-black/90 transition-colors"
+          onClick={() => setZoom((z) => Math.max(0.4, z - 0.25))}
+          className="w-9 h-9 bg-black/80 border border-slate-700 text-white text-base font-bold rounded-lg hover:bg-zinc-900 hover:border-slate-500 transition-all"
         >
           −
         </button>
         <button
           onClick={() => { setZoom(1); setPan({ x: 0, y: 0 }); }}
-          className="w-8 h-8 bg-black/70 border border-slate-700 text-slate-400 text-xs font-bold rounded hover:bg-black/90 transition-colors"
+          title="Reset view"
+          className="w-9 h-9 bg-black/80 border border-slate-700 text-slate-400 text-xs font-bold rounded-lg hover:bg-zinc-900 hover:border-slate-500 hover:text-white transition-all"
         >
           ⌖
         </button>
       </div>
 
-      {/* Legend */}
-      <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1.5 bg-black/60 backdrop-blur-sm border border-slate-700 rounded-lg p-3">
+      {/* Legend + hint */}
+      <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-2 bg-black/70 backdrop-blur-sm border border-slate-700/60 rounded-xl p-3 shadow-xl">
+        <p className="text-[9px] text-slate-500 font-black uppercase tracking-[0.15em] mb-0.5">Map Legend</p>
         {[
           { color: "#f59e0b", label: "Completed" },
-          { color: "#f97316", label: "Current" },
+          { color: "#f97316", label: "In Progress" },
           { color: "#374151", label: "Locked" },
         ].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ background: color }} />
-            <span className="text-[10px] text-slate-300 font-bold uppercase tracking-wider">{label}</span>
+            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: color }} />
+            <span className="text-[10px] text-slate-300 font-semibold">{label}</span>
           </div>
         ))}
+        <div className="mt-1 pt-2 border-t border-slate-800 text-[9px] text-slate-600 leading-relaxed">
+          Click a node to study · Drag to pan · Scroll to zoom
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.teacher_agent import teach_module
@@ -155,6 +155,25 @@ async def send_message(
         user_message=_to_out(user_msg),
         ai_message=_to_out(ai_msg),
     )
+
+
+@router.delete("/{subject_id}/{module_number}", status_code=204)
+async def clear_chat_history(
+    subject_id: str,
+    module_number: int,
+    user: User = Depends(current_user_dep),
+    db: AsyncSession = Depends(get_db),
+):
+    """Delete all chat messages for a specific module (clear chat)."""
+    await _verify_subject(db, subject_id, user.id)
+    await db.execute(
+        delete(ChatMessage).where(
+            ChatMessage.user_id == user.id,
+            ChatMessage.subject_id == uuid.UUID(subject_id),
+            ChatMessage.module_number == module_number,
+        )
+    )
+    await db.commit()
 
 
 # ---------------------------------------------------------------------------

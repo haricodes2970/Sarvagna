@@ -299,6 +299,9 @@ export const chatApi = {
 
   sendMessage: (subject_id: string, module_number: number, content: string) =>
     api.post<SendMessageResponse>(`/chat/${subject_id}/${module_number}`, { content }),
+
+  clearHistory: (subject_id: string, module_number: number) =>
+    api.delete(`/chat/${subject_id}/${module_number}`),
 };
 
 // ─── Important Questions ───────────────────────────────────────────────────
@@ -316,6 +319,16 @@ export const importantQuestionsApi = {
       text,
       module_number,
     }),
+
+  uploadPdf: (subject_id: string, file: File, module_number = 0) => {
+    const form = new FormData();
+    form.append("file", file);
+    return api.post<{ count: number; questions: string[] }>(
+      `/important-questions/${subject_id}/pdf?module_number=${module_number}`,
+      form,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+  },
 
   list: (subject_id: string) =>
     api.get<ImportantQuestion[]>(`/important-questions/${subject_id}`),
