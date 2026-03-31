@@ -255,18 +255,40 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       }`}>
         {isUser ? (
           message.content
-        ) : (
-          <div className="prose prose-sm prose-invert max-w-none
-            prose-p:my-1 prose-p:leading-relaxed
-            prose-headings:text-zinc-100 prose-headings:font-bold prose-headings:mt-2 prose-headings:mb-1
-            prose-strong:text-zinc-100 prose-strong:font-semibold
-            prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5
-            prose-ol:my-1 prose-ol:pl-4
-            prose-code:bg-zinc-800 prose-code:text-amber-400 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
-            prose-pre:bg-zinc-800 prose-pre:rounded-lg prose-pre:p-3 prose-pre:my-2 prose-pre:overflow-x-auto">
-            <ReactMarkdown>{message.content}</ReactMarkdown>
-          </div>
-        )}
+        ) : (() => {
+          const raw = message.content;
+          const imgMatch = raw.match(/<!-- SARVAGNA_IMAGES -->\n([\s\S]*?)\n<!-- \/SARVAGNA_IMAGES -->/);
+          const cleanText = imgMatch ? raw.replace(imgMatch[0], "").trim() : raw;
+          const imgUrls = imgMatch ? imgMatch[1].split("\n").filter(Boolean) : [];
+          return (
+            <>
+              <div className="prose prose-sm prose-invert max-w-none
+                prose-p:my-1 prose-p:leading-relaxed
+                prose-headings:text-zinc-100 prose-headings:font-bold prose-headings:mt-2 prose-headings:mb-1
+                prose-strong:text-zinc-100 prose-strong:font-semibold
+                prose-ul:my-1 prose-ul:pl-4 prose-li:my-0.5
+                prose-ol:my-1 prose-ol:pl-4
+                prose-code:bg-zinc-800 prose-code:text-amber-400 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
+                prose-pre:bg-zinc-800 prose-pre:rounded-lg prose-pre:p-3 prose-pre:my-2 prose-pre:overflow-x-auto">
+                <ReactMarkdown>{cleanText}</ReactMarkdown>
+              </div>
+              {imgUrls.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {imgUrls.map((src, i) => (
+                    <a key={i} href={src} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={src}
+                        alt={`diagram-${i + 1}`}
+                        className="rounded-lg border border-zinc-700 w-full object-cover max-h-48 hover:opacity-90 transition-opacity"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    </a>
+                  ))}
+                </div>
+              )}
+            </>
+          );
+        })()}
         <p className={`text-[10px] mt-1.5 ${isUser ? "text-violet-400/60 text-right" : "text-zinc-600"}`}>
           {new Date(message.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
         </p>

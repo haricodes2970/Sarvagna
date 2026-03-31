@@ -283,6 +283,8 @@ async def teach_module(
     qdrant = AsyncQdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
     context_chunks: list[str] = []
     important_chunks: list[str] = []
+    image_urls: list[str] = []
+    seen_images: set[str] = set()
 
     try:
         subject_slug = _collection_name(subject)
@@ -303,6 +305,11 @@ async def teach_module(
                         score_threshold=_SCORE_THRESHOLD,
                     )
                     context_chunks.extend([hit.payload.get("text", "") for hit in results])
+                    for hit in results:
+                        for img in hit.payload.get("image_urls", []):
+                            if img not in seen_images:
+                                seen_images.add(img)
+                                image_urls.append(img)
                 except Exception:
                     pass
             context_chunks = context_chunks[:_TOP_K]
@@ -316,6 +323,11 @@ async def teach_module(
                     score_threshold=_SCORE_THRESHOLD,
                 )
                 context_chunks = [hit.payload.get("text", "") for hit in results]
+                for hit in results:
+                    for img in hit.payload.get("image_urls", []):
+                        if img not in seen_images:
+                            seen_images.add(img)
+                            image_urls.append(img)
             except Exception as exc:
                 logger.warning("Qdrant search failed for teach_module: %s", exc)
 
@@ -381,7 +393,14 @@ TEXTBOOK CONTENT:
         max_tokens=1024,
     )
 
-    return completion.choices[0].message.content or ""
+    reply = completion.choices[0].message.content or ""
+
+    # Append image URLs in a parseable marker so the frontend can render them
+    if image_urls:
+        image_block = "\n".join(image_urls[:6])
+        reply += f"\n\n<!-- SARVAGNA_IMAGES -->\n{image_block}\n<!-- /SARVAGNA_IMAGES -->"
+
+    return reply
 
 
 async def answer_question(question: str, subject: str, user_id: str) -> dict:

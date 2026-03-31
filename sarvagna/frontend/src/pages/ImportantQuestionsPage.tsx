@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Upload, BookOpen } from "lucide-react";
+import { ArrowLeft, Upload, BookOpen, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { importantQuestionsApi, subjectsApi } from "@/lib/api";
 
@@ -23,6 +23,15 @@ export default function ImportantQuestionsPage() {
     queryKey: ["important-questions", subjectId],
     queryFn: () => importantQuestionsApi.list(subjectId!).then((r) => r.data),
     enabled: !!subjectId,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (questionId: string) => importantQuestionsApi.delete(subjectId!, questionId),
+    onSuccess: () => {
+      toast.success("Question deleted");
+      queryClient.invalidateQueries({ queryKey: ["important-questions", subjectId] });
+    },
+    onError: () => toast.error("Delete failed"),
   });
 
   const uploadMutation = useMutation({
@@ -137,16 +146,26 @@ export default function ImportantQuestionsPage() {
                           {new Date(q.created_at).toLocaleDateString()}
                         </p>
                       </div>
-                      <button
-                        onClick={() =>
-                          navigate(
-                            `/chat/${subjectId}/${q.module_number || 1}?topicTitle=${encodeURIComponent(q.question)}`
-                          )
-                        }
-                        className="shrink-0 text-[11px] px-2.5 py-1 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors whitespace-nowrap"
-                      >
-                        Study This
-                      </button>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          onClick={() =>
+                            navigate(
+                              `/chat/${subjectId}/${q.module_number || 1}?topicTitle=${encodeURIComponent(q.question)}`
+                            )
+                          }
+                          className="text-[11px] px-2.5 py-1 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors whitespace-nowrap"
+                        >
+                          Study This
+                        </button>
+                        <button
+                          onClick={() => deleteMutation.mutate(q.id)}
+                          disabled={deleteMutation.isPending}
+                          className="p-1.5 rounded-lg text-zinc-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                          title="Delete question"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>

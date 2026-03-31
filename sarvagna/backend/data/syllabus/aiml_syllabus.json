@@ -595,108 +595,353 @@
     "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/5"]
   },
   {
-    "code": "22AI601",
-    "name": "Big Data Technologies",
-    "semester": 6,
-    "branch": "AIML",
-    "modules": [
-      {
-        "number": 1,
-        "title": "Introduction to Big Data",
-        "subtopics": ["Big Data 5V characteristics", "Hadoop ecosystem overview", "HDFS architecture and operations", "MapReduce programming model", "YARN resource management"]
-      },
-      {
-        "number": 2,
-        "title": "Apache Spark",
-        "subtopics": ["Spark architecture components", "Resilient Distributed Datasets", "Spark SQL and DataFrames", "Spark Streaming for real-time", "MLlib for machine learning", "GraphX for graph processing"]
-      },
-      {
-        "number": 3,
-        "title": "NoSQL Databases",
-        "subtopics": ["CAP theorem and trade-offs", "MongoDB document store", "Cassandra column-family store", "HBase for big data", "Redis key-value store", "Neo4j graph database"]
-      },
-      {
-        "number": 4,
-        "title": "Data Processing and Analysis",
-        "subtopics": ["ETL pipeline design", "Data warehousing concepts", "Apache Hive for SQL-like queries", "Apache Pig for data flow", "Data mining fundamentals", "Association rules and classification"]
-      },
-      {
-        "number": 5,
-        "title": "Machine Learning at Scale",
-        "subtopics": ["Distributed machine learning challenges", "Feature engineering at scale", "Model deployment strategies", "MLOps practices", "TensorFlow Extended", "MLflow and Kubeflow platforms"]
-      }
-    ],
-    "reference_books": ["Tom White: Hadoop: The Definitive Guide", "Bill Chambers: Spark: The Definitive Guide", "Nathan Marz: Big Data"],
-    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
-  },
-  {
-    "code": "22AI602",
-    "name": "Deep Learning",
-    "semester": 6,
-    "branch": "AIML",
-    "modules": [
-      {
-        "number": 1,
-        "title": "Introduction to Neural Networks",
-        "subtopics": ["Biological inspiration for neural networks", "Artificial neuron model", "Activation functions: sigmoid, ReLU, tanh", "Multilayer perceptron architecture", "Forward propagation mechanism", "Backpropagation algorithm", "Weight initialization strategies"]
-      },
-      {
-        "number": 2,
-        "title": "Training Deep Neural Networks",
-        "subtopics": ["Vanishing and exploding gradients", "Batch normalization technique", "Gradient clipping methods", "Optimization algorithms: SGD, Adam, RMSprop", "Learning rate scheduling", "Regularization: L1, L2, dropout", "Early stopping"]
-      },
-      {
-        "number": 3,
-        "title": "Convolutional Neural Networks",
-        "subtopics": ["Convolution operation and filters", "Padding and stride concepts", "Pooling layers: max and average", "CNN architectures: LeNet, AlexNet", "VGGNet and ResNet", "Transfer learning approaches", "Object detection: YOLO"]
-      },
-      {
-        "number": 4,
-        "title": "Recurrent Neural Networks",
-        "subtopics": ["RNN architecture and unrolling", "Long Short-Term Memory networks", "Gated Recurrent Units", "Bidirectional RNNs", "Sequence to sequence models", "Attention mechanism", "Transformer architecture", "BERT and GPT models"]
-      },
-      {
-        "number": 5,
-        "title": "Advanced Topics",
-        "subtopics": ["Autoencoders and variants", "Variational autoencoders", "Generative Adversarial Networks", "DCGAN and StyleGAN", "Deep reinforcement learning basics", "Model deployment strategies", "Edge AI considerations"]
-      }
-    ],
-    "reference_books": ["Ian Goodfellow: Deep Learning", "Francois Chollet: Deep Learning with Python", "Aurelien Geron: Hands-On Machine Learning"],
-    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
-  },
-  {
-    "code": "22AI603",
+    "code": "BAI601",
     "name": "Natural Language Processing",
     "semester": 6,
     "branch": "AIML",
     "modules": [
       {
         "number": 1,
-        "title": "Introduction to NLP",
-        "subtopics": ["NLP applications and challenges", "Text preprocessing pipeline", "Tokenization methods", "Stemming algorithms: Porter, Snowball", "Lemmatization techniques", "Stop words removal", "Part-of-speech tagging", "Named entity recognition"]
+        "title": "Introduction to NLP and Text Processing",
+        "subtopics": ["Introduction to NLP and its applications", "NLP pipeline overview", "Regular expressions and text normalization", "Tokenization, stemming and lemmatization", "Part-of-speech tagging and named entity recognition"]
       },
       {
         "number": 2,
-        "title": "Text Representation",
-        "subtopics": ["Bag of Words representation", "TF-IDF weighting scheme", "Word embeddings concept", "Word2Vec: CBOW and Skip-gram", "GloVe embeddings", "FastText subword embeddings", "Contextual embeddings introduction"]
+        "title": "Language Models and Text Representation",
+        "subtopics": ["N-gram language models", "Bag of Words and TF-IDF", "Word embeddings: Word2Vec, GloVe, FastText", "Smoothing techniques in language models", "Perplexity and model evaluation"]
       },
       {
         "number": 3,
-        "title": "Sequence Processing",
-        "subtopics": ["N-gram language models", "RNNs for sequence modeling", "LSTM for text processing", "Sequence labeling tasks", "Text classification methods", "Sentiment analysis approaches", "Topic modeling: LDA"]
+        "title": "Syntax and Semantic Analysis",
+        "subtopics": ["Context-free grammars and constituency parsing", "Dependency parsing", "Word sense disambiguation", "Semantic role labeling", "Coreference resolution"]
       },
       {
         "number": 4,
-        "title": "Advanced NLP",
-        "subtopics": ["Machine translation systems", "Attention mechanism details", "Transformer architecture: encoder-decoder", "BERT model and fine-tuning", "GPT model series", "T5 text-to-text framework", "Question answering systems", "Text summarization techniques"]
+        "title": "Deep Learning for NLP",
+        "subtopics": ["RNNs and LSTMs for sequence modeling", "Encoder-decoder architecture", "Attention mechanism", "Transformer architecture", "BERT and pre-trained language models"]
       },
       {
         "number": 5,
         "title": "NLP Applications",
-        "subtopics": ["Chatbot development", "Dialog systems design", "Speech recognition pipeline", "Text generation methods", "Information extraction", "Relation extraction", "Knowledge graph construction", "LLM fine-tuning approaches"]
+        "subtopics": ["Machine translation systems", "Sentiment analysis and opinion mining", "Question answering systems", "Text summarization", "Information extraction and knowledge graphs"]
       }
     ],
-    "reference_books": ["Dan Jurafsky: Speech and Language Processing", "Christopher Manning: Foundations of Statistical Natural Language Processing", "Yoav Goldberg: Neural Network Methods for NLP"],
+    "reference_books": ["Dan Jurafsky: Speech and Language Processing", "Christopher Manning: Foundations of Statistical NLP", "Yoav Goldberg: Neural Network Methods for NLP"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BAI602",
+    "name": "Machine Learning",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Machine Learning",
+        "subtopics": ["Introduction, types of ML: supervised, unsupervised, reinforcement", "Bias-variance tradeoff", "Linear regression and gradient descent", "Regularization: Ridge and Lasso", "Model evaluation: cross-validation, metrics"]
+      },
+      {
+        "number": 2,
+        "title": "Classification Algorithms",
+        "subtopics": ["Logistic regression", "Decision trees and ID3 algorithm", "Random forests and ensemble methods", "Support Vector Machines: linear and kernel", "K-nearest neighbors algorithm"]
+      },
+      {
+        "number": 3,
+        "title": "Unsupervised Learning",
+        "subtopics": ["K-means clustering algorithm", "Hierarchical clustering: agglomerative and divisive", "DBSCAN density-based clustering", "Principal Component Analysis", "Dimensionality reduction techniques"]
+      },
+      {
+        "number": 4,
+        "title": "Probabilistic and Bayesian Methods",
+        "subtopics": ["Naive Bayes classifier", "Bayesian networks and inference", "Expectation Maximization algorithm", "Hidden Markov Models", "Gaussian Mixture Models"]
+      },
+      {
+        "number": 5,
+        "title": "Advanced Machine Learning",
+        "subtopics": ["Boosting: AdaBoost, Gradient Boosting, XGBoost", "Neural networks and backpropagation", "Feature selection and extraction", "Handling imbalanced datasets", "ML model deployment and MLOps basics"]
+      }
+    ],
+    "reference_books": ["Tom Mitchell: Machine Learning", "Aurelien Geron: Hands-On Machine Learning", "Christopher Bishop: Pattern Recognition and Machine Learning"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BAI613A",
+    "name": "Human-Centred AI",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Human-Centred AI",
+        "subtopics": ["Definition and principles of human-centred AI", "Historical context of AI and human interaction", "Ethical frameworks for AI design", "User-centred design process", "Participatory design approaches"]
+      },
+      {
+        "number": 2,
+        "title": "AI Fairness and Bias",
+        "subtopics": ["Sources of bias in AI systems", "Types of algorithmic bias", "Fairness metrics and definitions", "Bias mitigation techniques", "Case studies: bias in hiring and criminal justice AI"]
+      },
+      {
+        "number": 3,
+        "title": "Explainable AI (XAI)",
+        "subtopics": ["Importance of explainability in AI", "Local vs global explanation methods", "LIME: Local Interpretable Model-agnostic Explanations", "SHAP values and feature importance", "Counterfactual explanations"]
+      },
+      {
+        "number": 4,
+        "title": "AI Safety and Accountability",
+        "subtopics": ["AI safety principles and challenges", "Adversarial robustness", "AI governance frameworks", "Accountability and transparency in AI", "Human oversight and control mechanisms"]
+      },
+      {
+        "number": 5,
+        "title": "Human-AI Collaboration",
+        "subtopics": ["Models of human-AI interaction", "Cognitive load and AI-assisted decision making", "Trust calibration in AI systems", "AI in healthcare and social impact", "Future of work and AI collaboration"]
+      }
+    ],
+    "reference_books": ["Ben Shneiderman: Human-Centered AI", "Virginia Eubanks: Automating Inequality", "Cathy O'Neil: Weapons of Math Destruction"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BIS613D",
+    "name": "Cloud Computing and Security",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Cloud Computing",
+        "subtopics": ["Cloud computing definition and characteristics", "Service models: IaaS, PaaS, SaaS", "Deployment models: public, private, hybrid", "Virtualization technologies", "Major cloud providers: AWS, Azure, GCP overview"]
+      },
+      {
+        "number": 2,
+        "title": "Cloud Architecture and Services",
+        "subtopics": ["Cloud storage systems and object storage", "Compute services and auto-scaling", "Load balancing and content delivery networks", "Serverless computing and Functions as a Service", "Containerization with Docker and Kubernetes"]
+      },
+      {
+        "number": 3,
+        "title": "Cloud Security Fundamentals",
+        "subtopics": ["Security challenges in cloud environments", "Identity and Access Management", "Data encryption at rest and in transit", "Network security in cloud: VPCs and firewalls", "Compliance and regulatory requirements"]
+      },
+      {
+        "number": 4,
+        "title": "Advanced Cloud Security",
+        "subtopics": ["Cloud security threat landscape", "DDoS protection mechanisms", "Key management services", "Security monitoring and incident response", "Zero trust security model"]
+      },
+      {
+        "number": 5,
+        "title": "Cloud-Native Development and DevSecOps",
+        "subtopics": ["Microservices architecture patterns", "CI/CD pipelines in cloud", "Infrastructure as Code with Terraform", "DevSecOps principles and practices", "Cloud cost optimization strategies"]
+      }
+    ],
+    "reference_books": ["Thomas Erl: Cloud Computing: Concepts Technology and Architecture", "John Rhoton: Cloud Computing Explained", "Christofer Hoff: Cloud Security"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BCS613A",
+    "name": "Blockchain Technology",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Blockchain",
+        "subtopics": ["Distributed ledger technology concepts", "Blockchain structure: blocks, chains, nodes", "Cryptographic hash functions", "Public-key cryptography in blockchain", "Consensus mechanisms overview"]
+      },
+      {
+        "number": 2,
+        "title": "Bitcoin and Cryptocurrencies",
+        "subtopics": ["Bitcoin protocol and architecture", "Mining and proof-of-work", "Wallets and transactions", "UTXO model", "Cryptocurrency economics and challenges"]
+      },
+      {
+        "number": 3,
+        "title": "Ethereum and Smart Contracts",
+        "subtopics": ["Ethereum platform overview", "Solidity programming language", "Smart contract development lifecycle", "EVM: Ethereum Virtual Machine", "ERC-20 and ERC-721 token standards"]
+      },
+      {
+        "number": 4,
+        "title": "Blockchain Applications",
+        "subtopics": ["Decentralized Finance (DeFi)", "NFTs and digital ownership", "Supply chain management on blockchain", "Healthcare and identity management", "Voting systems and governance"]
+      },
+      {
+        "number": 5,
+        "title": "Enterprise Blockchain and Future Trends",
+        "subtopics": ["Hyperledger Fabric architecture", "Permissioned vs permissionless blockchains", "Blockchain interoperability", "Scalability solutions: Layer 2 and sharding", "Blockchain regulatory landscape"]
+      }
+    ],
+    "reference_books": ["Satoshi Nakamoto: Bitcoin Whitepaper", "Andreas Antonopoulos: Mastering Bitcoin", "Gavin Wood: Ethereum Yellow Paper"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BAI613D",
+    "name": "Time Series Analysis",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Time Series",
+        "subtopics": ["Definition and examples of time series data", "Components: trend, seasonality, cyclical, irregular", "Time series visualization techniques", "Stationarity and unit root tests", "Autocorrelation and partial autocorrelation functions"]
+      },
+      {
+        "number": 2,
+        "title": "Classical Time Series Models",
+        "subtopics": ["Moving average and exponential smoothing", "AR: autoregressive models", "MA: moving average models", "ARMA models and selection criteria", "ARIMA model identification and fitting"]
+      },
+      {
+        "number": 3,
+        "title": "Seasonal and Multivariate Models",
+        "subtopics": ["SARIMA seasonal ARIMA models", "Vector autoregression VAR", "Cointegration and error correction models", "Seasonal decomposition", "Holt-Winters exponential smoothing"]
+      },
+      {
+        "number": 4,
+        "title": "Deep Learning for Time Series",
+        "subtopics": ["RNNs and LSTMs for time series forecasting", "Temporal convolutional networks", "Attention mechanisms for sequences", "Transformer-based time series models", "Transfer learning in time series"]
+      },
+      {
+        "number": 5,
+        "title": "Applications of Time Series Analysis",
+        "subtopics": ["Financial time series and forecasting", "Anomaly detection in time series", "Time series in IoT and sensor data", "Forecasting evaluation metrics: RMSE, MAPE, MAE", "Prophet and state space models"]
+      }
+    ],
+    "reference_books": ["Hamilton: Time Series Analysis", "Brockwell & Davis: Introduction to Time Series and Forecasting", "Box & Jenkins: Time Series Analysis"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BAI654D",
+    "name": "Introduction to Artificial Intelligence",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Foundations of AI",
+        "subtopics": ["History and evolution of AI", "Intelligent agents and environments", "Problem formulation and state space search", "Uninformed search: BFS, DFS, UCS", "Informed search: A* algorithm and heuristics"]
+      },
+      {
+        "number": 2,
+        "title": "Knowledge Representation",
+        "subtopics": ["Propositional logic", "First-order predicate logic", "Inference methods: forward and backward chaining", "Knowledge graphs and ontologies", "Expert systems architecture"]
+      },
+      {
+        "number": 3,
+        "title": "Planning and Reasoning",
+        "subtopics": ["Classical planning: STRIPS and PDDL", "Constraint satisfaction problems", "Adversarial search and game trees", "Minimax algorithm and alpha-beta pruning", "Uncertainty and probabilistic reasoning"]
+      },
+      {
+        "number": 4,
+        "title": "Machine Learning Basics",
+        "subtopics": ["Supervised vs unsupervised learning", "Decision trees and rule-based learning", "Neural networks fundamentals", "Evaluation and model selection", "Overfitting and underfitting"]
+      },
+      {
+        "number": 5,
+        "title": "AI Applications",
+        "subtopics": ["Natural language processing overview", "Computer vision fundamentals", "Robotics and autonomous systems", "AI in healthcare and business", "Ethical considerations in AI"]
+      }
+    ],
+    "reference_books": ["Russell & Norvig: Artificial Intelligence A Modern Approach", "Nilsson: Principles of AI", "Rich & Knight: Artificial Intelligence"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BCS654A",
+    "name": "Introduction to Data Structures",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Arrays and Linked Lists",
+        "subtopics": ["Introduction to data structures and algorithms", "Arrays: 1D and 2D operations", "Singly linked list: insertion, deletion, traversal", "Doubly linked list operations", "Circular linked list and applications"]
+      },
+      {
+        "number": 2,
+        "title": "Stacks and Queues",
+        "subtopics": ["Stack: push, pop, peek operations", "Stack applications: expression evaluation, balanced parentheses", "Queue: enqueue and dequeue operations", "Circular queue implementation", "Priority queue and deque"]
+      },
+      {
+        "number": 3,
+        "title": "Trees",
+        "subtopics": ["Binary trees: definition and traversals", "Binary search tree: insert, delete, search", "AVL trees and rotations", "Heap data structure: min-heap and max-heap", "Applications of trees in real problems"]
+      },
+      {
+        "number": 4,
+        "title": "Graphs",
+        "subtopics": ["Graph representations: adjacency matrix and list", "BFS and DFS graph traversal", "Shortest path: Dijkstra's algorithm", "Minimum spanning tree: Kruskal and Prim", "Topological sorting"]
+      },
+      {
+        "number": 5,
+        "title": "Searching and Sorting",
+        "subtopics": ["Linear search and binary search", "Bubble, insertion and selection sort", "Merge sort and quick sort", "Hashing: hash functions and collision resolution", "Time and space complexity analysis"]
+      }
+    ],
+    "reference_books": ["Cormen: Introduction to Algorithms", "Narasimha Karumanchi: Data Structures and Algorithms Made Easy", "Weiss: Data Structures and Algorithm Analysis"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BCS654B",
+    "name": "Fundamentals of Operating Systems",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Operating Systems",
+        "subtopics": ["OS definition, goals and services", "OS structures: monolithic, layered, microkernel", "System calls and API interface", "Process concept and process states", "Process control block and context switching"]
+      },
+      {
+        "number": 2,
+        "title": "Process Management",
+        "subtopics": ["CPU scheduling algorithms: FCFS, SJF, Round Robin", "Priority scheduling and multilevel queues", "Inter-process communication mechanisms", "Threads and multithreading models", "Deadlock: conditions, prevention and avoidance"]
+      },
+      {
+        "number": 3,
+        "title": "Memory Management",
+        "subtopics": ["Contiguous memory allocation", "Paging and segmentation", "Virtual memory and demand paging", "Page replacement algorithms: FIFO, LRU, Optimal", "Thrashing and working set model"]
+      },
+      {
+        "number": 4,
+        "title": "File System Management",
+        "subtopics": ["File concepts and access methods", "Directory structure and organization", "File system implementation", "Disk scheduling algorithms: FCFS, SSTF, SCAN", "RAID levels and disk management"]
+      },
+      {
+        "number": 5,
+        "title": "I/O and Security",
+        "subtopics": ["I/O hardware and software layers", "Device drivers and interrupts", "OS security and protection mechanisms", "User authentication methods", "Case study: Linux OS architecture"]
+      }
+    ],
+    "reference_books": ["Silberschatz: Operating System Concepts", "Tanenbaum: Modern Operating Systems", "Galvin: Operating System Principles"],
+    "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
+  },
+  {
+    "code": "BIS654C",
+    "name": "Mobile Application Development",
+    "semester": 6,
+    "branch": "AIML",
+    "modules": [
+      {
+        "number": 1,
+        "title": "Introduction to Mobile Development",
+        "subtopics": ["Mobile OS landscape: Android and iOS", "App development approaches: native, hybrid, cross-platform", "Flutter framework introduction", "Dart programming language basics", "Setting up Flutter development environment"]
+      },
+      {
+        "number": 2,
+        "title": "Flutter UI Development",
+        "subtopics": ["Widget tree concept in Flutter", "Stateless and stateful widgets", "Layout widgets: Row, Column, Stack", "Material Design components", "Navigation and routing in Flutter"]
+      },
+      {
+        "number": 3,
+        "title": "State Management",
+        "subtopics": ["setState and lifting state up", "Provider pattern for state management", "Bloc pattern and streams", "GetX state management", "Reactive programming concepts"]
+      },
+      {
+        "number": 4,
+        "title": "Data and APIs",
+        "subtopics": ["HTTP requests and REST APIs in Flutter", "JSON parsing and serialization", "Local storage: SharedPreferences and SQLite", "Firebase integration: Auth and Firestore", "Push notifications"]
+      },
+      {
+        "number": 5,
+        "title": "Advanced Features and Deployment",
+        "subtopics": ["Camera and image picker integration", "Maps and location services", "App testing: unit and widget tests", "Performance optimization", "Publishing to Play Store and App Store"]
+      }
+    ],
+    "reference_books": ["Eric Windmill: Flutter in Action", "Marco Napoli: Beginning Flutter", "Adam Freeman: Pro Flutter"],
     "scrape_urls": ["https://www.vturesource.com/vtu-syllabus/AI/2022/6"]
   },
   {

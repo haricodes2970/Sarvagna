@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from celery import Celery
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.chunker_agent import chunk_and_store
@@ -110,18 +110,18 @@ async def _background_scrape(subject_id: str, subject_name: str, branch: str, se
                 branch=branch,
                 semester=semester,
             )
-            if content and len(content) > 100:
-                await chunk_and_store(content, subject_name, module_number)
-                logger.info("Auto-scrape done: %s module %d", subject_name, module_number)
-                # Mark this module as scraped in DB
+            text, images = content if isinstance(content, tuple) else (content, [])
+            if text and len(text) > 100:
+                await chunk_and_store(text, subject_name, module_number, image_urls=images)
+                logger.info("Auto-scrape done: %s module %d (%d images)", subject_name, module_number, len(images))
+                # Atomic increment — avoids race condition when 5 modules run in parallel
                 async with async_session() as db:
-                    result = await db.execute(
-                        select(Subject).where(Subject.id == uuid.UUID(subject_id))
+                    await db.execute(
+                        update(Subject)
+                        .where(Subject.id == uuid.UUID(subject_id))
+                        .values(modules_scraped=Subject.modules_scraped + 1)
                     )
-                    subj = result.scalar_one_or_none()
-                    if subj:
-                        subj.modules_scraped = (subj.modules_scraped or 0) + 1
-                        await db.commit()
+                    await db.commit()
             else:
                 logger.warning("Auto-scrape: no content for %s module %d", subject_name, module_number)
         except Exception as exc:

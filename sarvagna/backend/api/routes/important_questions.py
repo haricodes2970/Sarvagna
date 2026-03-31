@@ -43,15 +43,42 @@ class UploadResponse(BaseModel):
 # ─── Helpers ─────────────────────────────────────────────────────────────────
 
 def _parse_questions(raw: str) -> list[str]:
-    """Split raw text on newlines or leading numbers/bullets."""
-    lines = re.split(r"\n+", raw.strip())
+    """
+    Parse a numbered list into individual questions.
+    Multi-line questions (continuation lines after a number) are joined together.
+    Supports formats: '1.' '1)' 'Q1.' etc.
+    """
+    lines = raw.strip().splitlines()
     questions: list[str] = []
+    current: list[str] = []
+
+    _numbered = re.compile(r"^\s*(?:Q|q)?(\d+)[.)]\s+\S")
+
     for line in lines:
-        # Strip leading "1.", "1)", "Q1.", "•", "-" etc.
-        clean = re.sub(r"^[\d]+[.)]\s*|^[Qq][\d]+[.)]\s*|^[-•*]\s*", "", line.strip())
-        if len(clean) > 5:
-            questions.append(clean)
-    return questions
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if _numbered.match(line):
+            # Save previous question
+            if current:
+                questions.append(" ".join(current))
+            # Strip the leading number prefix
+            clean = re.sub(r"^\s*(?:Q|q)?\d+[.)]\s*", "", stripped)
+            current = [clean] if clean else []
+        else:
+            # Continuation of the current question
+            if current:
+                current.append(stripped)
+            else:
+                # Unnumbered standalone line
+                clean = re.sub(r"^[-•*]\s*", "", stripped)
+                if len(clean) > 5:
+                    questions.append(clean)
+
+    if current:
+        questions.append(" ".join(current))
+
+    return [q for q in questions if len(q) > 5]
 
 
 async def _embed(text: str) -> list[float]:

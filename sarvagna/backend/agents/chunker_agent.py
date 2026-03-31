@@ -54,10 +54,16 @@ async def _ensure_collection(client: AsyncQdrantClient, name: str) -> None:
         )
 
 
-async def chunk_and_store(raw_text: str, subject_name: str, module_number: int) -> int:
+async def chunk_and_store(
+    raw_text: str,
+    subject_name: str,
+    module_number: int,
+    image_urls: list[str] | None = None,
+) -> int:
     """
     Split raw_text into 512-token chunks (50-token overlap), embed each with
     nomic-embed-text via Ollama, store in Qdrant. Returns number of chunks stored.
+    Image URLs are stored in the first chunk's payload.
     """
     encoding = tiktoken.get_encoding("cl100k_base")
     chunks = _split_into_chunks(raw_text, encoding)
@@ -71,18 +77,15 @@ async def chunk_and_store(raw_text: str, subject_name: str, module_number: int) 
     points: list[PointStruct] = []
     for i, chunk in enumerate(chunks):
         vector = await _embed(chunk)
-        points.append(
-            PointStruct(
-                id=i,
-                vector=vector,
-                payload={
-                    "text": chunk,
-                    "subject": subject_name,
-                    "module": module_number,
-                    "chunk_index": i,
-                },
-            )
-        )
+        payload: dict = {
+            "text": chunk,
+            "subject": subject_name,
+            "module": module_number,
+            "chunk_index": i,
+        }
+        if i == 0 and image_urls:
+            payload["image_urls"] = image_urls
+        points.append(PointStruct(id=i, vector=vector, payload=payload))
 
     await qdrant.upsert(collection_name=collection, points=points)
     await qdrant.close()
