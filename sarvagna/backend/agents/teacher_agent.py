@@ -114,13 +114,18 @@ One clear, crisp sentence. Write this in exams as-is.
 (use bullet points, max 6-8 points, no fluff)
 
 ### 🔹 Diagram
-Draw an ASCII diagram using a code block whenever the topic has a visual component (flow, architecture, process, structure):
+ALWAYS draw diagrams using plain ASCII art inside a code block (DO NOT use mermaid syntax):
 ```
-[Input] --> [Process A] --> [Process B] --> [Output]
-                                |
-                           [Sub-step]
+         ┌─────────┐
+Input ──▶│ Process │──▶ Output
+         └────┬────┘
+              │
+         ┌────▼────┐
+         │ Sub-step│
+         └─────────┘
 ```
-Label everything clearly. Make it look like a textbook diagram.
+Use boxes (┌─┐ │ └─┘), arrows (──▶ │ ▼ ▲), and labels. Make it look like a textbook diagram.
+NEVER write "graph LR", "graph TD", or any mermaid syntax — it will not render correctly.
 
 ### 🔹 Example
 A concrete, easy-to-remember example. Use a real-world analogy if possible.

@@ -4,6 +4,7 @@ import mermaid from "mermaid";
 mermaid.initialize({
   startOnLoad: false,
   theme: "dark",
+  suppressErrors: true,
   themeVariables: {
     primaryColor: "#7c3aed",
     primaryTextColor: "#f4f4f5",
@@ -14,9 +15,6 @@ mermaid.initialize({
     background: "#09090b",
     mainBkg: "#18181b",
     nodeBorder: "#52525b",
-    clusterBkg: "#18181b",
-    titleColor: "#f4f4f5",
-    edgeLabelBackground: "#27272a",
     fontFamily: "ui-monospace, monospace",
   },
 });
@@ -31,18 +29,29 @@ export default function MermaidDiagram({ code }: { code: string }) {
   useEffect(() => {
     if (!ref.current) return;
     setError(false);
-    mermaid
-      .render(id, code)
-      .then(({ svg }) => {
+
+    // Validate first before rendering to avoid mermaid injecting error bombs
+    mermaid.parse(code).then((valid) => {
+      if (!valid) { setError(true); return; }
+      return mermaid.render(id, code).then(({ svg }) => {
         if (ref.current) ref.current.innerHTML = svg;
-      })
-      .catch(() => setError(true));
+        // Remove any stray mermaid error elements from the body
+        document.querySelectorAll("#" + id).forEach((el) => {
+          if (el !== ref.current?.firstElementChild) el.remove();
+        });
+      });
+    }).catch(() => {
+      setError(true);
+      // Clean up any error elements mermaid may have injected
+      document.querySelectorAll(`[id^="mermaid-"]`).forEach((el) => {
+        if (!ref.current?.contains(el)) el.remove();
+      });
+    });
   }, [code, id]);
 
   if (error) {
-    // Fallback: show as plain code block
     return (
-      <pre className="bg-zinc-800 rounded-lg p-3 text-xs text-amber-400 overflow-x-auto">
+      <pre className="bg-zinc-800 rounded-lg p-3 text-xs text-amber-400 overflow-x-auto whitespace-pre-wrap">
         {code}
       </pre>
     );
