@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
 import { chatApi, subjectsApi, type ChatMessage } from "@/lib/api";
+import MermaidDiagram from "@/components/MermaidDiagram";
 
 export default function ChatPage() {
   const { subjectId, moduleNumber } = useParams<{ subjectId: string; moduleNumber: string }>();
@@ -270,7 +271,20 @@ function MessageBubble({ message }: { message: ChatMessage }) {
                 prose-ol:my-1 prose-ol:pl-4
                 prose-code:bg-zinc-800 prose-code:text-amber-400 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:before:content-none prose-code:after:content-none
                 prose-pre:bg-zinc-800 prose-pre:rounded-lg prose-pre:p-3 prose-pre:my-2 prose-pre:overflow-x-auto">
-                <ReactMarkdown>{cleanText}</ReactMarkdown>
+                <ReactMarkdown
+                  components={{
+                    code({ className, children }) {
+                      const lang = (className ?? "").replace("language-", "");
+                      const code = String(children).trim();
+                      if (lang === "mermaid" || /^(graph|sequenceDiagram|classDiagram|flowchart|pie|gantt|erDiagram)\b/.test(code)) {
+                        return <MermaidDiagram code={code} />;
+                      }
+                      return (
+                        <code className={className}>{children}</code>
+                      );
+                    },
+                  }}
+                >{cleanText}</ReactMarkdown>
               </div>
               {imgUrls.length > 0 && (
                 <div className="mt-3 grid grid-cols-2 gap-2">
