@@ -1,19 +1,18 @@
 import logging
 import re
 
-import httpx
 import tiktoken
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
 from core.config import get_settings
+from agents.embedder import embed, EMBED_DIM
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
 
 _CHUNK_TOKENS = 512
 _OVERLAP_TOKENS = 50
-_EMBED_DIM = 768  # nomic-embed-text output dimension
 
 
 def _collection_name(subject_name: str, module_number: int) -> str:
@@ -33,16 +32,6 @@ def _split_into_chunks(text: str, encoding: tiktoken.Encoding) -> list[str]:
         start += _CHUNK_TOKENS - _OVERLAP_TOKENS
 
     return chunks
-
-
-async def _embed(text: str) -> list[float]:
-    async with httpx.AsyncClient(timeout=60) as client:
-        resp = await client.post(
-            f"{settings.OLLAMA_BASE_URL}/api/embeddings",
-            json={"model": settings.OLLAMA_EMBED_MODEL, "prompt": text},
-        )
-        resp.raise_for_status()
-        return resp.json()["embedding"]
 
 
 async def _ensure_collection(client: AsyncQdrantClient, name: str) -> None:
@@ -76,7 +65,7 @@ async def chunk_and_store(
 
     points: list[PointStruct] = []
     for i, chunk in enumerate(chunks):
-        vector = await _embed(chunk)
+        vector = await embed(chunk)
         payload: dict = {
             "text": chunk,
             "subject": subject_name,

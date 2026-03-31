@@ -3,12 +3,12 @@ import json
 import logging
 import re
 
-import httpx
 from groq import AsyncGroq
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.models import ScoredPoint
 from redis.asyncio import Redis
 
+from agents.embedder import embed
 from core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -23,16 +23,6 @@ _CACHE_TTL = 86_400  # 24 hours in seconds
 def _cache_key(question: str, subject: str) -> str:
     digest = hashlib.sha256(f"{subject}::{question}".encode()).hexdigest()
     return f"sarvagna:answer:{digest}"
-
-
-async def _embed_question(question: str) -> list[float]:
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{settings.OLLAMA_BASE_URL}/api/embeddings",
-            json={"model": settings.OLLAMA_EMBED_MODEL, "prompt": question},
-        )
-        resp.raise_for_status()
-        return resp.json()["embedding"]
 
 
 def _collection_name(subject: str) -> str:
@@ -214,7 +204,7 @@ async def teach_module(
     Module 0 = full-subject chat (searches all module collections).
     Returns the assistant's reply as a plain string.
     """
-    vector = await _embed_question(user_message)
+    vector = await embed(user_message)
 
     qdrant = AsyncQdrantClient(host=settings.QDRANT_HOST, port=settings.QDRANT_PORT)
     context_chunks: list[str] = []
@@ -353,7 +343,7 @@ async def answer_question(question: str, subject: str, user_id: str) -> dict:
         await redis.aclose()
         return json.loads(cached)
 
-    vector = await _embed_question(question)
+    vector = await embed(question)
     context_chunks = await _search_qdrant(subject, vector)
 
     prompt = _build_prompt(question, context_chunks)

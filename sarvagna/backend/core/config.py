@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     SECRET_KEY: str
     ENVIRONMENT: str = "development"
@@ -13,10 +13,8 @@ class Settings(BaseSettings):
     QDRANT_PORT: int = 6333
     REPLICATE_API_KEY: str = ""
     GROQ_API_KEY: str
-    GEMINI_API_KEY: str
-    APIFY_API_KEY: str
-    OLLAMA_BASE_URL: str = "http://localhost:11434"
-    OLLAMA_EMBED_MODEL: str = "nomic-embed-text"
+    GEMINI_API_KEY: str = ""
+    APIFY_API_KEY: str = ""
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
