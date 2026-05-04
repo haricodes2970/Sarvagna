@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import auth, progress, query, qp_analyzer, subjects, upload
+from api.routes import auth, discovery, progress, query, qp_analyzer, subjects, upload
 from core.config import settings
 from core.database import Base, engine
 
@@ -35,6 +35,7 @@ app.include_router(subjects.router, prefix="/subjects", tags=["subjects"])
 app.include_router(progress.router, prefix="/progress", tags=["progress"])
 app.include_router(upload.router, prefix="/upload", tags=["upload"])
 app.include_router(qp_analyzer.router, prefix="/qp", tags=["qp"])
+app.include_router(discovery.router, prefix="/discovery", tags=["discovery"])
 
 
 @app.get("/health")
