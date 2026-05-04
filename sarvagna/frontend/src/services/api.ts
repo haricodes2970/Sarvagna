@@ -15,12 +15,12 @@ const api = {
     return res.data;
   },
 
-  postSubject: async (data: { branch: string; semester: string; subject: string }) => {
+  postSubject: async (data: { name: string; subject: string; branch: string; semester: string }) => {
     const res = await axiosInstance.post("/subjects", {
-      code: data.subject.replace(/\s+/g, "").substring(0, 10).toUpperCase(),
-      name: data.subject,
-      branch: data.branch,
-      semester: parseInt(data.semester),
+      name: data.name,
+      code: data.subject || undefined,
+      branch: data.branch || undefined,
+      semester: data.semester ? parseInt(data.semester) : undefined,
     });
     return res.data;
   },

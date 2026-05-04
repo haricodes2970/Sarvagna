@@ -14,18 +14,18 @@ MAX_SLOTS = SUBJECT_SLOT_CONFIG.MAX_SUBJECTS
 
 
 class SubjectCreate(BaseModel):
-    code: str
     name: str
-    branch: str
-    semester: int
+    code: str = "CUSTOM"
+    branch: str = "GEN"
+    semester: int = 0
 
 
 class SubjectResponse(BaseModel):
     id: int
-    code: str
+    code: str | None
     name: str
-    branch: str
-    semester: int
+    branch: str | None
+    semester: int | None
     status: str
     slot_position: int | None
     xp_earned: int

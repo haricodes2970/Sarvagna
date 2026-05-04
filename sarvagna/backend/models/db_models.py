@@ -27,10 +27,10 @@ class Subject(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     user_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
-    code: Mapped[str] = mapped_column(String, nullable=False)
+    code: Mapped[str | None] = mapped_column(String, nullable=True, default="CUSTOM")
     name: Mapped[str] = mapped_column(String, nullable=False)
-    branch: Mapped[str] = mapped_column(String, nullable=False)
-    semester: Mapped[int] = mapped_column(Integer, nullable=False)
+    branch: Mapped[str | None] = mapped_column(String, nullable=True, default="GEN")
+    semester: Mapped[int | None] = mapped_column(Integer, nullable=True, default=0)
     status: Mapped[str] = mapped_column(String, default="active")
     slot_position: Mapped[int] = mapped_column(Integer, nullable=True)
     xp_earned: Mapped[int] = mapped_column(Integer, default=0)

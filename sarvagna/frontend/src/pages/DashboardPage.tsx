@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Flame, Plus, BookOpen, School, GraduationCap, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Flame, Plus, BookOpen, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useUserStore } from '../store/userStore';
@@ -13,25 +13,15 @@ const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, setSubjects, subjects, setProgress } = useUserStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalStep, setModalStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [toast, setToast] = useState<ToastState | null>(null);
 
-  const [selection, setSelection] = useState({
+  const [form, setForm] = useState({
+    name: '',
+    subject: '',
     branch: '',
     semester: '',
-    subject: '',
   });
-
-  const branches = ['CS', 'ECE', 'ME', 'CV', 'IS', 'EEE'];
-  const subjectsByBranch: Record<string, string[]> = {
-    CS: ['Computer Networks', 'OS', 'DBMS', 'Theory of Computation', 'DAA'],
-    IS: ['Software Engineering', 'Big Data', 'Cloud Computing'],
-    ECE: ['Digital Signal Processing', 'Microcontrollers', 'VLSI'],
-    ME: ['Thermodynamics', 'Fluid Mechanics'],
-    CV: ['Structural Analysis', 'Geotechnical Engineering'],
-    EEE: ['Power Systems', 'Control Systems'],
-  };
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -40,7 +30,7 @@ const DashboardPage: React.FC = () => {
         api.getSubjects(),
         api.getProgress(),
       ]);
-      const mapped = subjectsRes.map((s: { id: number; name: string; status: string }) => ({
+      const mapped = subjectsRes.map((s: { id: number; name: string }) => ({
         id: String(s.id),
         name: s.name,
         currentModule: 'Module 1',
@@ -66,12 +56,20 @@ const DashboardPage: React.FC = () => {
   };
 
   const handleAddSubject = async () => {
+    if (!form.name.trim()) {
+      showToast('Subject name is required.', 'error');
+      return;
+    }
     try {
-      await api.postSubject(selection);
-      showToast('Subject added successfully!', 'success');
+      await api.postSubject({
+        name: form.name.trim(),
+        subject: form.subject.trim() || 'CUSTOM',
+        branch: form.branch.trim() || 'GEN',
+        semester: form.semester || '0',
+      });
+      showToast('Subject added!', 'success');
       setIsModalOpen(false);
-      setModalStep(1);
-      setSelection({ branch: '', semester: '', subject: '' });
+      setForm({ name: '', subject: '', branch: '', semester: '' });
       fetchDashboardData();
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
@@ -107,7 +105,7 @@ const DashboardPage: React.FC = () => {
               </div>
               <div className="w-32 h-2 bg-slate-800 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000"
+                  className="h-full bg-indigo-500 transition-all duration-1000"
                   style={{ width: `${Math.min(100, (user.xp % 1000) / 10)}%` }}
                 />
               </div>
@@ -129,7 +127,7 @@ const DashboardPage: React.FC = () => {
               <div
                 key={sub.id}
                 onClick={() => navigate(`/subjects/${sub.id}`)}
-                className="group bg-slate-900 border border-slate-800 p-6 rounded-3xl hover:border-indigo-500/50 hover:bg-slate-900/80 transition-all cursor-pointer relative overflow-hidden"
+                className="group bg-slate-900 border border-slate-800 p-6 rounded-3xl hover:border-indigo-500/50 hover:bg-slate-900/80 transition-all cursor-pointer"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="bg-indigo-500/10 p-3 rounded-2xl text-indigo-400 border border-indigo-500/20">
@@ -176,72 +174,65 @@ const DashboardPage: React.FC = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
           <div
             className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"
-            onClick={() => { setIsModalOpen(false); setModalStep(1); }}
+            onClick={() => setIsModalOpen(false)}
           />
-          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-[32px] p-8 shadow-2xl">
-            <div className="flex justify-between items-center mb-8">
-              <h3 className="text-2xl font-bold text-white">Initialize Subject</h3>
-              <div className="flex gap-1">
-                {[1, 2, 3].map((s) => (
-                  <div key={s} className={`w-6 h-1 rounded-full ${modalStep >= s ? 'bg-indigo-500' : 'bg-slate-800'}`} />
-                ))}
+          <div className="relative w-full max-w-md bg-slate-900 border border-slate-800 rounded-[32px] p-8 shadow-2xl">
+            <h3 className="text-2xl font-bold text-white mb-6">Add Subject</h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Subject Name *</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Data Structures"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-all"
+                />
               </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Subject Code</label>
+                <input
+                  type="text"
+                  value={form.subject}
+                  onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                  placeholder="e.g. BCS301 or leave blank"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Branch</label>
+                <input
+                  type="text"
+                  value={form.branch}
+                  onChange={(e) => setForm({ ...form, branch: e.target.value })}
+                  placeholder="e.g. CS, ECE, ME..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">Semester</label>
+                <input
+                  type="number"
+                  min={1}
+                  max={8}
+                  value={form.semester}
+                  onChange={(e) => setForm({ ...form, semester: e.target.value })}
+                  placeholder="1–8"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50 transition-all"
+                />
+              </div>
+
+              <button
+                onClick={handleAddSubject}
+                className="w-full mt-2 bg-indigo-500 hover:bg-indigo-400 py-4 rounded-2xl font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20 transition-all"
+              >
+                Confirm
+              </button>
             </div>
-
-            {modalStep === 1 && (
-              <div className="grid grid-cols-2 gap-3">
-                {branches.map((b) => (
-                  <button
-                    key={b}
-                    onClick={() => { setSelection({ ...selection, branch: b }); setModalStep(2); }}
-                    className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-left hover:border-indigo-500 transition-all"
-                  >
-                    <School className="w-5 h-5 text-indigo-400 mb-2" />
-                    <span className="font-bold">{b}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {modalStep === 2 && (
-              <div className="grid grid-cols-4 gap-3">
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => { setSelection({ ...selection, semester: String(i + 1) }); setModalStep(3); }}
-                    className="p-4 bg-slate-950 border border-slate-800 rounded-2xl font-bold hover:border-indigo-500 transition-all text-center"
-                  >
-                    <GraduationCap className="w-4 h-4 text-indigo-400 mb-1 mx-auto" />
-                    Sem {i + 1}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {modalStep === 3 && (
-              <div className="space-y-3">
-                {(subjectsByBranch[selection.branch] ?? ['Advanced Engineering']).map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setSelection({ ...selection, subject: s })}
-                    className={`w-full p-4 border rounded-2xl text-left transition-all ${
-                      selection.subject === s
-                        ? 'bg-indigo-600 border-indigo-400 text-white'
-                        : 'bg-slate-950 border-slate-800 text-slate-300'
-                    }`}
-                  >
-                    <span className="font-bold">{s}</span>
-                  </button>
-                ))}
-                <button
-                  onClick={handleAddSubject}
-                  disabled={!selection.subject}
-                  className="w-full mt-6 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-40 py-4 rounded-2xl font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20"
-                >
-                  Start Learning
-                </button>
-              </div>
-            )}
           </div>
         </div>
       )}
