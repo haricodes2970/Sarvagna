@@ -1,326 +1,252 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { subjectsApi, type Subject } from "../lib/api";
-import { useAuthStore } from "../store/authStore";
+import React, { useState, useEffect, useCallback } from 'react';
+import { Flame, Plus, BookOpen, School, GraduationCap, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../services/api';
+import { useUserStore } from '../store/userStore';
 
-const SCHEMES = ["2022", "2021", "2018", "2015"];
-const BRANCHES: Record<string, string> = {
-  AIML: "AI & Machine Learning",
-  CS: "Computer Science",
-  CSE: "CSE",
-  IS: "Information Science",
-  ECE: "Electronics & Communication",
-  ME: "Mechanical Engineering",
-  CV: "Civil Engineering",
-};
-const SEMESTERS = [1, 2, 3, 4, 5, 6, 7, 8];
+interface ToastState {
+  message: string;
+  type: 'error' | 'success';
+}
 
-export default function DashboardPage() {
+const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const { user, logout } = useAuthStore();
+  const { user, setSubjects, subjects, setProgress } = useUserStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalStep, setModalStep] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [toast, setToast] = useState<ToastState | null>(null);
 
-  const [showForm, setShowForm] = useState(false);
-  const [scheme, setScheme] = useState("2022");
-  const [branch, setBranch] = useState("AIML");
-  const [semester, setSemester] = useState(6);
-  const [selectedSubject, setSelectedSubject] = useState("");
-
-  const { data: subjects = [], isLoading } = useQuery({
-    queryKey: ["subjects"],
-    queryFn: () => subjectsApi.list().then((r) => r.data),
+  const [selection, setSelection] = useState({
+    branch: '',
+    semester: '',
+    subject: '',
   });
 
-  const { data: catalog, isFetching: catalogLoading } = useQuery({
-    queryKey: ["catalog", branch, semester],
-    queryFn: () => subjectsApi.catalog(branch, semester).then((r) => r.data.subjects),
-    enabled: showForm,
-    staleTime: 60_000,
-  });
-
-  const addMutation = useMutation({
-    mutationFn: () => subjectsApi.add(selectedSubject, branch, semester),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subjects"] });
-      setSelectedSubject("");
-      setShowForm(false);
-      toast.success("Subject added! Scraping content in background…");
-    },
-    onError: (err: any) =>
-      toast.error(err.response?.data?.detail ?? "Failed to add subject"),
-  });
-
-  const removeMutation = useMutation({
-    mutationFn: (id: string) => subjectsApi.remove(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subjects"] });
-      toast.success("Subject removed");
-    },
-    onError: () => toast.error("Failed to remove subject"),
-  });
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
+  const branches = ['CS', 'ECE', 'ME', 'CV', 'IS', 'EEE'];
+  const subjectsByBranch: Record<string, string[]> = {
+    CS: ['Computer Networks', 'OS', 'DBMS', 'Theory of Computation', 'DAA'],
+    IS: ['Software Engineering', 'Big Data', 'Cloud Computing'],
+    ECE: ['Digital Signal Processing', 'Microcontrollers', 'VLSI'],
+    ME: ['Thermodynamics', 'Fluid Mechanics'],
+    CV: ['Structural Analysis', 'Geotechnical Engineering'],
+    EEE: ['Power Systems', 'Control Systems'],
   };
 
-  const slotUsed = subjects.length;
-  const slotMax = 10;
+  const fetchDashboardData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [subjectsRes, progressRes] = await Promise.all([
+        api.getSubjects(),
+        api.getProgress(),
+      ]);
+      const mapped = subjectsRes.map((s: { id: number; name: string; status: string }) => ({
+        id: String(s.id),
+        name: s.name,
+        currentModule: 'Module 1',
+        modulesCompleted: 0,
+        streak: 0,
+      }));
+      setSubjects(mapped);
+      setProgress(progressRes);
+    } catch {
+      showToast('Failed to sync dashboard data.', 'error');
+    } finally {
+      setLoading(false);
+    }
+  }, [setSubjects, setProgress]);
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData]);
+
+  const showToast = (message: string, type: 'error' | 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const handleAddSubject = async () => {
+    try {
+      await api.postSubject(selection);
+      showToast('Subject added successfully!', 'success');
+      setIsModalOpen(false);
+      setModalStep(1);
+      setSelection({ branch: '', semester: '', subject: '' });
+      fetchDashboardData();
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 400) {
+        showToast('Slot full. Remove a subject first.', 'error');
+      } else {
+        showToast('Operation failed.', 'error');
+      }
+    }
+  };
+
+  const emptySlots = Math.max(0, 10 - subjects.length);
 
   return (
-    <div style={styles.page}>
-      {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h2 style={styles.greeting}>Welcome, {user?.name ?? "Student"} 👋</h2>
-          <p style={styles.meta}>
-            Level {user?.level} · {user?.xp} XP · {user?.streak} day streak
-          </p>
+    <div className="min-h-screen bg-slate-950 text-slate-200">
+      {toast && (
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 ${
+          toast.type === 'error' ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'
+        }`}>
+          {toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+          <span className="font-semibold">{toast.message}</span>
         </div>
-        <div style={styles.headerRight}>
-          <button style={styles.outlineBtn} onClick={() => navigate("/progress")}>
-            Progress
-          </button>
-          <button style={styles.outlineBtn} onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
-      </div>
+      )}
 
-      {/* Slot bar */}
-      <div style={styles.slotBar}>
-        <span style={styles.slotText}>
-          Subject slots: <strong>{slotUsed}/{slotMax}</strong>
-        </span>
-        <div style={styles.slotTrack}>
-          <div style={{ ...styles.slotFill, width: `${(slotUsed / slotMax) * 100}%` }} />
-        </div>
-      </div>
-
-      {/* Add button */}
-      <div style={styles.toolbar}>
-        <h3 style={styles.sectionTitle}>My Subjects</h3>
-        {slotUsed < slotMax && (
-          <button style={styles.primaryBtn} onClick={() => setShowForm((v) => !v)}>
-            {showForm ? "Cancel" : "+ Add Subject"}
-          </button>
-        )}
-      </div>
-
-      {/* Add form */}
-      {showForm && (
-        <div style={styles.formCard}>
-          {/* Row 1: Scheme / Branch / Semester */}
-          <div style={styles.filterRow}>
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Scheme</label>
-              <select
-                style={styles.select}
-                value={scheme}
-                onChange={(e) => { setScheme(e.target.value); setSelectedSubject(""); }}
-              >
-                {SCHEMES.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
+      <nav className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 px-8 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="text-2xl font-black tracking-tighter text-white font-serif italic">Sarvagna</div>
+          <div className="flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-4 bg-slate-900/50 border border-slate-800 px-4 py-2 rounded-2xl">
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Level {user.level}</span>
+                <span className="text-xs font-bold text-indigo-400">{user.xp} XP</span>
+              </div>
+              <div className="w-32 h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-indigo-500 shadow-[0_0_10px_rgba(99,102,241,0.5)] transition-all duration-1000"
+                  style={{ width: `${Math.min(100, (user.xp % 1000) / 10)}%` }}
+                />
+              </div>
             </div>
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Branch</label>
-              <select
-                style={styles.select}
-                value={branch}
-                onChange={(e) => { setBranch(e.target.value); setSelectedSubject(""); }}
-              >
-                {Object.entries(BRANCHES).map(([key, label]) => (
-                  <option key={key} value={key}>{label}</option>
-                ))}
-              </select>
-            </div>
-            <div style={styles.filterGroup}>
-              <label style={styles.filterLabel}>Semester</label>
-              <select
-                style={styles.select}
-                value={semester}
-                onChange={(e) => { setSemester(Number(e.target.value)); setSelectedSubject(""); }}
-              >
-                {SEMESTERS.map((s) => <option key={s} value={s}>Sem {s}</option>)}
-              </select>
+            <div className="flex items-center gap-2 bg-orange-500/10 text-orange-500 px-4 py-2 rounded-2xl border border-orange-500/20">
+              <Flame className="w-5 h-5 fill-current" />
+              <span className="font-black">{user.streak} Days</span>
             </div>
           </div>
+        </div>
+      </nav>
 
-          {/* Row 2: Subject picker */}
-          <div>
-            <label style={styles.filterLabel}>
-              {catalogLoading ? "Loading subjects…" : `Choose Subject (${catalog?.length ?? 0} found)`}
-            </label>
-            {catalogLoading ? (
-              <div style={styles.subjectGrid}>
-                {[1,2,3,4].map((i) => <div key={i} style={styles.subjectSkeletonBtn} />)}
+      <main className="max-w-7xl mx-auto px-8 py-12">
+        {loading ? (
+          <div className="text-slate-500 text-center py-20">Loading...</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {subjects.map((sub) => (
+              <div
+                key={sub.id}
+                onClick={() => navigate(`/subjects/${sub.id}`)}
+                className="group bg-slate-900 border border-slate-800 p-6 rounded-3xl hover:border-indigo-500/50 hover:bg-slate-900/80 transition-all cursor-pointer relative overflow-hidden"
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="bg-indigo-500/10 p-3 rounded-2xl text-indigo-400 border border-indigo-500/20">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <div className="flex items-center gap-1 text-orange-500 text-xs font-bold">
+                    <Flame className="w-3 h-3 fill-current" /> {sub.streak}
+                  </div>
+                </div>
+                <h3 className="text-lg font-bold text-white mb-1 group-hover:text-indigo-400 transition-colors">{sub.name}</h3>
+                <p className="text-sm text-slate-500 mb-6">{sub.currentModule}</p>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
+                    <span>Progress</span>
+                    <span>{sub.modulesCompleted} / 5 Modules</span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-500 transition-all duration-500"
+                      style={{ width: `${(sub.modulesCompleted / 5) * 100}%` }}
+                    />
+                  </div>
+                </div>
               </div>
-            ) : catalog && catalog.length > 0 ? (
-              <div style={styles.subjectGrid}>
-                {catalog.map((name) => (
+            ))}
+
+            {Array.from({ length: emptySlots }).map((_, i) => (
+              <button
+                key={`empty-${i}`}
+                onClick={() => setIsModalOpen(true)}
+                className="border-2 border-dashed border-slate-800 rounded-3xl p-6 flex flex-col items-center justify-center gap-4 bg-slate-900/20 hover:bg-slate-900/40 hover:border-indigo-500/30 transition-all group min-h-[220px]"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-indigo-500/20 group-hover:text-indigo-400 transition-all">
+                  <Plus className="w-6 h-6" />
+                </div>
+                <span className="font-bold text-slate-500 group-hover:text-slate-300">Add Subject</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </main>
+
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm"
+            onClick={() => { setIsModalOpen(false); setModalStep(1); }}
+          />
+          <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-[32px] p-8 shadow-2xl">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-bold text-white">Initialize Subject</h3>
+              <div className="flex gap-1">
+                {[1, 2, 3].map((s) => (
+                  <div key={s} className={`w-6 h-1 rounded-full ${modalStep >= s ? 'bg-indigo-500' : 'bg-slate-800'}`} />
+                ))}
+              </div>
+            </div>
+
+            {modalStep === 1 && (
+              <div className="grid grid-cols-2 gap-3">
+                {branches.map((b) => (
                   <button
-                    key={name}
-                    style={selectedSubject === name ? styles.subjectBtnActive : styles.subjectBtn}
-                    onClick={() => setSelectedSubject(name)}
+                    key={b}
+                    onClick={() => { setSelection({ ...selection, branch: b }); setModalStep(2); }}
+                    className="p-4 bg-slate-950 border border-slate-800 rounded-2xl text-left hover:border-indigo-500 transition-all"
                   >
-                    {name}
+                    <School className="w-5 h-5 text-indigo-400 mb-2" />
+                    <span className="font-bold">{b}</span>
                   </button>
                 ))}
               </div>
-            ) : (
-              <p style={styles.noSubjects}>No subjects found for {branch} Sem {semester}</p>
+            )}
+
+            {modalStep === 2 && (
+              <div className="grid grid-cols-4 gap-3">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => { setSelection({ ...selection, semester: String(i + 1) }); setModalStep(3); }}
+                    className="p-4 bg-slate-950 border border-slate-800 rounded-2xl font-bold hover:border-indigo-500 transition-all text-center"
+                  >
+                    <GraduationCap className="w-4 h-4 text-indigo-400 mb-1 mx-auto" />
+                    Sem {i + 1}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {modalStep === 3 && (
+              <div className="space-y-3">
+                {(subjectsByBranch[selection.branch] ?? ['Advanced Engineering']).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSelection({ ...selection, subject: s })}
+                    className={`w-full p-4 border rounded-2xl text-left transition-all ${
+                      selection.subject === s
+                        ? 'bg-indigo-600 border-indigo-400 text-white'
+                        : 'bg-slate-950 border-slate-800 text-slate-300'
+                    }`}
+                  >
+                    <span className="font-bold">{s}</span>
+                  </button>
+                ))}
+                <button
+                  onClick={handleAddSubject}
+                  disabled={!selection.subject}
+                  className="w-full mt-6 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-40 py-4 rounded-2xl font-black uppercase tracking-widest text-white shadow-lg shadow-indigo-500/20"
+                >
+                  Start Learning
+                </button>
+              </div>
             )}
           </div>
-
-          <button
-            style={styles.primaryBtn}
-            onClick={() => addMutation.mutate()}
-            disabled={addMutation.isPending || !selectedSubject}
-          >
-            {addMutation.isPending ? "Adding…" : selectedSubject ? `Add "${selectedSubject}"` : "Select a subject above"}
-          </button>
-        </div>
-      )}
-
-      {/* Subject list */}
-      {isLoading ? (
-        <div style={styles.grid}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <SkeletonCard key={i} />
-          ))}
-        </div>
-      ) : subjects.length === 0 ? (
-        <p style={styles.empty}>No subjects yet. Add one to get started!</p>
-      ) : (
-        <div style={styles.grid}>
-          {subjects.map((s: Subject) => (
-            <SubjectCard
-              key={s.id}
-              subject={s}
-              onOpen={() => navigate(`/subject/${s.id}`)}
-              onRoadmap={() => navigate(`/map/${s.id}`)}
-              onRemove={() => removeMutation.mutate(s.id)}
-              onMainChat={() => navigate(`/chat/${s.id}/0`)}
-              onImportantQs={() => navigate(`/important-questions/${s.id}`)}
-              removing={removeMutation.isPending}
-            />
-          ))}
         </div>
       )}
     </div>
   );
-}
-
-function SubjectCard({
-  subject,
-  onOpen,
-  onRoadmap,
-  onRemove,
-  onMainChat,
-  onImportantQs,
-  removing,
-}: {
-  subject: Subject;
-  onOpen: () => void;
-  onRoadmap: () => void;
-  onRemove: () => void;
-  onMainChat: () => void;
-  onImportantQs: () => void;
-  removing: boolean;
-}) {
-  return (
-    <div style={styles.card}>
-      <div style={styles.cardHeader}>
-        <h4 style={styles.cardTitle}>{subject.name}</h4>
-        <button
-          style={styles.dangerBtn}
-          onClick={onRemove}
-          disabled={removing}
-          title="Remove subject"
-        >
-          ✕
-        </button>
-      </div>
-      <p style={styles.cardMeta}>
-        {subject.branch} · Sem {subject.semester}
-      </p>
-      <p style={styles.cardMeta}>{subject.modules_scraped} modules scraped</p>
-      <div style={styles.cardActions}>
-        <button style={styles.primaryBtn} onClick={onOpen}>
-          Ask Questions
-        </button>
-        <button style={styles.outlineBtn} onClick={onRoadmap}>
-          Open Map
-        </button>
-      </div>
-      <div style={{ ...styles.cardActions, marginTop: "0.4rem" }}>
-        <button style={styles.tealBtn} onClick={onMainChat}>
-          💬 Main Chat
-        </button>
-        <button style={styles.amberBtn} onClick={onImportantQs}>
-          📝 Important Qs
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div style={{ ...skeletonStyles.card, animation: "pulse 1.5s ease-in-out infinite" }}>
-      <div style={skeletonStyles.line} />
-      <div style={{ ...skeletonStyles.line, width: "60%", marginTop: "0.5rem" }} />
-      <div style={{ ...skeletonStyles.line, width: "40%", marginTop: "0.75rem" }} />
-      <div style={skeletonStyles.btnRow}>
-        <div style={skeletonStyles.btn} />
-        <div style={skeletonStyles.btn} />
-      </div>
-    </div>
-  );
-}
-
-const skeletonStyles: Record<string, React.CSSProperties> = {
-  card: { background: "#1a1a2e", borderRadius: 12, padding: "1.25rem" },
-  line: { height: 14, borderRadius: 6, background: "#2e2e42", width: "80%" },
-  btnRow: { display: "flex", gap: "0.5rem", marginTop: "1rem" },
-  btn: { height: 34, width: 100, borderRadius: 8, background: "#2e2e42" },
 };
 
-const styles: Record<string, React.CSSProperties> = {
-  page: { minHeight: "100vh", background: "#0f0f1a", color: "#f3f4f6", padding: "2rem" },
-  header: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.5rem" },
-  greeting: { margin: 0, fontSize: "1.5rem", color: "#a78bfa" },
-  meta: { margin: "0.25rem 0 0", color: "#6b7280", fontSize: "0.9rem" },
-  headerRight: { display: "flex", gap: "0.5rem" },
-  slotBar: { marginBottom: "1.5rem" },
-  slotText: { fontSize: "0.85rem", color: "#9ca3af" },
-  slotTrack: { marginTop: "0.4rem", height: 6, background: "#1f2937", borderRadius: 4, overflow: "hidden" },
-  slotFill: { height: "100%", background: "#7c3aed", borderRadius: 4, transition: "width 0.3s" },
-  toolbar: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" },
-  sectionTitle: { margin: 0, color: "#e5e7eb" },
-  formCard: { background: "#1a1a2e", borderRadius: 12, padding: "1.25rem", marginBottom: "1.5rem", display: "flex", flexDirection: "column", gap: "1rem" },
-  filterRow: { display: "flex", gap: "0.75rem", flexWrap: "wrap" as const },
-  filterGroup: { display: "flex", flexDirection: "column" as const, gap: "0.3rem", flex: 1, minWidth: 100 },
-  filterLabel: { fontSize: "0.75rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase" as const, letterSpacing: "0.05em" },
-  select: { padding: "0.55rem 0.75rem", borderRadius: 8, border: "1px solid #374151", background: "#0f0f1a", color: "#f3f4f6", fontSize: "0.9rem", outline: "none", cursor: "pointer" },
-  subjectGrid: { display: "flex", flexWrap: "wrap" as const, gap: "0.5rem", marginTop: "0.5rem" },
-  subjectBtn: { padding: "0.45rem 0.85rem", borderRadius: 8, border: "1px solid #374151", background: "#0f0f1a", color: "#d1d5db", fontSize: "0.85rem", cursor: "pointer", transition: "all 0.15s" },
-  subjectBtnActive: { padding: "0.45rem 0.85rem", borderRadius: 8, border: "1px solid #7c3aed", background: "#3b1e6e", color: "#fff", fontSize: "0.85rem", cursor: "pointer", fontWeight: 700 },
-  subjectSkeletonBtn: { width: 140, height: 34, borderRadius: 8, background: "#2e2e42" },
-  noSubjects: { color: "#6b7280", fontSize: "0.85rem", marginTop: "0.5rem" },
-  input: { padding: "0.65rem 1rem", borderRadius: 8, border: "1px solid #374151", background: "#0f0f1a", color: "#f3f4f6", fontSize: "0.95rem", outline: "none" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" },
-  card: { background: "#1a1a2e", borderRadius: 12, padding: "1.25rem" },
-  cardHeader: { display: "flex", justifyContent: "space-between", alignItems: "center" },
-  cardTitle: { margin: 0, color: "#e5e7eb", fontSize: "1.05rem" },
-  cardMeta: { margin: "0.3rem 0 0", color: "#6b7280", fontSize: "0.85rem" },
-  cardActions: { display: "flex", gap: "0.5rem", marginTop: "1rem" },
-  primaryBtn: { padding: "0.5rem 1rem", borderRadius: 8, border: "none", background: "#7c3aed", color: "#fff", fontWeight: 600, cursor: "pointer", fontSize: "0.9rem" },
-  outlineBtn: { padding: "0.5rem 1rem", borderRadius: 8, border: "1px solid #374151", background: "transparent", color: "#d1d5db", cursor: "pointer", fontSize: "0.9rem" },
-  dangerBtn: { padding: "0.3rem 0.6rem", borderRadius: 6, border: "none", background: "#3b1e1e", color: "#ef4444", cursor: "pointer" },
-  tealBtn: { flex: 1, padding: "0.5rem 0.75rem", borderRadius: 8, border: "none", background: "#0d3d3d", color: "#2dd4bf", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem" },
-  amberBtn: { flex: 1, padding: "0.5rem 0.75rem", borderRadius: 8, border: "none", background: "#3d2e0a", color: "#fbbf24", fontWeight: 600, cursor: "pointer", fontSize: "0.85rem" },
-  empty: { color: "#6b7280", textAlign: "center", marginTop: "3rem" },
-};
+export default DashboardPage;

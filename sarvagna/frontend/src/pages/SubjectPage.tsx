@@ -1,175 +1,262 @@
-import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import toast from "react-hot-toast";
-import { subjectsApi, queryApi, type QueryResponse } from "../lib/api";
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Lock, CheckCircle2, Send, Sparkles, Zap, Brain,
+  Trophy, ChevronLeft, Layout, Loader2,
+} from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { api, type ModuleStatus } from '../services/api';
 
-type Tab = "exact" | "simplified" | "example";
+interface Message {
+  id: string;
+  sender: 'ai' | 'user';
+  text: string;
+}
 
-export default function SubjectPage() {
-  const { id } = useParams<{ id: string }>();
+type ModuleState = 'completed' | 'current' | 'locked';
+
+interface UIModule {
+  id: number;
+  title: string;
+  state: ModuleState;
+  topics: string[];
+}
+
+const statusToState = (status: string): ModuleState => {
+  if (status === 'complete') return 'completed';
+  if (status === 'unlocked') return 'current';
+  return 'locked';
+};
+
+const SubjectPage: React.FC = () => {
+  const { subjectId } = useParams<{ subjectId: string }>();
   const navigate = useNavigate();
+  const numericSubjectId = subjectId ? parseInt(subjectId, 10) : null;
 
-  const [question, setQuestion] = useState("");
-  const [answer, setAnswer] = useState<QueryResponse | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>("exact");
-  const [taskId, setTaskId] = useState<string | null>(null);
-  const [scraping, setScraping] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([
+    { id: '1', sender: 'ai', text: "Ready to master this module? I've prepared the key concepts for you." },
+  ]);
+  const [inputValue, setInputValue] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'textbook' | 'simple' | 'example'>('simple');
+  const [expandedNode, setExpandedNode] = useState<number | null>(null);
+  const [showBadge, setShowBadge] = useState(false);
+  const [modules, setModules] = useState<UIModule[]>([]);
+  const [subjectName] = useState('Subject');
 
-  // Fetch the subject info to show its name
-  const { data: subjects = [] } = useQuery({
-    queryKey: ["subjects"],
-    queryFn: () => subjectsApi.list().then((r) => r.data),
-  });
-  const subject = subjects.find((s) => s.id === id);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  const queryMutation = useMutation({
-    mutationFn: () => queryApi.ask(question, id!),
-    onSuccess: (res) => {
-      setAnswer(res.data);
-      setActiveTab("exact");
-      if (res.data.xp_earned > 0) {
-        toast.success(`+${res.data.xp_earned} XP earned!`);
-      }
-      if (res.data.badges_unlocked.length > 0) {
-        res.data.badges_unlocked.forEach((b) => toast(`🏅 Badge unlocked: ${b}`));
-      }
-      if (res.data.leveled_up) {
-        toast.success(`🎉 Level up! You're now level ${res.data.level} (${res.data.level_name})`);
-      }
-    },
-    onError: (err: any) =>
-      toast.error(err.response?.data?.detail ?? "Query failed"),
-  });
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
 
-  const handleScrape = async () => {
-    if (!id) return;
-    setScraping(true);
+  useEffect(() => {
+    if (!numericSubjectId) return;
+    api.getRoadmap(numericSubjectId).then((data: ModuleStatus[]) => {
+      const uiModules: UIModule[] = data.map((m) => ({
+        id: m.module_number,
+        title: m.title,
+        state: statusToState(m.status),
+        topics: m.topics,
+      }));
+      setModules(uiModules);
+      const current = uiModules.find((m) => m.state === 'current');
+      if (current) setExpandedNode(current.id);
+    }).catch(() => {
+      setMessages((prev) => [...prev, { id: 'err-roadmap', sender: 'ai', text: 'Could not load roadmap.' }]);
+    });
+  }, [numericSubjectId]);
+
+  const handleQuery = async (text: string) => {
+    const userMsg: Message = { id: Date.now().toString(), sender: 'user', text };
+    setMessages((prev) => [...prev, userMsg]);
+    setInputValue('');
+    setLoading(true);
+
     try {
-      const res = await subjectsApi.scrape(id);
-      setTaskId(res.data.task_id);
-      toast.success(res.data.message);
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Scrape failed");
+      const res = await api.postQuery({ subjectId: numericSubjectId, query: text });
+      const aiMsg: Message = { id: (Date.now() + 1).toString(), sender: 'ai', text: res.response };
+      setMessages((prev) => [...prev, aiMsg]);
+      if (res.moduleCompleted) setShowBadge(true);
+    } catch {
+      setMessages((prev) => [...prev, { id: 'err', sender: 'ai', text: 'Connection error. Please try again.' }]);
     } finally {
-      setScraping(false);
+      setLoading(false);
     }
   };
 
-  const tabContent: Record<Tab, string> = {
-    exact: answer?.exact_answer ?? "",
-    simplified: answer?.simplified_answer ?? "",
-    example: answer?.real_world_example ?? "",
-  };
-
-  const tabLabels: Record<Tab, string> = {
-    exact: "Exact Answer",
-    simplified: "Simplified",
-    example: "Real World Example",
-  };
-
   return (
-    <div style={styles.page}>
-      {/* Header */}
-      <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => navigate("/dashboard")}>
-          ← Dashboard
-        </button>
-        <h2 style={styles.title}>{subject?.name ?? "Subject"}</h2>
+    <div className="flex h-screen bg-slate-950 overflow-hidden text-slate-200">
+      {/* Left Panel: Roadmap */}
+      <aside className="w-[35%] border-r border-slate-900 p-8 flex flex-col bg-slate-950/50">
         <button
-          style={styles.scrapeBtn}
-          onClick={handleScrape}
-          disabled={scraping}
-          title="Scrape latest notes for this subject"
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-slate-500 hover:text-indigo-400 transition-colors mb-10 group"
         >
-          {scraping ? "Scraping…" : "📥 Scrape Notes"}
+          <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span className="text-xs font-black uppercase tracking-widest">Dashboard</span>
         </button>
-      </div>
 
-      {/* Task ID banner */}
-      {taskId && (
-        <div style={styles.taskBanner}>
-          Scraping in progress · Task ID: <code>{taskId}</code>
-        </div>
-      )}
+        <h2 className="text-3xl font-black text-white mb-12 tracking-tighter">{subjectName}</h2>
 
-      {/* Question input */}
-      <div style={styles.queryBox}>
-        <textarea
-          style={styles.textarea}
-          placeholder="Ask anything about this subject…"
-          value={question}
-          rows={3}
-          onChange={(e) => setQuestion(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              if (question.trim()) queryMutation.mutate();
-            }
-          }}
-        />
-        <button
-          style={styles.askBtn}
-          onClick={() => queryMutation.mutate()}
-          disabled={queryMutation.isPending || !question.trim()}
-        >
-          {queryMutation.isPending ? "Thinking…" : "Ask"}
-        </button>
-      </div>
+        <div className="relative flex-1 overflow-y-auto pr-4">
+          <div className="absolute left-[19px] top-4 bottom-4 w-0.5 border-l-2 border-dashed border-slate-800" />
 
-      {/* Answer card */}
-      {answer && (
-        <div style={styles.answerCard}>
-          {/* XP / badge row */}
-          <div style={styles.rewardRow}>
-            {answer.cached ? (
-              <span style={styles.cachedBadge}>⚡ Cached</span>
-            ) : (
-              <span style={styles.xpBadge}>+{answer.xp_earned} XP</span>
-            )}
-            <span style={styles.levelText}>
-              Level {answer.level} · {answer.level_name}
-            </span>
-          </div>
+          <div className="space-y-10">
+            {modules.map((m) => (
+              <div key={m.id} className="relative">
+                <div
+                  className={`flex items-center gap-6 cursor-pointer group ${m.state === 'locked' ? 'opacity-40' : 'opacity-100'}`}
+                  onClick={() => m.state !== 'locked' && setExpandedNode(expandedNode === m.id ? null : m.id)}
+                >
+                  <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-500
+                    ${m.state === 'completed' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' :
+                      m.state === 'current' ? 'bg-amber-500 animate-pulse shadow-[0_0_15px_rgba(245,158,11,0.4)]' :
+                      'bg-slate-900 border-2 border-slate-800 text-slate-600'}`}
+                  >
+                    {m.state === 'completed' ? <CheckCircle2 className="w-6 h-6 text-white" /> :
+                     m.state === 'current' ? <div className="w-3 h-3 bg-white rounded-full" /> :
+                     <Lock className="w-4 h-4" />}
+                  </div>
 
-          {/* Tabs */}
-          <div style={styles.tabs}>
-            {(["exact", "simplified", "example"] as Tab[]).map((t) => (
-              <button
-                key={t}
-                style={{ ...styles.tab, ...(activeTab === t ? styles.activeTab : {}) }}
-                onClick={() => setActiveTab(t)}
-              >
-                {tabLabels[t]}
-              </button>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-slate-500 uppercase">Module {String(m.id).padStart(2, '0')}</span>
+                      {m.state === 'current' && (
+                        <span className="text-[8px] bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full font-bold uppercase tracking-tighter">Current</span>
+                      )}
+                    </div>
+                    <h3 className="text-base font-bold text-white group-hover:text-indigo-400 transition-colors">{m.title}</h3>
+                  </div>
+                </div>
+
+                {expandedNode === m.id && m.topics.length > 0 && (
+                  <div className="ml-16 mt-4 space-y-2">
+                    {m.topics.map((t, i) => (
+                      <div key={i} className="flex items-center gap-3 text-sm text-slate-400 hover:text-indigo-300 transition-colors cursor-pointer">
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                        {t}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
-          </div>
 
-          {/* Tab content */}
-          <div style={styles.tabContent}>{tabContent[activeTab]}</div>
+            {modules.length === 0 && (
+              <div className="text-slate-600 text-sm pl-4">Loading modules...</div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Right Panel: Chat */}
+      <main className="w-[65%] flex flex-col bg-slate-950">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-12 space-y-8 scroll-smooth">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+              <div className={`group relative max-w-[85%] p-6 rounded-3xl ${
+                msg.sender === 'user'
+                  ? 'bg-indigo-600 text-white rounded-tr-none shadow-xl shadow-indigo-600/10'
+                  : 'bg-slate-900 border border-slate-800 rounded-tl-none'
+              }`}>
+                {msg.sender === 'ai' && (
+                  <div className="absolute -left-12 top-0 w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center font-serif font-black italic text-white text-xs">S</div>
+                )}
+                <p className="text-sm leading-relaxed font-medium">{msg.text}</p>
+
+                {msg.sender === 'ai' && (
+                  <div className="mt-6 flex gap-1 bg-slate-950 p-1 rounded-2xl w-fit border border-slate-800">
+                    {(['simple', 'textbook', 'example'] as const).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                          activeTab === tab ? 'bg-slate-800 text-indigo-400 shadow-inner' : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                      >
+                        {tab}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {loading && (
+            <div className="flex justify-start items-center gap-3 text-indigo-400">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              <span className="text-xs font-black uppercase tracking-widest animate-pulse">Generating Insights...</span>
+            </div>
+          )}
+        </div>
+
+        <div className="px-12 flex gap-3 mb-6">
+          {[
+            { icon: <Brain className="w-4 h-4" />, label: 'Teach this module' },
+            { icon: <Zap className="w-4 h-4" />, label: 'Exam mode' },
+            { icon: <Layout className="w-4 h-4" />, label: 'Generate flashcards' },
+          ].map((action, i) => (
+            <button
+              key={i}
+              onClick={() => handleQuery(action.label)}
+              className="flex items-center gap-2 bg-slate-900/50 border border-slate-800 px-5 py-2.5 rounded-2xl text-xs font-bold text-slate-400 hover:text-indigo-400 hover:border-indigo-500/30 transition-all active:scale-95"
+            >
+              {action.icon}
+              {action.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="p-8 border-t border-slate-900 bg-slate-950">
+          <div className="max-w-4xl mx-auto relative">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && !loading && inputValue && handleQuery(inputValue)}
+              placeholder="Ask anything about this module..."
+              className="w-full bg-slate-900 border border-slate-800 rounded-[24px] py-5 pl-8 pr-16 text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500/50 transition-all placeholder:text-slate-600"
+            />
+            <button
+              disabled={loading || !inputValue}
+              onClick={() => handleQuery(inputValue)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-indigo-500 p-3.5 rounded-2xl text-white hover:bg-indigo-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-500/20"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+      </main>
+
+      {showBadge && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-950/95 backdrop-blur-xl" />
+          <div className="relative text-center">
+            <div className="w-56 h-56 mx-auto mb-8 relative">
+              <div className="absolute inset-0 bg-indigo-500/30 blur-[80px] animate-pulse" />
+              <div className="relative bg-gradient-to-br from-indigo-500 to-purple-600 w-full h-full rounded-[48px] rotate-12 flex items-center justify-center shadow-2xl border-4 border-indigo-400/50">
+                <Trophy className="w-24 h-24 text-white -rotate-12 drop-shadow-lg" />
+              </div>
+            </div>
+            <h3 className="text-5xl font-black text-white mb-3 uppercase tracking-tighter italic">Module Unlocked!</h3>
+            <div className="flex items-center justify-center gap-3 bg-emerald-500/10 text-emerald-400 w-fit mx-auto px-8 py-3 rounded-full border border-emerald-500/20 mb-10">
+              <Sparkles className="w-6 h-6" />
+              <span className="font-black text-2xl tracking-tighter">+50 XP</span>
+            </div>
+            <button
+              onClick={() => setShowBadge(false)}
+              className="bg-white text-slate-950 px-16 py-5 rounded-[24px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-2xl"
+            >
+              Continue Mastery
+            </button>
+          </div>
         </div>
       )}
     </div>
   );
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  page: { minHeight: "100vh", background: "#0f0f1a", color: "#f3f4f6", padding: "2rem" },
-  header: { display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem", flexWrap: "wrap" },
-  backBtn: { padding: "0.4rem 0.8rem", borderRadius: 8, border: "1px solid #374151", background: "transparent", color: "#9ca3af", cursor: "pointer" },
-  title: { margin: 0, color: "#a78bfa", flex: 1, fontSize: "1.4rem" },
-  scrapeBtn: { padding: "0.5rem 1rem", borderRadius: 8, border: "none", background: "#1f2937", color: "#d1d5db", cursor: "pointer" },
-  taskBanner: { background: "#1f2937", border: "1px solid #374151", borderRadius: 8, padding: "0.75rem 1rem", marginBottom: "1rem", fontSize: "0.85rem", color: "#9ca3af" },
-  queryBox: { display: "flex", gap: "0.75rem", marginBottom: "1.5rem", alignItems: "flex-end" },
-  textarea: { flex: 1, padding: "0.75rem 1rem", borderRadius: 10, border: "1px solid #374151", background: "#1a1a2e", color: "#f3f4f6", fontSize: "1rem", outline: "none", resize: "none", lineHeight: 1.5 },
-  askBtn: { padding: "0.75rem 1.5rem", borderRadius: 10, border: "none", background: "#7c3aed", color: "#fff", fontWeight: 700, cursor: "pointer", fontSize: "1rem" },
-  answerCard: { background: "#1a1a2e", borderRadius: 14, padding: "1.5rem" },
-  rewardRow: { display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" },
-  xpBadge: { background: "#4c1d95", color: "#c4b5fd", padding: "0.25rem 0.6rem", borderRadius: 6, fontSize: "0.8rem", fontWeight: 700 },
-  cachedBadge: { background: "#1f2937", color: "#6b7280", padding: "0.25rem 0.6rem", borderRadius: 6, fontSize: "0.8rem" },
-  levelText: { color: "#6b7280", fontSize: "0.85rem" },
-  tabs: { display: "flex", gap: "0.5rem", marginBottom: "1rem", borderBottom: "1px solid #374151", paddingBottom: "0.5rem" },
-  tab: { padding: "0.4rem 0.9rem", borderRadius: 6, border: "none", background: "transparent", color: "#6b7280", cursor: "pointer", fontSize: "0.9rem" },
-  activeTab: { background: "#4c1d95", color: "#e9d5ff" },
-  tabContent: { color: "#e5e7eb", lineHeight: 1.7, whiteSpace: "pre-wrap", fontSize: "0.95rem" },
 };
+
+export default SubjectPage;

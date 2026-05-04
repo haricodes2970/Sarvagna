@@ -1,25 +1,22 @@
-from functools import lru_cache
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
-
-    SECRET_KEY: str
-    ENVIRONMENT: str = "development"
+    APP_NAME: str = "Sarvagna"
+    GROQ_API_KEY: str
+    GEMINI_API_KEY: str
     DATABASE_URL: str
-    REDIS_URL: str
+    REDIS_URL: str = "redis://localhost:6379"
     QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
-    REPLICATE_API_KEY: str = ""
-    GROQ_API_KEY: str
-    GEMINI_API_KEY: str = ""
-    APIFY_API_KEY: str = ""
-    GOOGLE_CLIENT_ID: str = ""
-    GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://localhost:8000/api/v1/auth/google/callback"
+    SECRET_KEY: str
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
+
+    ENVIRONMENT: str = "development"
+
+    class Config:
+        env_file = ".env"
+        extra = "ignore"
 
 
-@lru_cache
-def get_settings() -> Settings:
-    return Settings()
+settings = Settings()

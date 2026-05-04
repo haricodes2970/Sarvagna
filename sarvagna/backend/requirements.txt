@@ -11,7 +11,7 @@ httpx
 beautifulsoup4
 pdfplumber
 groq
-google-generativeai
+google-genai
 qdrant-client
 redis
 sentence-transformers

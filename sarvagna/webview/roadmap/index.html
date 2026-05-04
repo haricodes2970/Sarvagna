@@ -1,0 +1,77 @@
+<!-- DESIGN REFERENCE ONLY — not used in the web app -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sarvagna Roadmap</title>
+    <style>
+        :root { --bg-color: var(--vscode-editor-background, #1e1e1e); --fg-color: var(--vscode-editor-foreground, #cccccc); --border-color: var(--vscode-panel-border, #444444); --font-family: var(--vscode-font-family, sans-serif); --color-completed: #10B981; --color-current: #F59E0B; --color-locked: #6B7280; --color-xp: #3B82F6; --node-bg: var(--vscode-editorWidget-background, #252526); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--font-family); background-color: var(--bg-color); color: var(--fg-color); padding: 20px; overflow-y: auto; }
+        .xp-container { background-color: var(--node-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; margin-bottom: 32px; position: sticky; top: 0; z-index: 10; }
+        .xp-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-weight: 600; }
+        .xp-bar-bg { background-color: var(--bg-color); height: 12px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border-color); }
+        .xp-bar-fill { height: 100%; background-color: var(--color-xp); width: 45%; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+        .roadmap { position: relative; padding-left: 24px; max-width: 600px; margin: 0 auto; }
+        .roadmap::before { content: ''; position: absolute; top: 0; bottom: 0; left: 24px; width: 2px; background-image: linear-gradient(to bottom, var(--border-color) 50%, transparent 50%); background-size: 2px 16px; z-index: 0; }
+        .node { position: relative; margin-bottom: 32px; z-index: 1; padding-left: 32px; }
+        .node-marker { position: absolute; left: -12px; top: 16px; width: 24px; height: 24px; border-radius: 50%; background-color: var(--node-bg); border: 3px solid var(--color-locked); display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; }
+        .node.completed .node-marker { border-color: var(--color-completed); box-shadow: 0 0 12px rgba(16,185,129,0.4); background-color: var(--color-completed); }
+        .node.current .node-marker { border-color: var(--color-current); background-color: var(--node-bg); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); } 70% { box-shadow: 0 0 0 10px rgba(245,158,11,0); } 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0); } }
+        .node-content { background-color: var(--node-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 16px; transition: transform 0.2s, border-color 0.2s; }
+        .node.current .node-content { cursor: pointer; border-color: var(--color-current); }
+        .node.current .node-content:hover { transform: translateY(-2px); }
+        .node.locked .node-content { opacity: 0.6; }
+        .node-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .node-title { font-size: 16px; font-weight: 600; }
+        .node-meta { font-size: 12px; color: var(--vscode-descriptionForeground, #999999); }
+        .topics-list { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-color); display: none; list-style: none; font-size: 14px; }
+        .topics-list li { padding: 4px 0; display: flex; align-items: center; gap: 8px; }
+        .topics-list li::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background-color: var(--color-current); }
+        .node.expanded .topics-list { display: block; }
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background-color: var(--color-completed); color: #fff; padding: 12px 24px; border-radius: 24px; font-weight: bold; opacity: 0; transition: all 0.4s cubic-bezier(0.175,0.885,0.32,1.275); z-index: 100; }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="xp-container">
+        <div class="xp-header"><span>Level 4: Scholar</span><span>450 / 1000 XP</span></div>
+        <div class="xp-bar-bg"><div class="xp-bar-fill"></div></div>
+    </div>
+    <div class="roadmap">
+        <div class="node completed" data-module="1">
+            <div class="node-marker"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+            <div class="node-content"><div class="node-header"><span class="node-title">Module 1: Foundations</span><span class="node-meta">3 Topics</span></div><div>Core principles overview.</div></div>
+        </div>
+        <div class="node current" id="current-node" data-module="2">
+            <div class="node-marker"></div>
+            <div class="node-content">
+                <div class="node-header"><span class="node-title">Module 2: Advanced State</span><span class="node-meta">4 Topics</span></div>
+                <div>Managing complex state. Click to view topics.</div>
+                <ul class="topics-list"><li>Immutability</li><li>State machines</li><li>Event delegation</li><li>Memory management</li></ul>
+            </div>
+        </div>
+        <div class="node locked" data-module="3">
+            <div class="node-marker"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+            <div class="node-content"><div class="node-header"><span class="node-title">Module 3: Rendering Pipelines</span><span class="node-meta">5 Topics</span></div><div>DOM optimizations.</div></div>
+        </div>
+        <div class="node locked" data-module="4">
+            <div class="node-marker"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+            <div class="node-content"><div class="node-header"><span class="node-title">Module 4: Systems Architecture</span><span class="node-meta">2 Topics</span></div><div>Scalable frontend systems.</div></div>
+        </div>
+        <div class="node locked" data-module="5">
+            <div class="node-marker"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+            <div class="node-content"><div class="node-header"><span class="node-title">Module 5: Capstone</span><span class="node-meta">1 Topic</span></div><div>Final project integration.</div></div>
+        </div>
+    </div>
+    <div class="toast" id="unlock-toast">Module Unlocked!</div>
+    <script>
+        (function() {
+            const currentNode = document.getElementById('current-node');
+            currentNode.addEventListener('click', function() { this.classList.toggle('expanded'); });
+        })();
+    </script>
+</body>
+</html>

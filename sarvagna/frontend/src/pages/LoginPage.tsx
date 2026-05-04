@@ -1,154 +1,253 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import toast from "react-hot-toast";
-import { authApi } from "../lib/api";
-import { useAuthStore } from "../store/authStore";
-import { API_URL } from "../lib/env";
+import { BookOpen, Lock, Mail, User } from "lucide-react";
+
+import { auth, progress } from "../lib/api";
+import { useUserStore } from "../store/userStore";
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { setToken, setUser } = useAuthStore();
+  const { setUser } = useUserStore();
 
-  const [isRegister, setIsRegister] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", name: "", password: "" });
+  const [mode, setMode] = useState<"login" | "register">("login");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) =>
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [branch, setBranch] = useState("");
+  const [semester, setSemester] = useState<number>(1);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 3500);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  const title = useMemo(() => (mode === "login" ? "Welcome back" : "Create your account"), [mode]);
+
+  const setProgress = useUserStore((s) => s.setProgress);
+
+  const syncProgressIntoStore = async () => {
     try {
-      const res = isRegister
-        ? await authApi.register(form.email, form.name, form.password)
-        : await authApi.login(form.email, form.password);
-
-      const token = res.data.access_token;
-      setToken(token);
-
-      // Fetch profile immediately after login
-      const profile = await authApi.me();
-      setUser(profile.data);
-
-      toast.success(isRegister ? "Account created!" : "Welcome back!");
-      navigate("/dashboard");
-    } catch (err: any) {
-      toast.error(err.response?.data?.detail ?? "Something went wrong");
-    } finally {
-      setLoading(false);
+      const p = await progress.get();
+      setProgress({
+        xp: p.xp,
+        level: p.level,
+        streak_days: p.streak_days,
+        badges: Array.isArray(p.badges) ? p.badges : [],
+      });
+    } catch {
+      // Progress is optional for login UX; ignore if missing.
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = `${API_URL}/auth/google`;
+  const handleLogin = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const { access_token } = await auth.login(email.trim(), password);
+      localStorage.setItem("sarvagna_token", access_token);
+
+      const me = await auth.me();
+      setUser(me);
+      await syncProgressIntoStore();
+
+      navigate("/dashboard");
+    } catch (e: unknown) {
+      const msg =
+        typeof e === "object" && e !== null && "response" in e
+          ? String((e as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ?? "Login failed")
+          : "Login failed";
+      setError(msg);
+      setToast(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleRegister = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const { access_token } = await auth.register(email.trim(), password, name.trim(), branch.trim(), semester);
+      localStorage.setItem("sarvagna_token", access_token);
+
+      const me = await auth.me();
+      setUser(me);
+      await syncProgressIntoStore();
+
+      navigate("/dashboard");
+    } catch (e: unknown) {
+      const msg =
+        typeof e === "object" && e !== null && "response" in e
+          ? String((e as { response?: { data?: { detail?: unknown } } }).response?.data?.detail ?? "Registration failed")
+          : "Registration failed";
+      setError(msg);
+      setToast(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>Sarvagna</h1>
-        <p style={styles.subtitle}>Your AI-powered study companion</p>
+    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center px-4">
+      {toast ? (
+        <div className="fixed bottom-6 left-1/2 z-50 w-[min(520px,calc(100vw-2rem))] -translate-x-1/2">
+          <div className="rounded-2xl border border-red-500/30 bg-red-950/80 px-4 py-3 text-sm text-red-100 shadow-lg backdrop-blur-md">
+            {toast}
+          </div>
+        </div>
+      ) : null}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {isRegister && (
-            <input
-              style={styles.input}
-              name="name"
-              placeholder="Full name"
-              value={form.name}
-              onChange={handleChange}
-              required
-            />
-          )}
-          <input
-            style={styles.input}
-            name="email"
-            type="email"
-            placeholder="Email"
-            value={form.email}
-            onChange={handleChange}
-            required
-          />
-          <input
-            style={styles.input}
-            name="password"
-            type="password"
-            placeholder="Password"
-            value={form.password}
-            onChange={handleChange}
-            required
-          />
-          <button style={styles.btn} type="submit" disabled={loading}>
-            {loading ? "Please wait…" : isRegister ? "Create Account" : "Login"}
-          </button>
-        </form>
+      <div className="w-full max-w-md">
+        <div className="rounded-3xl border border-zinc-800 bg-zinc-950/70 backdrop-blur-md shadow-[0_0_0_1px_rgba(255,255,255,0.03)] p-8">
+          <div className="text-center mb-8">
+            <div className="mx-auto mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-amber-500/20 bg-amber-500/10">
+              <BookOpen className="h-6 w-6 text-amber-400" />
+            </div>
+            <h1 className="text-4xl font-black tracking-tight">Sarvagna</h1>
+            <p className="mt-2 text-sm text-zinc-400">The one who knows everything</p>
+          </div>
 
-        <button style={styles.googleBtn} onClick={handleGoogleLogin}>
-          Continue with Google
-        </button>
+          <div className="mb-6 flex items-center justify-center gap-2 rounded-2xl border border-zinc-800 bg-black/30 p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                setError(null);
+              }}
+              className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold transition ${
+                mode === "login" ? "bg-zinc-900 text-white" : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Login
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("register");
+                setError(null);
+              }}
+              className={`flex-1 rounded-xl px-3 py-2 text-sm font-bold transition ${
+                mode === "register" ? "bg-zinc-900 text-white" : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Register
+            </button>
+          </div>
 
-        <p style={styles.toggle}>
-          {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
-          <span style={styles.link} onClick={() => setIsRegister((v) => !v)}>
-            {isRegister ? "Login" : "Register"}
-          </span>
-        </p>
+          <div className="mb-6">
+            <h2 className="text-lg font-bold">{title}</h2>
+            <p className="mt-1 text-xs text-zinc-500">
+              {mode === "login" ? "Sign in to continue your journey." : "Create an account to start learning."}
+            </p>
+          </div>
+
+          {error ? (
+            <div
+              role="status"
+              className="mb-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200"
+            >
+              {error}
+            </div>
+          ) : null}
+
+          <div className="space-y-4">
+            {mode === "register" ? (
+              <>
+                <label className="block">
+                  <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-zinc-500">Name</span>
+                  <div className="relative">
+                    <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                    <input
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="w-full rounded-2xl border border-zinc-800 bg-black/40 py-3 pl-10 pr-4 text-sm text-zinc-100 outline-none ring-0 placeholder:text-zinc-600 focus:border-amber-500/60"
+                      placeholder="Your name"
+                      autoComplete="name"
+                    />
+                  </div>
+                </label>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-zinc-500">Branch</span>
+                    <input
+                      value={branch}
+                      onChange={(e) => setBranch(e.target.value)}
+                      className="w-full rounded-2xl border border-zinc-800 bg-black/40 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-amber-500/60"
+                      placeholder="AIML"
+                      autoComplete="off"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-zinc-500">Semester</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={8}
+                      value={semester}
+                      onChange={(e) => setSemester(Number(e.target.value))}
+                      className="w-full rounded-2xl border border-zinc-800 bg-black/40 px-4 py-3 text-sm text-zinc-100 outline-none focus:border-amber-500/60"
+                    />
+                  </label>
+                </div>
+
+              </>
+            ) : null}
+
+            <label className="block">
+              <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-zinc-500">Email</span>
+              <div className="relative">
+                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-2xl border border-zinc-800 bg-black/40 py-3 pl-10 pr-4 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-amber-500/60"
+                  placeholder="you@university.edu"
+                  autoComplete="email"
+                />
+              </div>
+            </label>
+
+            <label className="block">
+              <span className="mb-2 block text-xs font-bold uppercase tracking-widest text-zinc-500">Password</span>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full rounded-2xl border border-zinc-800 bg-black/40 py-3 pl-10 pr-4 text-sm text-zinc-100 outline-none placeholder:text-zinc-600 focus:border-amber-500/60"
+                  placeholder="••••••••"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                />
+              </div>
+            </label>
+
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => {
+                if (mode === "login") void handleLogin();
+                else void handleRegister();
+              }}
+              className="mt-2 w-full rounded-2xl bg-amber-500 px-4 py-3 text-sm font-black text-black transition hover:bg-amber-400 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isSubmitting ? "Please wait…" : mode === "login" ? "Login" : "Create account"}
+            </button>
+          </div>
+
+          <p className="mt-6 text-center text-[11px] text-zinc-600">
+            By continuing, you agree this is a learning companion — not a replacement for your coursework judgment.
+          </p>
+        </div>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "#0f0f1a",
-  },
-  card: {
-    background: "#1a1a2e",
-    borderRadius: 16,
-    padding: "2.5rem",
-    width: "100%",
-    maxWidth: 400,
-    boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-  },
-  title: { color: "#a78bfa", fontSize: "2rem", margin: 0, textAlign: "center" },
-  subtitle: { color: "#6b7280", textAlign: "center", marginBottom: "1.5rem" },
-  form: { display: "flex", flexDirection: "column", gap: "0.75rem" },
-  input: {
-    padding: "0.75rem 1rem",
-    borderRadius: 8,
-    border: "1px solid #374151",
-    background: "#0f0f1a",
-    color: "#f3f4f6",
-    fontSize: "1rem",
-    outline: "none",
-  },
-  btn: {
-    padding: "0.75rem",
-    borderRadius: 8,
-    border: "none",
-    background: "#7c3aed",
-    color: "#fff",
-    fontWeight: 600,
-    fontSize: "1rem",
-    cursor: "pointer",
-    marginTop: "0.25rem",
-  },
-  googleBtn: {
-    width: "100%",
-    padding: "0.75rem",
-    borderRadius: 8,
-    border: "1px solid #374151",
-    background: "transparent",
-    color: "#d1d5db",
-    fontSize: "1rem",
-    cursor: "pointer",
-    marginTop: "0.75rem",
-  },
-  toggle: { color: "#6b7280", textAlign: "center", marginTop: "1rem" },
-  link: { color: "#a78bfa", cursor: "pointer" },
-};
