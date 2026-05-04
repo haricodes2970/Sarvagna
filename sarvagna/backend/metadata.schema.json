@@ -1,0 +1,32 @@
+{
+  "_schema_version": "1.0",
+  "_note": "Schema reference only. Runtime data lives in PostgreSQL. Local cache written by workspace_manager.py to .sarvagna/metadata.json (gitignored).",
+  "file_registry": [
+    {
+      "file_path": "/path/to/file.pdf",
+      "sha256_hash": "abc123...",
+      "last_indexed_at": "2026-05-04T00:00:00Z",
+      "university_context": {
+        "branch": "CS",
+        "semester": 5,
+        "subject_id": null
+      }
+    }
+  ],
+  "mastery_map": [
+    {
+      "module_id": 1,
+      "unlocked_status": false,
+      "xp_earned": 0
+    }
+  ],
+  "exam_profiles": [
+    {
+      "file_id": "sha256_hash_of_qp",
+      "weightage_map": {
+        "topic": 3
+      },
+      "predicted_questions": ["What is...", "Explain..."]
+    }
+  ]
+}
