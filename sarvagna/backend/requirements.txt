@@ -5,8 +5,8 @@ asyncpg
 pydantic
 pydantic-settings
 python-jose[cryptography]
-passlib[bcrypt]
-bcrypt
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
 httpx
 beautifulsoup4
 lxml
