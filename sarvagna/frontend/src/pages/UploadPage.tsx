@@ -102,12 +102,20 @@ const UploadPage: React.FC = () => {
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
+  const typeIcon: Record<string, { bg: string; text: string; label: string }> = {
+    pdf:  { bg: 'bg-rose-500',   text: 'text-white', label: 'PDF'  },
+    docx: { bg: 'bg-indigo-500', text: 'text-white', label: 'DOC'  },
+    txt:  { bg: 'bg-slate-600',  text: 'text-white', label: 'TXT'  },
+    md:   { bg: 'bg-emerald-600',text: 'text-white', label: 'MD'   },
+    url:  { bg: 'bg-sky-600',    text: 'text-white', label: 'URL'  },
+  };
+
   const badgeColor: Record<string, string> = {
     pdf: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-    docx: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    docx: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
     txt: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-    md: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    url: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    md: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    url: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
   };
 
   return (
@@ -218,6 +226,11 @@ const UploadPage: React.FC = () => {
           )}
         </div>
 
+        {/* Indexing note */}
+        <p className="text-xs text-slate-600 text-center -mt-4">
+          Files are indexed automatically. Re-upload to refresh content.
+        </p>
+
         {/* URL input */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
           <div className="flex items-center gap-2 text-slate-400">
@@ -258,7 +271,9 @@ const UploadPage: React.FC = () => {
             <div className="divide-y divide-slate-800">
               {files.map(f => (
                 <div key={f.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-800/30 transition-colors">
-                  <FileText className="w-5 h-5 text-slate-500 shrink-0" />
+                  <div className={`shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black ${(typeIcon[f.file_type] ?? typeIcon.txt).bg} ${(typeIcon[f.file_type] ?? typeIcon.txt).text}`}>
+                    {(typeIcon[f.file_type] ?? typeIcon.txt).label}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold text-white truncate">{f.filename}</p>
                     <p className="text-xs text-slate-500">{formatDate(f.created_at)}</p>
