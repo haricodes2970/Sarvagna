@@ -1,3 +1,4 @@
+import hashlib
 import logging
 from pathlib import Path
 from typing import Optional
@@ -27,6 +28,10 @@ ALLOWED_TYPES = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
 }
 ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".docx"}
+
+
+def _sha256(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 def _collection(user_id: int) -> str:
@@ -96,6 +101,21 @@ async def upload_file(
     dest = UPLOAD_DIR / safe_name
 
     content = await file.read()
+    file_hash = _sha256(content)
+
+    existing = await db.execute(
+        select(UploadedFile).where(
+            UploadedFile.user_id == current_user.id,
+            UploadedFile.file_hash == file_hash,
+        )
+    )
+    if existing.scalar_one_or_none():
+        logger.info("Duplicate upload skipped: hash=%s file=%s", file_hash[:8], file.filename)
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Already indexed: {file.filename} (identical content exists)",
+        )
+
     dest.write_bytes(content)
 
     try:
@@ -118,6 +138,7 @@ async def upload_file(
         subject_id=subject_id,
         filename=file.filename,
         file_type=file_type,
+        file_hash=file_hash,
         chunk_count=chunk_count,
     )
     db.add(record)
