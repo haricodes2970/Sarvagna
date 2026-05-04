@@ -12,6 +12,7 @@ from core.database import get_db
 from core.security import get_current_user
 from core import vector_store
 from models.db_models import UploadedFile, User
+from services.ocr_service import extract_text_ocr
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["upload"])
@@ -32,14 +33,21 @@ def _collection(user_id: int) -> str:
     return f"user_{user_id}_uploads"
 
 
-def _extract_from_file(path: Path, file_type: str) -> str:
+def _extract_from_file(path: Path, file_type: str, raw_bytes: bytes) -> str:
     if file_type == "pdf":
         import pdfplumber
-        pages = []
+        pages: list[str] = []
         with pdfplumber.open(path) as pdf:
             for page in pdf.pages:
                 pages.append(page.extract_text() or "")
-        return "\n".join(pages)
+        text = "\n".join(pages)
+        total_pages = max(len(pages), 1)
+        if len(text) / total_pages < 100:
+            logger.info("PDF text sparse (%d chars/%d pages), falling back to OCR", len(text), total_pages)
+            ocr_text = extract_text_ocr(raw_bytes)
+            if ocr_text:
+                return ocr_text
+        return text
     if file_type == "docx":
         from docx import Document
         doc = Document(str(path))
@@ -91,7 +99,7 @@ async def upload_file(
     dest.write_bytes(content)
 
     try:
-        text = _extract_from_file(dest, file_type)
+        text = _extract_from_file(dest, file_type, content)
     except Exception as e:
         dest.unlink(missing_ok=True)
         raise HTTPException(status_code=500, detail=f"Text extraction failed: {e}")
