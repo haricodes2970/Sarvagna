@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, JSON, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Float, JSON, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
@@ -21,6 +21,8 @@ class User(Base):
     queries: Mapped[list["Query"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     progress: Mapped["Progress"] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
     uploaded_files: Mapped[list["UploadedFile"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    exam_predictions: Mapped[list["ExamPrediction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    roadmap_entries: Mapped[list["RoadmapEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Subject(Base):
@@ -87,6 +89,37 @@ class UploadedFile(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="uploaded_files")
+
+
+class ExamPrediction(Base):
+    __tablename__ = "exam_predictions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    topics: Mapped[list] = mapped_column(JSON, default=list)
+    source_filename: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="exam_predictions")
+
+
+class RoadmapEntry(Base):
+    __tablename__ = "roadmap_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[int] = mapped_column(Integer, ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False)
+    module_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    title: Mapped[str] = mapped_column(String, nullable=False)
+    sections: Mapped[list] = mapped_column(JSON, default=list)
+    core_concepts: Mapped[list] = mapped_column(JSON, default=list)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=60)
+    yield_score: Mapped[str] = mapped_column(String, default="medium")
+    is_core: Mapped[bool] = mapped_column(Boolean, default=False)
+    generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="roadmap_entries")
 
 
 class Progress(Base):
