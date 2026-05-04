@@ -90,6 +90,20 @@ const api = {
   deleteUploadedFile: async (fileId: number) => {
     await axiosInstance.delete(`/upload/files/${fileId}`);
   },
+
+  analyzeQP: async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await axiosInstance.post("/qp/analyze", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data as {
+      questions: Array<{ question: string; marks: number; topic: string; unit: string }>;
+      repeated_topics: Array<{ topic: string; frequency: number }>;
+      high_weightage: string[];
+      predictions: string[];
+    };
+  },
 };
 
 export { api };
