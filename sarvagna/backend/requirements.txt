@@ -16,3 +16,5 @@ qdrant-client
 redis
 python-multipart
 python-dotenv
+pdfplumber
+python-docx

@@ -1,0 +1,290 @@
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { AlertCircle, CheckCircle2, FileText, Globe, Trash2, Upload, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../services/api';
+import { useUserStore } from '../store/userStore';
+
+interface UploadedFileRecord {
+  id: number;
+  filename: string;
+  file_type: string;
+  chunk_count: number;
+  subject_id: number | null;
+  created_at: string;
+}
+
+interface ToastState {
+  message: string;
+  type: 'error' | 'success';
+}
+
+const UploadPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { subjects } = useUserStore();
+
+  const [files, setFiles] = useState<UploadedFileRecord[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [url, setUrl] = useState('');
+  const [subjectId, setSubjectId] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
+  const [fetchingUrl, setFetchingUrl] = useState(false);
+  const [dragging, setDragging] = useState(false);
+  const [toast, setToast] = useState<ToastState | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const showToast = (message: string, type: 'error' | 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const loadFiles = useCallback(async () => {
+    try {
+      const data = await api.getUploadedFiles();
+      setFiles(data);
+    } catch {
+      // silently fail on load
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFiles();
+  }, [loadFiles]);
+
+  const onDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) setSelectedFile(file);
+  }, []);
+
+  const handleFileUpload = async () => {
+    if (!selectedFile) return;
+    setUploading(true);
+    try {
+      const res = await api.uploadFile(selectedFile, subjectId ? parseInt(subjectId) : undefined);
+      showToast(`Indexed ${res.chunk_count} chunks from ${res.filename}`, 'success');
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      await loadFiles();
+    } catch {
+      showToast('Upload failed. Check file type and try again.', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleUrlFetch = async () => {
+    if (!url.trim()) return;
+    setFetchingUrl(true);
+    try {
+      const res = await api.uploadUrl(url.trim(), subjectId ? parseInt(subjectId) : undefined);
+      showToast(`Indexed ${res.chunk_count} chunks from URL`, 'success');
+      setUrl('');
+      await loadFiles();
+    } catch {
+      showToast('Failed to fetch or index URL.', 'error');
+    } finally {
+      setFetchingUrl(false);
+    }
+  };
+
+  const handleDelete = async (fileId: number) => {
+    try {
+      await api.deleteUploadedFile(fileId);
+      setFiles(prev => prev.filter(f => f.id !== fileId));
+      showToast('Deleted.', 'success');
+    } catch {
+      showToast('Delete failed.', 'error');
+    }
+  };
+
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const badgeColor: Record<string, string> = {
+    pdf: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    docx: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    txt: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
+    md: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    url: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 text-slate-200">
+      {toast && (
+        <div className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 ${
+          toast.type === 'error' ? 'bg-rose-500 text-white' : 'bg-emerald-500 text-white'
+        }`}>
+          {toast.type === 'error' ? <AlertCircle className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+          <span className="font-semibold">{toast.message}</span>
+        </div>
+      )}
+
+      <nav className="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-md border-b border-slate-900 px-8 py-4">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="text-2xl font-black tracking-tighter text-white font-serif italic"
+          >
+            Sarvagna
+          </button>
+          <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Knowledge Base</span>
+        </div>
+      </nav>
+
+      <main className="max-w-5xl mx-auto px-8 py-12 space-y-10">
+        <div>
+          <h1 className="text-3xl font-black text-white">Knowledge Base</h1>
+          <p className="text-slate-500 mt-1">Upload study materials to power your AI tutor</p>
+        </div>
+
+        {/* Subject selector */}
+        <div className="w-full max-w-xs">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 block">
+            Link to Subject (optional)
+          </label>
+          <select
+            value={subjectId}
+            onChange={e => setSubjectId(e.target.value)}
+            className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 focus:outline-none focus:border-indigo-500/50"
+          >
+            <option value="">No subject</option>
+            {subjects.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* File drop zone */}
+        <div
+          onDrop={onDrop}
+          onDragOver={e => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onClick={() => !selectedFile && fileInputRef.current?.click()}
+          className={`border-2 border-dashed rounded-3xl p-12 flex flex-col items-center justify-center gap-4 transition-all cursor-pointer ${
+            dragging
+              ? 'border-indigo-500 bg-indigo-500/5'
+              : selectedFile
+              ? 'border-emerald-500/40 bg-emerald-500/5 cursor-default'
+              : 'border-slate-700 bg-slate-900/30 hover:border-indigo-500/40 hover:bg-slate-900/50'
+          }`}
+        >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.txt,.md,.docx"
+            className="hidden"
+            onChange={e => setSelectedFile(e.target.files?.[0] ?? null)}
+          />
+          {selectedFile ? (
+            <>
+              <FileText className="w-10 h-10 text-emerald-400" />
+              <div className="text-center">
+                <p className="font-bold text-white">{selectedFile.name}</p>
+                <p className="text-sm text-slate-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={e => { e.stopPropagation(); handleFileUpload(); }}
+                  disabled={uploading}
+                  className="px-6 py-2 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-white font-bold rounded-xl transition-all flex items-center gap-2"
+                >
+                  {uploading ? (
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  {uploading ? 'Indexing...' : 'Upload & Index'}
+                </button>
+                <button
+                  onClick={e => { e.stopPropagation(); setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-xl transition-all"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="w-14 h-14 rounded-full bg-slate-800 flex items-center justify-center">
+                <Upload className="w-6 h-6 text-slate-400" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-slate-300">Drag & drop or click to upload</p>
+                <p className="text-sm text-slate-500 mt-1">PDF, TXT, DOCX, MD supported</p>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* URL input */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Globe className="w-4 h-4" />
+            <span className="text-sm font-bold uppercase tracking-widest">Fetch from URL</span>
+          </div>
+          <div className="flex gap-3">
+            <input
+              type="url"
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleUrlFetch()}
+              placeholder="https://example.com/article"
+              className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50"
+            />
+            <button
+              onClick={handleUrlFetch}
+              disabled={fetchingUrl || !url.trim()}
+              className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-white font-bold rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              {fetchingUrl ? (
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Globe className="w-4 h-4" />
+              )}
+              {fetchingUrl ? 'Fetching...' : 'Fetch & Index'}
+            </button>
+          </div>
+        </div>
+
+        {/* Files table */}
+        {files.length > 0 && (
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800">
+              <h2 className="font-bold text-white">Indexed Materials</h2>
+              <p className="text-xs text-slate-500 mt-0.5">{files.length} file{files.length !== 1 ? 's' : ''}</p>
+            </div>
+            <div className="divide-y divide-slate-800">
+              {files.map(f => (
+                <div key={f.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-800/30 transition-colors">
+                  <FileText className="w-5 h-5 text-slate-500 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-white truncate">{f.filename}</p>
+                    <p className="text-xs text-slate-500">{formatDate(f.created_at)}</p>
+                  </div>
+                  <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg border ${badgeColor[f.file_type] ?? badgeColor.txt}`}>
+                    {f.file_type}
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono whitespace-nowrap">{f.chunk_count} chunks</span>
+                  <button
+                    onClick={() => handleDelete(f.id)}
+                    className="p-2 text-slate-600 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {files.length === 0 && (
+          <p className="text-center text-slate-600 text-sm py-4">No materials indexed yet.</p>
+        )}
+      </main>
+    </div>
+  );
+};
+
+export default UploadPage;

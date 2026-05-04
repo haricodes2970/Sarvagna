@@ -20,6 +20,7 @@ class User(Base):
     subjects: Mapped[list["Subject"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     queries: Mapped[list["Query"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     progress: Mapped["Progress"] = relationship(back_populates="user", uselist=False, cascade="all, delete-orphan")
+    uploaded_files: Mapped[list["UploadedFile"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Subject(Base):
@@ -71,6 +72,20 @@ class Query(Base):
 
     user: Mapped["User"] = relationship(back_populates="queries")
     subject: Mapped["Subject | None"] = relationship(back_populates="queries")
+
+
+class UploadedFile(Base):
+    __tablename__ = "uploaded_files"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    filename: Mapped[str] = mapped_column(String, nullable=False)
+    file_type: Mapped[str] = mapped_column(String, nullable=False)
+    chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="uploaded_files")
 
 
 class Progress(Base):

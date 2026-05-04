@@ -59,6 +59,37 @@ const api = {
     });
     return res.data;
   },
+
+  uploadFile: async (file: File, subjectId?: number) => {
+    const form = new FormData();
+    form.append("file", file);
+    if (subjectId != null) form.append("subject_id", String(subjectId));
+    const res = await axiosInstance.post("/upload/pdf", form, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return res.data as { filename: string; chunk_count: number; status: string };
+  },
+
+  uploadUrl: async (url: string, subjectId?: number) => {
+    const res = await axiosInstance.post("/upload/url", { url, subject_id: subjectId ?? null });
+    return res.data as { filename: string; chunk_count: number; status: string };
+  },
+
+  getUploadedFiles: async () => {
+    const res = await axiosInstance.get("/upload/files");
+    return res.data as Array<{
+      id: number;
+      filename: string;
+      file_type: string;
+      chunk_count: number;
+      subject_id: number | null;
+      created_at: string;
+    }>;
+  },
+
+  deleteUploadedFile: async (fileId: number) => {
+    await axiosInstance.delete(`/upload/files/${fileId}`);
+  },
 };
 
 export { api };

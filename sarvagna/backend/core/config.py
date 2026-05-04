@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
     QDRANT_HOST: str = "localhost"
     QDRANT_PORT: int = 6333
+    QDRANT_URL: str = ""
+    QDRANT_API_KEY: str = ""
     SECRET_KEY: str = "dev_secret_change_in_production"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 10080
 

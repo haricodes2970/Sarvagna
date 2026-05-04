@@ -5,6 +5,7 @@ import SubjectPage from './pages/SubjectPage'
 import RoadmapPage from './pages/RoadmapPage'
 import FlashcardPage from './pages/FlashcardPage'
 import ProgressPage from './pages/ProgressPage'
+import UploadPage from './pages/UploadPage'
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/roadmap" element={<RoadmapPage />} />
         <Route path="/flashcards" element={<FlashcardPage />} />
         <Route path="/progress" element={<ProgressPage />} />
+        <Route path="/upload" element={<UploadPage />} />
       </Routes>
     </BrowserRouter>
   )
