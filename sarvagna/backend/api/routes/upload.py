@@ -8,7 +8,8 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from agents.scraper_agent import _chunk_text, _extract_text
+from agents.chunker import extract_contextual_chunks, split_text
+from agents.scraper_agent import _extract_text
 from core.database import get_db
 from core.security import get_current_user
 from core import vector_store
@@ -126,10 +127,16 @@ async def upload_file(
     finally:
         dest.unlink(missing_ok=True)
 
-    chunks = _chunk_text(text)
+    if file_type == "pdf":
+        ctx_chunks = extract_contextual_chunks(content)
+        chunks_to_index = [c.to_dict() for c in ctx_chunks] if ctx_chunks else split_text(text)
+        logger.info("PDF %s: %d contextual chunks", file.filename, len(chunks_to_index))
+    else:
+        chunks_to_index = split_text(text)
+
     chunk_count = await vector_store.index_chunks(
         collection_name=_collection(current_user.id),
-        chunks=chunks,
+        chunks=chunks_to_index,
         payload={"user_id": current_user.id, "filename": file.filename, "subject_id": subject_id},
     )
 
@@ -168,10 +175,9 @@ async def upload_url(
     if len(text) < 50:
         raise HTTPException(status_code=400, detail="Page has too little text to index")
 
-    chunks = _chunk_text(text)
     chunk_count = await vector_store.index_chunks(
         collection_name=_collection(current_user.id),
-        chunks=chunks,
+        chunks=split_text(text),
         payload={"user_id": current_user.id, "filename": body.url, "subject_id": body.subject_id},
     )
 

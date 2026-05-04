@@ -42,7 +42,16 @@ async def _ensure_collection(qdrant: AsyncQdrantClient, name: str) -> None:
         )
 
 
-async def index_chunks(collection_name: str, chunks: list[str], payload: dict) -> int:
+async def index_chunks(
+    collection_name: str,
+    chunks: list,   # list[str] or list[dict with "text","section","page"]
+    payload: dict,
+) -> int:
+    """
+    Accept plain strings OR ContextualChunk.to_dict() dicts.
+    Dicts must have key "text"; optional keys "section" and "page"
+    are stored in the Qdrant payload for structured retrieval.
+    """
     if not chunks:
         return 0
     try:
@@ -50,11 +59,17 @@ async def index_chunks(collection_name: str, chunks: list[str], payload: dict) -
         await _ensure_collection(qdrant, collection_name)
         points = []
         for chunk in chunks:
-            vector = await _embed(chunk)
+            if isinstance(chunk, dict):
+                text = chunk["text"]
+                extra = {k: chunk[k] for k in ("section", "page") if k in chunk}
+            else:
+                text = chunk
+                extra = {}
+            vector = await _embed(text)
             points.append(qm.PointStruct(
                 id=str(uuid.uuid4()),
                 vector=vector,
-                payload={**payload, "text": chunk},
+                payload={**payload, **extra, "text": text},
             ))
         await qdrant.upsert(collection_name=collection_name, points=points)
         return len(points)
