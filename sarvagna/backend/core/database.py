@@ -11,7 +11,8 @@ if settings.ENVIRONMENT == "production":
     _ssl_ctx = ssl.create_default_context()
     _connect_args = {"ssl": _ssl_ctx}
 
-engine = create_async_engine(settings.DATABASE_URL, echo=False, connect_args=_connect_args)
+_db_url = settings.DATABASE_URL or "sqlite+aiosqlite:///./dev.db"
+engine = create_async_engine(_db_url, echo=False, connect_args=_connect_args)
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
