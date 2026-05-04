@@ -1,12 +1,19 @@
 """
 workspace_manager.py — Local batch-sync utility for Sarvagna.
 
-Scans a local directory for PDFs, compares against the backend API
-using SHA-256 hashes, and uploads any new or modified files.
+Scans a local directory for PDFs OR downloads remote URLs (from
+/discovery/recommend) and triggers the standard SHA-256 upload flow.
 
-Usage:
+Usage — local sync:
     python workspace_manager.py --dir ./my_notes --token <JWT> [--subject-id 3]
     python workspace_manager.py --dir ./my_notes --token <JWT> --dry-run
+
+Usage — remote import (single URL or comma-separated list):
+    python workspace_manager.py --remote-urls "https://example.com/a.pdf,https://b.pdf" \\
+        --token <JWT> [--subject-id 3]
+
+Usage — auto-discover + import via /discovery/recommend:
+    python workspace_manager.py --discover "machine learning" --token <JWT>
 
 The .sarvagna/metadata.json file (gitignored) acts as a local cache
 so repeated runs skip files already confirmed indexed.
@@ -166,12 +173,146 @@ async def sync_local_files(
     return results
 
 
+async def _download_pdf(url: str) -> tuple[bytes, str]:
+    """Download remote PDF; return (bytes, suggested_filename)."""
+    async with httpx.AsyncClient(timeout=60, follow_redirects=True) as client:
+        resp = await client.get(url, headers={"User-Agent": "Sarvagna/1.0"})
+        resp.raise_for_status()
+        content_type = resp.headers.get("content-type", "")
+        if "pdf" not in content_type and not url.lower().endswith(".pdf"):
+            raise ValueError(f"URL does not point to a PDF (content-type: {content_type})")
+        filename = url.split("/")[-1].split("?")[0] or "remote.pdf"
+        if not filename.endswith(".pdf"):
+            filename += ".pdf"
+        return resp.content, filename
+
+
+async def _upload_bytes(
+    base_url: str,
+    token: str,
+    content: bytes,
+    filename: str,
+    subject_id: int | None,
+) -> dict:
+    files = {"file": (filename, content, "application/pdf")}
+    params = {}
+    if subject_id is not None:
+        params["subject_id"] = str(subject_id)
+    async with httpx.AsyncClient(timeout=120) as client:
+        resp = await client.post(
+            f"{base_url}/upload/pdf",
+            headers={"Authorization": f"Bearer {token}"},
+            files=files,
+            data=params,
+        )
+        resp.raise_for_status()
+        return resp.json()
+
+
+async def import_remote_pdfs(
+    urls: list[str],
+    base_url: str = "http://localhost:8080",
+    token: str = "",
+    subject_id: int | None = None,
+    dry_run: bool = False,
+) -> dict[str, list[str]]:
+    """
+    Download remote PDF URLs and upload via the standard ingestion pipeline.
+    SHA-256 dupe check happens server-side (409 = already indexed).
+    Local .sarvagna/metadata.json is also updated for cache consistency.
+    """
+    meta = _load_metadata()
+    results: dict[str, list[str]] = {"uploaded": [], "skipped": [], "failed": []}
+
+    for url in urls:
+        label = url[:80]
+        if dry_run:
+            logger.info("DRY   %s", label)
+            results["uploaded"].append(f"[dry-run] {url}")
+            continue
+
+        try:
+            logger.info("FETCH %s", label)
+            content, filename = await _download_pdf(url)
+        except Exception as e:
+            logger.error("FETCH-FAIL %s → %s", label, e)
+            results["failed"].append(url)
+            continue
+
+        sha = hashlib.sha256(content).hexdigest()
+        if _already_indexed(meta, sha):
+            logger.info("SKIP  %s (hash cached)", label)
+            results["skipped"].append(url)
+            continue
+
+        try:
+            res = await _upload_bytes(base_url, token, content, filename, subject_id)
+            logger.info("OK    %s → %d chunks", filename, res.get("chunk_count", 0))
+            _register_file(meta, Path(filename), sha, subject_id)
+            _save_metadata(meta)
+            results["uploaded"].append(url)
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 409:
+                logger.info("DUP   %s (server: already indexed)", filename)
+                _register_file(meta, Path(filename), sha, subject_id)
+                _save_metadata(meta)
+                results["skipped"].append(url)
+            else:
+                logger.error("FAIL  %s → %s", filename, e.response.text[:120])
+                results["failed"].append(url)
+        except Exception as e:
+            logger.error("FAIL  %s → %s", filename, e)
+            results["failed"].append(url)
+
+    logger.info("Remote import done. uploaded=%d skipped=%d failed=%d",
+                len(results["uploaded"]), len(results["skipped"]), len(results["failed"]))
+    return results
+
+
+async def discover_and_import(
+    topic: str,
+    base_url: str = "http://localhost:8080",
+    token: str = "",
+    subject_id: int | None = None,
+    limit: int = 3,
+    dry_run: bool = False,
+) -> dict[str, list[str]]:
+    """
+    Call GET /discovery/recommend?subject=topic, then import returned PDF URLs.
+    """
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.get(
+            f"{base_url}/discovery/recommend",
+            params={"subject": topic, "limit": limit},
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        resp.raise_for_status()
+        resources = resp.json()
+
+    urls = [r["url"] for r in resources]
+    logger.info("Discovered %d resources for '%s'", len(urls), topic)
+    for r in resources:
+        logger.info("  • %s  [%s]", r["title"], r["source"])
+
+    return await import_remote_pdfs(
+        urls=urls,
+        base_url=base_url,
+        token=token,
+        subject_id=subject_id,
+        dry_run=dry_run,
+    )
+
+
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Sarvagna workspace sync")
-    p.add_argument("--dir", default=".", help="Directory to scan for PDFs")
+    p.add_argument("--dir", default=None, help="Directory to scan for local PDFs")
+    p.add_argument("--remote-urls", default=None, help="Comma-separated PDF URLs to import")
+    p.add_argument("--discover", default=None, metavar="TOPIC",
+                   help="Auto-discover resources via /discovery/recommend and import")
     p.add_argument("--url", default="http://localhost:8080", help="Backend base URL")
     p.add_argument("--token", default="", help="JWT bearer token")
     p.add_argument("--subject-id", type=int, default=None, help="Link uploads to subject ID")
+    p.add_argument("--limit", type=int, default=3, help="Max resources for --discover (default 3)")
     p.add_argument("--dry-run", action="store_true", help="List files without uploading")
     return p.parse_args()
 
@@ -181,13 +322,33 @@ if __name__ == "__main__":
     if not args.dry_run and not args.token:
         print("ERROR: --token required unless --dry-run", file=sys.stderr)
         sys.exit(1)
-    results = asyncio.run(
-        sync_local_files(
-            scan_dir=args.dir,
+
+    if args.discover:
+        results = asyncio.run(discover_and_import(
+            topic=args.discover,
+            base_url=args.url,
+            token=args.token,
+            subject_id=args.subject_id,
+            limit=args.limit,
+            dry_run=args.dry_run,
+        ))
+    elif args.remote_urls:
+        urls = [u.strip() for u in args.remote_urls.split(",") if u.strip()]
+        results = asyncio.run(import_remote_pdfs(
+            urls=urls,
             base_url=args.url,
             token=args.token,
             subject_id=args.subject_id,
             dry_run=args.dry_run,
-        )
-    )
+        ))
+    else:
+        scan = args.dir or "."
+        results = asyncio.run(sync_local_files(
+            scan_dir=scan,
+            base_url=args.url,
+            token=args.token,
+            subject_id=args.subject_id,
+            dry_run=args.dry_run,
+        ))
+
     sys.exit(0 if not results["failed"] else 1)
