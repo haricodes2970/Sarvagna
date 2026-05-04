@@ -6,6 +6,7 @@ import RoadmapPage from './pages/RoadmapPage'
 import FlashcardPage from './pages/FlashcardPage'
 import ProgressPage from './pages/ProgressPage'
 import UploadPage from './pages/UploadPage'
+import QPAnalyzerPage from './pages/QPAnalyzerPage'
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Route path="/flashcards" element={<FlashcardPage />} />
         <Route path="/progress" element={<ProgressPage />} />
         <Route path="/upload" element={<UploadPage />} />
+        <Route path="/qp-analyzer" element={<QPAnalyzerPage />} />
       </Routes>
     </BrowserRouter>
   )
