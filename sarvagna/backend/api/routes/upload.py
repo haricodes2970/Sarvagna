@@ -330,7 +330,7 @@ async def scrape_links(
         "Accept-Language": "en-US,en;q=0.5",
     }
     try:
-        async with httpx.AsyncClient(headers=headers, timeout=20, follow_redirects=True) as client:
+        async with httpx.AsyncClient(headers=headers, timeout=10, follow_redirects=True, verify=False) as client:
             resp = await client.get(url)
             resp.raise_for_status()
             html = resp.text

@@ -212,7 +212,9 @@ async def deep_scrape_pdfs(
         return []
 
     try:
-        async with httpx.AsyncClient(headers=HEADERS, timeout=TIMEOUT, follow_redirects=True) as client:
+        async with httpx.AsyncClient(
+            headers=HEADERS, timeout=10, follow_redirects=True, verify=False
+        ) as client:
             resp = await client.get(page_url)
             resp.raise_for_status()
             html = resp.text
@@ -231,7 +233,7 @@ async def deep_scrape_pdfs(
     links = links[:max_pdfs * 2]
 
     semaphore = asyncio.Semaphore(MAX_CONCURRENT_DOWNLOADS)
-    async with httpx.AsyncClient(follow_redirects=True) as client:
+    async with httpx.AsyncClient(follow_redirects=True, verify=False, timeout=10) as client:
         tasks = [_download_pdf(semaphore, client, url) for url, _ in links]
         results = await asyncio.gather(*tasks)
 
