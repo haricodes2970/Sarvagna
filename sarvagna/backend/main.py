@@ -17,19 +17,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Sarvagna API", lifespan=lifespan)
 
-_origins = [
-    "https://sarvagna.vercel.app",
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-if settings.FRONTEND_URL and settings.FRONTEND_URL not in _origins:
-    _origins.append(settings.FRONTEND_URL)
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=_origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,  # must be False when allow_origins=["*"]
     allow_methods=["*"],
     allow_headers=["*"],
 )
