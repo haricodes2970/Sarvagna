@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.chunker import extract_contextual_chunks, split_text
-from agents.scraper_agent import _extract_text, _resolve_pdf_links, deep_scrape_pdfs
+from agents.scraper_agent import _extract_text, _fetch_page, _resolve_pdf_links, deep_scrape_pdfs, resolve_all_links
 from core.database import get_db
 from core.security import get_current_user
 from core import vector_store
@@ -310,6 +310,7 @@ async def delete_file(
 class ScrapedLink(BaseModel):
     title: str
     url: str
+    link_type: str = "pdf"  # "pdf" | "download" | "page"
 
 
 @router.get("/scrape-links", response_model=list[ScrapedLink])
@@ -317,35 +318,39 @@ async def scrape_links(
     url: str,
     current_user: User = Depends(get_current_user),
 ):
-    """Return PDF links found on the page without downloading or indexing them."""
-    import httpx
+    """
+    Fetch page and return found links for user selection.
+    Order: direct PDF links → download/drive keyword links → raw page links (debug).
+    Uses desktop UA with mobile fallback if page response < 1000 chars.
+    """
+    html = await _fetch_page(url)
+    if not html:
+        raise HTTPException(status_code=400, detail=f"Could not fetch page (bot-blocked or unreachable): {url}")
 
-    headers = {
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        ),
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.5",
-    }
-    try:
-        async with httpx.AsyncClient(headers=headers, timeout=10, follow_redirects=True, verify=False) as client:
-            resp = await client.get(url)
-            resp.raise_for_status()
-            html = resp.text
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {e}")
+    import urllib.parse as _up
 
-    # Preview: no academic filter — user selects what to ingest
-    links = _resolve_pdf_links(html, url, academic_only=False)
-    results = []
-    for lnk, text in links[:30]:
-        # derive readable title: link text → filename → truncated URL
-        import urllib.parse as _up
+    all_links = resolve_all_links(html, url)  # (url, title, link_type)
+
+    results: list[ScrapedLink] = []
+    seen: set[str] = set()
+
+    for lnk, text, ltype in all_links:
+        if lnk in seen:
+            continue
+        seen.add(lnk)
         fname = _up.unquote(_up.urlparse(lnk).path.split("/")[-1]) or ""
-        title = text or fname or lnk
-        results.append(ScrapedLink(title=title[:120], url=lnk))
+        title = (text.strip() or fname or lnk)[:120]
+        results.append(ScrapedLink(title=title, url=lnk, link_type=ltype))
+        if len(results) >= 30:
+            break
+
+    logger.info(
+        "scrape-links: %s → %d pdf, %d download, %d page links",
+        url,
+        sum(1 for r in results if r.link_type == "pdf"),
+        sum(1 for r in results if r.link_type == "download"),
+        sum(1 for r in results if r.link_type == "page"),
+    )
     return results
 
 

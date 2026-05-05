@@ -17,6 +17,7 @@ interface UploadedFileRecord {
 interface ScrapedLink {
   title: string;
   url: string;
+  link_type?: 'pdf' | 'download' | 'page';
 }
 
 interface ToastState {
@@ -306,7 +307,10 @@ const UploadPage: React.FC = () => {
             <div className="border-t border-slate-800">
               <div className="px-6 py-3 bg-slate-800/40 flex items-center justify-between">
                 <span className="text-sm text-slate-400 font-medium">
-                  {scrapedLinks.length} PDF{scrapedLinks.length !== 1 ? 's' : ''} found
+                  {scrapedLinks.filter(l => l.link_type === 'pdf').length} PDFs
+                  {scrapedLinks.filter(l => l.link_type === 'download').length > 0 && (
+                    <span className="text-slate-500"> · {scrapedLinks.filter(l => l.link_type === 'download').length} download links</span>
+                  )}
                   {selectedUrls.size > 0 && (
                     <span className="ml-2 text-cyan-400">· {selectedUrls.size} selected</span>
                   )}
@@ -335,7 +339,18 @@ const UploadPage: React.FC = () => {
                         className="w-4 h-4 accent-cyan-500 shrink-0"
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-200 truncate">{link.title}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-medium text-slate-200 truncate">{link.title}</p>
+                          {link.link_type === 'pdf' && (
+                            <span className="shrink-0 text-[9px] font-black uppercase px-1.5 py-0.5 bg-rose-500/10 text-rose-400 border border-rose-500/20 rounded">PDF</span>
+                          )}
+                          {link.link_type === 'download' && (
+                            <span className="shrink-0 text-[9px] font-black uppercase px-1.5 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded">DL</span>
+                          )}
+                          {link.link_type === 'page' && (
+                            <span className="shrink-0 text-[9px] font-black uppercase px-1.5 py-0.5 bg-slate-500/10 text-slate-500 border border-slate-500/20 rounded">PAGE</span>
+                          )}
+                        </div>
                         <p className="text-xs text-slate-500 truncate">{link.url}</p>
                       </div>
                       <div className="shrink-0">
