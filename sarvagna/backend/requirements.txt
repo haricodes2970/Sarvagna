@@ -21,3 +21,4 @@ python-docx
 pytesseract
 pdf2image
 supabase
+cloudscraper

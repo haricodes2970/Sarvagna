@@ -97,29 +97,52 @@ class ScrapedPDF:
     sha256: str
 
 
-# ── Page fetch with mobile fallback ──────────────────────────────────────────
+# ── Page fetch: desktop → mobile → CloudScraper ──────────────────────────────
+
+def _cloudscraper_get(url: str) -> str:
+    """Sync CloudScraper fetch — run in thread to avoid blocking event loop."""
+    import cloudscraper  # lazy import; not all environments have it
+    scraper = cloudscraper.create_scraper(browser={"browser": "chrome", "platform": "windows", "mobile": False})
+    resp = scraper.get(url, timeout=15, verify=False)
+    resp.raise_for_status()
+    return resp.text
+
 
 async def _fetch_page(url: str) -> str:
     """
-    Fetch page HTML using desktop UA.
-    If response < 1000 chars (bot-block / JS splash), retry with mobile UA.
-    Returns raw HTML string (may be empty on total failure).
+    Three-tier fetch with automatic fallback:
+      Tier 1 — Desktop Chrome UA (httpx)
+      Tier 2 — iPhone Safari UA (httpx)   ← retried when response < 1000 chars
+      Tier 3 — CloudScraper               ← bypasses Cloudflare JS challenges
+
+    Logs first 500 chars of each attempt so Railway console shows exactly
+    what the server returned (helps diagnose 'Access Denied' vs real content).
     """
-    for headers in (_DESKTOP_HEADERS, _MOBILE_HEADERS):
+    attempts = [
+        ("desktop", lambda: _fetch_httpx(url, _DESKTOP_HEADERS)),
+        ("mobile",  lambda: _fetch_httpx(url, _MOBILE_HEADERS)),
+        ("cloudscraper", lambda: asyncio.get_event_loop().run_in_executor(None, _cloudscraper_get, url)),
+    ]
+    for tier, fetch_fn in attempts:
         try:
-            async with httpx.AsyncClient(
-                headers=headers, timeout=10, follow_redirects=True, verify=False
-            ) as client:
-                resp = await client.get(url)
-                resp.raise_for_status()
-                html = resp.text
-                if len(html) >= 1000:
-                    logger.info("fetch_page: %d chars from %s", len(html), url)
-                    return html
-                logger.info("fetch_page: page too small (%d chars), retrying with alt UA", len(html))
+            html = await fetch_fn()  # type: ignore[operator]
+            logger.info(
+                "fetch_page [%s] %s → %d chars | preview: %s",
+                tier, url, len(html), repr(html[:500]),
+            )
+            if len(html) >= 1000:
+                return html
+            logger.warning("fetch_page [%s]: response too small (%d chars), next tier", tier, len(html))
         except Exception as e:
-            logger.warning("fetch_page error with %s UA: %s", headers.get("User-Agent", "")[:30], e)
+            logger.warning("fetch_page [%s] error: %s", tier, e)
     return ""
+
+
+async def _fetch_httpx(url: str, headers: dict) -> str:
+    async with httpx.AsyncClient(headers=headers, timeout=12, follow_redirects=True, verify=False) as client:
+        resp = await client.get(url)
+        resp.raise_for_status()
+        return resp.text
 
 
 # ── Link resolution helpers ───────────────────────────────────────────────────
@@ -183,11 +206,25 @@ def _resolve_pdf_links(
         if _has_pdf(abs_url):
             _add(abs_url, label)
 
-    # Pass 2: raw PDF URLs in page source (JS-rendered pages embed them as strings)
+    # Pass 2: raw PDF URLs anywhere in page source (JS-rendered sites embed them as strings)
     for match in _PDF_URL_RE.finditer(html):
         candidate = match.group(0).rstrip(".,;)")
         if not _is_blocked(candidate):
             _add(candidate, urllib.parse.urlparse(candidate).path.split("/")[-1])
+
+    # Pass 3: JSON state blobs — window.__INITIAL_STATE__, __NEXT_DATA__, NUXT_STATE, etc.
+    # These SPA frameworks dump full page data as JSON in a <script> tag before hydration.
+    _JSON_SCRIPT_RE = re.compile(
+        r'(?:window\.__(?:INITIAL|NEXT|NUXT|DATA|STATE)(?:_DATA|_STATE)?__|'
+        r'id=["\']__(?:NEXT_DATA|NUXT_DATA)["\'])[^>]*>([^<]{20,})',
+        re.IGNORECASE,
+    )
+    for m in _JSON_SCRIPT_RE.finditer(html):
+        blob = m.group(1)
+        for pdf_match in _PDF_URL_RE.finditer(blob):
+            candidate = pdf_match.group(0).rstrip(".,;)\"'")
+            if not _is_blocked(candidate):
+                _add(candidate, urllib.parse.urlparse(candidate).path.split("/")[-1])
 
     return results
 

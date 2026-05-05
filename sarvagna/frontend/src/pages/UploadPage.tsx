@@ -85,19 +85,36 @@ const UploadPage: React.FC = () => {
   };
 
   const handleFetchLinks = async () => {
-    if (!url.trim()) return;
+    const trimmed = url.trim();
+    if (!trimmed) return;
+
+    // Direct mode: PDF URL or Google Drive/Dropbox link → skip scan, ingest immediately
+    const isDirect =
+      trimmed.toLowerCase().endsWith('.pdf') ||
+      trimmed.includes('drive.google.com') ||
+      trimmed.includes('dropbox.com') ||
+      trimmed.includes('mediafire.com');
+
+    if (isDirect) {
+      const fname = trimmed.split('/').pop()?.split('?')[0] || 'document.pdf';
+      const linkType = trimmed.toLowerCase().endsWith('.pdf') ? 'pdf' : 'download';
+      setScrapedLinks([{ title: fname, url: trimmed, link_type: linkType }]);
+      setSelectedUrls(new Set([trimmed]));
+      return;
+    }
+
     setFetchingLinks(true);
     setScrapedLinks([]);
     setSelectedUrls(new Set());
     setIngesting({});
     try {
-      const links = await api.scrapeLinks(url.trim());
+      const links = await api.scrapeLinks(trimmed);
       if (links.length === 0) {
-        showToast('No academic PDFs found on that page.', 'error');
+        showToast('No links found — try pasting a direct PDF URL instead.', 'error');
       }
       setScrapedLinks(links);
     } catch {
-      showToast('Failed to fetch page.', 'error');
+      showToast('Failed to fetch page. Try pasting a direct PDF URL.', 'error');
     } finally {
       setFetchingLinks(false);
     }
@@ -288,7 +305,7 @@ const UploadPage: React.FC = () => {
                 value={url}
                 onChange={e => setUrl(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && handleFetchLinks()}
-                placeholder="https://vtucircle.com/notes/..."
+                placeholder="Paste page URL or direct PDF / Drive link…"
                 className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50"
               />
               <button
