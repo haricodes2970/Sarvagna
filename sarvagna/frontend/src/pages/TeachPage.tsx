@@ -58,8 +58,8 @@ const Waveform: React.FC<{ active: boolean }> = ({ active }) => (
 // ── Markdown renderer with KaTeX ───────────────────────────────────────────────
 
 const MathContent: React.FC<{ children: string; className?: string }> = ({ children, className }) => (
+  <div className={className}>
   <ReactMarkdown
-    className={className}
     remarkPlugins={[remarkMath]}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rehypePlugins={[rehypeKatex as any]}
@@ -75,6 +75,7 @@ const MathContent: React.FC<{ children: string; className?: string }> = ({ child
   >
     {children}
   </ReactMarkdown>
+  </div>
 );
 
 // ── Main component ─────────────────────────────────────────────────────────────
