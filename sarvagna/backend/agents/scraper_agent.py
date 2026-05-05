@@ -9,6 +9,7 @@ deep_scrape_pdfs()  — new: find all academic PDF links on a page, download
 import asyncio
 import hashlib
 import logging
+import re
 import urllib.parse
 from dataclasses import dataclass
 
@@ -100,42 +101,51 @@ def _has_pdf(abs_url: str) -> bool:
     return path.endswith(".pdf") or ".pdf" in query
 
 
+_PDF_URL_RE = re.compile(r'https?://[^\s\'"<>]+\.pdf(?:[?#][^\s\'"<>]*)?', re.IGNORECASE)
+
+
 def _resolve_pdf_links(
     html: str,
     base_url: str,
     academic_only: bool = True,
 ) -> list[tuple[str, str]]:
     """
-    Parse <a> tags from html, return (absolute_url, link_text) for PDF links.
+    Parse PDF links from HTML via <a> tags AND raw URL extraction from JS/text.
 
-    academic_only=True  → also filter by _is_academic() (used by deep_scrape_pdfs)
+    academic_only=True  → filter by _is_academic() (used by deep_scrape_pdfs)
     academic_only=False → return all PDF links (used by scrape-links preview)
     """
     soup = BeautifulSoup(html, "lxml")
     seen: set[str] = set()
     results: list[tuple[str, str]] = []
 
-    for tag in soup.find_all("a", href=True):
-        href: str = tag["href"].strip()
-        text: str = tag.get_text(strip=True)
-
-        abs_url = urllib.parse.urljoin(base_url, href)
-
-        if not _has_pdf(abs_url):
-            continue
-
+    def _add(abs_url: str, label: str) -> None:
+        if abs_url in seen:
+            return
         if _is_blocked(abs_url):
             logger.debug("Skipping blocked host: %s", abs_url)
-            continue
-
-        if academic_only and not _is_academic(href, text):
-            logger.debug("Skipping non-academic link: %s", abs_url)
-            continue
-
-        if abs_url in seen:
-            continue
+            return
+        if academic_only and not _is_academic(abs_url, label):
+            logger.debug("Skipping non-academic: %s", abs_url)
+            return
         seen.add(abs_url)
-        results.append((abs_url, text))
+        results.append((abs_url, label))
+
+    # Pass 1: <a href> tags
+    for tag in soup.find_all("a", href=True):
+        href: str = tag["href"].strip()
+        label: str = tag.get_text(strip=True)
+        abs_url = urllib.parse.urljoin(base_url, href)
+        if _has_pdf(abs_url):
+            _add(abs_url, label)
+
+    # Pass 2: raw PDF URLs in JS / data attributes / script text
+    # catches JS-rendered pages that embed URLs in inline scripts
+    raw_text = html
+    for match in _PDF_URL_RE.finditer(raw_text):
+        candidate = match.group(0).rstrip(".,;)")
+        if not _is_blocked(candidate):
+            _add(candidate, urllib.parse.urlparse(candidate).path.split("/")[-1])
 
     return results
 

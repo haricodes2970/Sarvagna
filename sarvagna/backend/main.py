@@ -2,16 +2,24 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from api.routes import analytics, auth, discovery, flashcards, progress, query, qp_analyzer, quiz, roadmap_api, subjects, teach, upload
 from core.config import settings
 from core.database import Base, engine
+
+# Columns added after initial deploy — ALTER TABLE is idempotent via IF NOT EXISTS
+_MIGRATIONS = [
+    "ALTER TABLE uploaded_files ADD COLUMN IF NOT EXISTS storage_url VARCHAR",
+]
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        for sql in _MIGRATIONS:
+            await conn.execute(text(sql))
     yield
 
 

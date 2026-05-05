@@ -316,10 +316,18 @@ async def scrape_links(
     """Return PDF links found on the page without downloading or indexing them."""
     import httpx
 
-    headers = {"User-Agent": "Mozilla/5.0 (compatible; Sarvagna/1.0)"}
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+    }
     try:
-        async with httpx.AsyncClient(headers=headers, timeout=15) as client:
-            resp = await client.get(url, follow_redirects=True)
+        async with httpx.AsyncClient(headers=headers, timeout=20, follow_redirects=True) as client:
+            resp = await client.get(url)
             resp.raise_for_status()
             html = resp.text
     except Exception as e:
