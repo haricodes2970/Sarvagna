@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
-import type { ChatMessage, TutorReply } from '../services/api';
+import type { ChatMessage, SourceChunk, TutorReply } from '../services/api';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -19,6 +19,7 @@ interface DisplayMessage {
   role: 'user' | 'assistant';
   text?: string;
   reply?: TutorReply;
+  sources?: SourceChunk[];
   ts: number;
 }
 
@@ -226,13 +227,18 @@ const TeachPage: React.FC = () => {
         id: crypto.randomUUID(),
         role: 'assistant',
         reply,
+        sources: reply.sources,
         ts: Date.now(),
       }]);
 
       setSpokenText(reply.spoken_text);
       setCheckpointPending(true);
-      setSessionXP(prev => prev + 15);
-      if (isCheckpoint) setCheckpointsAnswered(prev => prev + 1);
+
+      // XP: +15 per exchange; +25 bonus if checkpoint validated correct
+      setSessionXP(prev => prev + 15 + (reply.checkpoint_validated === true ? 25 : 0));
+      if (isCheckpoint && reply.checkpoint_validated !== false) {
+        setCheckpointsAnswered(prev => prev + 1);
+      }
 
       setTimeout(() => cpInputRef.current?.focus(), 100);
     } catch {
@@ -504,13 +510,52 @@ const TeachPage: React.FC = () => {
                       )}
 
                       {/* Checkpoint */}
-                      <div className="bg-amber-500/[0.06] border border-amber-500/25 rounded-xl px-4 py-3 shadow-[0_0_20px_rgba(245,158,11,0.05)]">
+                      <div className={`border rounded-xl px-4 py-3 shadow-[0_0_20px_rgba(245,158,11,0.05)] ${
+                        msg.reply.checkpoint_validated === true
+                          ? 'bg-emerald-500/[0.06] border-emerald-500/25'
+                          : msg.reply.checkpoint_validated === false
+                          ? 'bg-rose-500/[0.06] border-rose-500/25'
+                          : 'bg-amber-500/[0.06] border-amber-500/25'
+                      }`}>
                         <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                          <p className="text-[9px] font-black uppercase tracking-widest text-amber-400">Checkpoint</p>
+                          <Sparkles className={`w-3.5 h-3.5 ${
+                            msg.reply.checkpoint_validated === true ? 'text-emerald-400'
+                            : msg.reply.checkpoint_validated === false ? 'text-rose-400'
+                            : 'text-amber-400'
+                          }`} />
+                          <p className={`text-[9px] font-black uppercase tracking-widest ${
+                            msg.reply.checkpoint_validated === true ? 'text-emerald-400'
+                            : msg.reply.checkpoint_validated === false ? 'text-rose-400'
+                            : 'text-amber-400'
+                          }`}>
+                            {msg.reply.checkpoint_validated === true ? '✓ Checkpoint Passed'
+                            : msg.reply.checkpoint_validated === false ? '✗ Try Again'
+                            : 'Checkpoint'}
+                          </p>
                         </div>
                         <p className="text-amber-200 text-sm font-semibold leading-relaxed">{msg.reply.checkpoint}</p>
                       </div>
+
+                      {/* Source citations sidebar */}
+                      {msg.sources && msg.sources.length > 0 && (
+                        <details className="group bg-white/[0.02] border border-white/[0.07] rounded-xl px-4 py-2">
+                          <summary className="flex items-center gap-2 text-[10px] font-bold text-slate-600 cursor-pointer list-none select-none">
+                            <BookOpen className="w-3 h-3" />
+                            Sources ({msg.sources.length})
+                          </summary>
+                          <div className="mt-2 space-y-1">
+                            {msg.sources.map((src, i) => (
+                              <div key={i} className="flex items-center gap-2 text-[10px] text-slate-500">
+                                <span className="shrink-0 w-1 h-1 rounded-full bg-cyan-500/50" />
+                                <span className="font-mono text-cyan-600/70 truncate">{src.filename}</span>
+                                <span className="shrink-0">p.{src.page}</span>
+                                {src.section && <span className="text-slate-700 truncate">· {src.section}</span>}
+                                <span className="ml-auto shrink-0 text-slate-700">{(src.score * 100).toFixed(0)}%</span>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      )}
                     </div>
                   ) : null}
                 </motion.div>

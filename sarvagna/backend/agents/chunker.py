@@ -13,8 +13,8 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
-CHUNK_SIZE = 512
-CHUNK_OVERLAP = 64
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
 MIN_CHUNK_CHARS = 50
 HEADER_SIZE_RATIO = 1.10   # font must be 10% larger than median
 MAX_HEADER_LEN = 120
@@ -32,14 +32,15 @@ class ContextualChunk:
 
 # ── plain text splitting (used for TXT / MD / DOCX) ──────────────────────────
 
-def split_text(text: str, section: str = "General", page: int = 0) -> list[ContextualChunk]:
-    chunks: list[ContextualChunk] = []
+def split_text(text: str, section: str = "General", page: int = 0) -> list[dict]:
+    """Sliding-window split. Returns list[dict] ready for vector_store.index_chunks."""
+    chunks: list[dict] = []
     text = text.strip()
     start = 0
     while start < len(text):
         snippet = text[start: start + CHUNK_SIZE].strip()
         if len(snippet) >= MIN_CHUNK_CHARS:
-            chunks.append(ContextualChunk(text=snippet, section=section, page=page))
+            chunks.append({"text": snippet, "section": section, "page": page})
         start += CHUNK_SIZE - CHUNK_OVERLAP
     return chunks
 

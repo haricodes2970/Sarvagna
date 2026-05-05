@@ -66,6 +66,13 @@ export type QuizSessionSummary = {
   created_at: string;
 };
 
+export type SourceChunk = {
+  filename: string;
+  page: string | number;
+  section: string;
+  score: number;
+};
+
 export type TutorReply = {
   session_id: number;
   exact: string;
@@ -73,6 +80,8 @@ export type TutorReply = {
   example: string;
   checkpoint: string;
   spoken_text: string;
+  checkpoint_validated: boolean | null;
+  sources: SourceChunk[];
 };
 
 export type SessionSummary = {

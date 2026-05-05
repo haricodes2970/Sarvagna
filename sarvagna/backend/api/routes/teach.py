@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,6 +28,13 @@ class SessionRequest(BaseModel):
     history: list[MessageIn] = []
 
 
+class SourceChunk(BaseModel):
+    filename: str
+    page: str | int
+    section: str
+    score: float
+
+
 class TutorReply(BaseModel):
     session_id: int
     exact: str
@@ -35,6 +42,8 @@ class TutorReply(BaseModel):
     example: str
     checkpoint: str
     spoken_text: str
+    checkpoint_validated: Optional[bool] = None
+    sources: list[SourceChunk] = []
 
 
 class SessionSummary(BaseModel):
@@ -53,16 +62,15 @@ async def teach_session(
     db: AsyncSession = Depends(get_db),
 ):
     """
-    Start or continue a Socratic teaching session.
-    Client sends full history; server grounds answer in Qdrant chunks.
+    Grounded Socratic session. Retrieves top-8 chunks with metadata →
+    teacher strictly cites them. Returns sources for frontend sidebar.
     """
     collection = f"user_{current_user.id}_uploads"
-    search_query = f"{body.topic} {body.message}"
-    context_chunks = await vector_store.search_chunks_filtered(
+    context_chunks = await vector_store.search_chunks_with_meta(
         collection_name=collection,
-        query=search_query,
+        query=f"{body.topic} {body.message}",
         subject_id=body.subject_id,
-        top_k=6,
+        top_k=8,
     )
 
     history = [{"role": m.role, "content": m.content} for m in body.history]
@@ -74,7 +82,7 @@ async def teach_session(
         context_chunks=context_chunks,
     )
 
-    # Persist or update session
+    # Persist / update session
     session: TeachingSession | None = None
     if body.session_id:
         result = await db.execute(
@@ -100,12 +108,27 @@ async def teach_session(
     msgs.append({
         "role": "assistant",
         "content": response.to_dict(),
+        "sources": [{"filename": c["filename"], "page": c["page"], "section": c["section"]} for c in context_chunks],
         "ts": datetime.now(timezone.utc).isoformat(),
     })
     session.messages = msgs
     session.updated_at = datetime.now(timezone.utc)
     await db.commit()
     await db.refresh(session)
+
+    # Deduplicated source list for sidebar
+    seen_src: set[str] = set()
+    sources: list[SourceChunk] = []
+    for c in context_chunks:
+        key = f"{c['filename']}:{c['page']}"
+        if key not in seen_src:
+            seen_src.add(key)
+            sources.append(SourceChunk(
+                filename=str(c["filename"]),
+                page=c["page"],
+                section=str(c["section"]),
+                score=c["score"],
+            ))
 
     return TutorReply(
         session_id=session.id,
@@ -114,6 +137,8 @@ async def teach_session(
         example=response.example,
         checkpoint=response.checkpoint,
         spoken_text=response.spoken_text,
+        checkpoint_validated=response.checkpoint_validated,
+        sources=sources,
     )
 
 
@@ -149,7 +174,6 @@ async def export_sessions(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """Full transcript export — consumed by workspace_manager --export-sessions."""
     result = await db.execute(
         select(TeachingSession).where(
             TeachingSession.user_id == current_user.id,

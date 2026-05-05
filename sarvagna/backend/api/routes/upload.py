@@ -305,6 +305,57 @@ async def delete_file(
     await db.commit()
 
 
+# ── Storage health check ──────────────────────────────────────────────────────
+
+class StorageHealth(BaseModel):
+    file_id: int
+    filename: str
+    storage_url: Optional[str]
+    reachable: bool
+    status_code: Optional[int] = None
+
+
+@router.get("/storage-health/{file_id}", response_model=StorageHealth)
+async def storage_health(
+    file_id: int,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Check if a file's Supabase storage_url is publicly reachable."""
+    import httpx
+
+    result = await db.execute(
+        select(UploadedFile).where(
+            UploadedFile.id == file_id,
+            UploadedFile.user_id == current_user.id,
+        )
+    )
+    record = result.scalar_one_or_none()
+    if not record:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    if not record.storage_url:
+        return StorageHealth(file_id=file_id, filename=record.filename, storage_url=None, reachable=False)
+
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            resp = await client.head(record.storage_url)
+            return StorageHealth(
+                file_id=file_id,
+                filename=record.filename,
+                storage_url=record.storage_url,
+                reachable=resp.status_code == 200,
+                status_code=resp.status_code,
+            )
+    except Exception:
+        return StorageHealth(
+            file_id=file_id,
+            filename=record.filename,
+            storage_url=record.storage_url,
+            reachable=False,
+        )
+
+
 # ── Scrape-links preview ──────────────────────────────────────────────────────
 
 class ScrapedLink(BaseModel):

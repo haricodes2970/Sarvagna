@@ -116,7 +116,21 @@ async def search_chunks_filtered(
     subject_id: int | None = None,
     top_k: int = 6,
 ) -> list[str]:
-    """Semantic search with optional subject_id payload filter."""
+    """Semantic search with optional subject_id filter. Returns text-only."""
+    chunks = await search_chunks_with_meta(collection_name, query, subject_id, top_k)
+    return [c["text"] for c in chunks]
+
+
+async def search_chunks_with_meta(
+    collection_name: str,
+    query: str,
+    subject_id: int | None = None,
+    top_k: int = 8,
+) -> list[dict]:
+    """
+    Semantic search returning rich dicts: {text, filename, page, section, score}.
+    Used by teaching engine for grounded, cited answers.
+    """
     try:
         qdrant = _client()
         vector = await _embed(query)
@@ -130,10 +144,22 @@ async def search_chunks_filtered(
             query_vector=vector,
             query_filter=search_filter,
             limit=top_k,
+            with_payload=True,
         )
-        return [r.payload.get("text", "") for r in results if r.payload]
+        chunks = []
+        for r in results:
+            if not r.payload:
+                continue
+            chunks.append({
+                "text":     r.payload.get("text", ""),
+                "filename": r.payload.get("filename", "unknown"),
+                "page":     r.payload.get("page", "?"),
+                "section":  r.payload.get("section", ""),
+                "score":    round(r.score, 3),
+            })
+        return chunks
     except Exception as e:
-        logger.error("Qdrant filtered search failed: %s", e)
+        logger.error("search_chunks_with_meta failed: %s", e)
         return []
 
 
