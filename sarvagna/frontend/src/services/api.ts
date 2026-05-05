@@ -1,5 +1,28 @@
 import { api as axiosInstance } from "../lib/api";
 
+export type TutorReply = {
+  session_id: number;
+  exact: string;
+  simple: string;
+  example: string;
+  checkpoint: string;
+  spoken_text: string;
+};
+
+export type SessionSummary = {
+  id: number;
+  topic: string;
+  subject_id: number | null;
+  message_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ChatMessage = {
+  role: 'user' | 'assistant';
+  content: string;
+};
+
 export type ModuleStatus = {
   module_number: number;
   title: string;
@@ -142,6 +165,27 @@ const api = {
   getCrunchModules: async (subjectId: number) => {
     const res = await axiosInstance.get(`/roadmap/${subjectId}/crunch`);
     return res.data as RoadmapModule[];
+  },
+
+  teachSession: async (body: {
+    topic: string;
+    message: string;
+    subject_id?: number;
+    session_id?: number;
+    history: ChatMessage[];
+  }) => {
+    const res = await axiosInstance.post('/teach/session', body);
+    return res.data as TutorReply;
+  },
+
+  listTeachSessions: async (subjectId: number) => {
+    const res = await axiosInstance.get(`/teach/sessions/${subjectId}`);
+    return res.data as SessionSummary[];
+  },
+
+  exportTeachSessions: async (subjectId: number) => {
+    const res = await axiosInstance.get(`/teach/export/${subjectId}`);
+    return res.data as object[];
   },
 };
 
