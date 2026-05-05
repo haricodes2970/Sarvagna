@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.routes import auth, discovery, flashcards, progress, query, qp_analyzer, quiz, roadmap_api, subjects, teach, upload
+from api.routes import analytics, auth, discovery, flashcards, progress, query, qp_analyzer, quiz, roadmap_api, subjects, teach, upload
 from core.config import settings
 from core.database import Base, engine
 
@@ -40,6 +40,7 @@ app.include_router(roadmap_api.router, prefix="/roadmap", tags=["roadmap"])
 app.include_router(teach.router, prefix="/teach", tags=["teach"])
 app.include_router(flashcards.router, prefix="/flashcards", tags=["flashcards"])
 app.include_router(quiz.router, prefix="/quiz", tags=["quiz"])
+app.include_router(analytics.router, prefix="/analytics", tags=["analytics"])
 
 
 @app.get("/health")
