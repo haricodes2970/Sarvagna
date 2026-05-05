@@ -9,6 +9,18 @@ export type ModuleStatus = {
   unlocked_at: string | null;
 };
 
+export type RoadmapModule = {
+  id: number;
+  module_number: number;
+  title: string;
+  sections: string[];
+  core_concepts: string[];
+  estimated_minutes: number;
+  yield_score: "high" | "medium" | "low";
+  is_core: boolean;
+  generated_at: string;
+};
+
 const api = {
   getSubjects: async () => {
     const res = await axiosInstance.get("/subjects");
@@ -103,6 +115,33 @@ const api = {
       high_weightage: string[];
       predictions: string[];
     };
+  },
+
+  savePredictions: async (body: {
+    topics: string[];
+    subject_id?: number;
+    source_filename?: string;
+  }) => {
+    const res = await axiosInstance.post("/qp/predictions", body);
+    return res.data as { id: number; topic_count: number; status: string };
+  },
+
+  generateRoadmap: async (subjectId: number, subjectName: string) => {
+    const res = await axiosInstance.post("/roadmap/generate", {
+      subject_id: subjectId,
+      subject_name: subjectName,
+    });
+    return res.data as RoadmapModule[];
+  },
+
+  getRoadmapEntries: async (subjectId: number) => {
+    const res = await axiosInstance.get(`/roadmap/${subjectId}`);
+    return res.data as RoadmapModule[];
+  },
+
+  getCrunchModules: async (subjectId: number) => {
+    const res = await axiosInstance.get(`/roadmap/${subjectId}/crunch`);
+    return res.data as RoadmapModule[];
   },
 };
 

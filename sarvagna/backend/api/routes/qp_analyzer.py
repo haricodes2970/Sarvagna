@@ -1,12 +1,16 @@
 import json
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from groq import AsyncGroq
+from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.config import settings
+from core.database import get_db
 from core.security import get_current_user
-from models.db_models import User
+from models.db_models import ExamPrediction, User
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["qp"])
@@ -99,3 +103,31 @@ async def analyze_question_paper(
         "high_weightage": data.get("high_weightage", []),
         "predictions": data.get("predictions", []),
     }
+
+
+class SavePredictionsRequest(BaseModel):
+    topics: list[str]
+    subject_id: Optional[int] = None
+    source_filename: Optional[str] = None
+
+
+@router.post("/predictions", status_code=status.HTTP_201_CREATED)
+async def save_predictions(
+    body: SavePredictionsRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Persist QP-derived exam predictions so roadmap agent can use them."""
+    if not body.topics:
+        raise HTTPException(status_code=400, detail="topics list must not be empty")
+
+    record = ExamPrediction(
+        user_id=current_user.id,
+        subject_id=body.subject_id,
+        topics=body.topics,
+        source_filename=body.source_filename,
+    )
+    db.add(record)
+    await db.commit()
+    await db.refresh(record)
+    return {"id": record.id, "topic_count": len(body.topics), "status": "saved"}

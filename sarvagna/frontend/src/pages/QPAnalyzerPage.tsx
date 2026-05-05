@@ -56,10 +56,18 @@ const QPAnalyzerPage: React.FC = () => {
     }
   };
 
-  const saveToStudyList = () => {
+  const saveToStudyList = async () => {
     if (!result) return;
     localStorage.setItem('sarvagna_study_predictions', JSON.stringify(result.predictions));
-    showToast('Saved to study list!', 'success');
+    try {
+      await api.savePredictions({
+        topics: result.predictions,
+        source_filename: selectedFile?.name,
+      });
+      showToast('Saved to study list!', 'success');
+    } catch {
+      showToast('Saved locally (server sync failed)', 'success');
+    }
   };
 
   const maxFreq = result
