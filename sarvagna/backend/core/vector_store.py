@@ -108,3 +108,34 @@ async def search_chunks(collection_name: str, query: str, top_k: int = 5) -> lis
     except Exception as e:
         logger.error("Qdrant search failed: %s", e)
         return []
+
+
+async def search_chunks_filtered(
+    collection_name: str,
+    query: str,
+    subject_id: int | None = None,
+    top_k: int = 6,
+) -> list[str]:
+    """Semantic search with optional subject_id payload filter."""
+    try:
+        qdrant = _client()
+        vector = await _embed(query)
+        search_filter = None
+        if subject_id is not None:
+            search_filter = qm.Filter(
+                must=[qm.FieldCondition(key="subject_id", match=qm.MatchValue(value=subject_id))]
+            )
+        results = await qdrant.search(
+            collection_name=collection_name,
+            query_vector=vector,
+            query_filter=search_filter,
+            limit=top_k,
+        )
+        return [r.payload.get("text", "") for r in results if r.payload]
+    except Exception as e:
+        logger.error("Qdrant filtered search failed: %s", e)
+        return []
+
+
+# expose client for direct scroll access (roadmap_agent)
+client = _client()
