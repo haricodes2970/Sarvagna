@@ -256,24 +256,28 @@ async def list_files(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    result = await db.execute(
-        select(UploadedFile)
-        .where(UploadedFile.user_id == current_user.id)
-        .order_by(UploadedFile.created_at.desc())
-    )
-    rows = result.scalars().all()
-    return [
-        FileRecord(
-            id=r.id,
-            filename=r.filename,
-            file_type=r.file_type,
-            chunk_count=r.chunk_count,
-            subject_id=r.subject_id,
-            storage_url=r.storage_url,
-            created_at=r.created_at.isoformat(),
+    try:
+        result = await db.execute(
+            select(UploadedFile)
+            .where(UploadedFile.user_id == current_user.id)
+            .order_by(UploadedFile.created_at.desc())
         )
-        for r in rows
-    ]
+        rows = result.scalars().all()
+        return [
+            FileRecord(
+                id=r.id,
+                filename=r.filename,
+                file_type=r.file_type,
+                chunk_count=r.chunk_count,
+                subject_id=r.subject_id,
+                storage_url=getattr(r, "storage_url", None),
+                created_at=r.created_at.isoformat(),
+            )
+            for r in rows
+        ]
+    except Exception as e:
+        logger.error("list_files DB error: %s", e)
+        return []
 
 
 @router.delete("/files/{file_id}", status_code=status.HTTP_204_NO_CONTENT)

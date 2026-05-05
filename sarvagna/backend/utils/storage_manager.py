@@ -20,9 +20,10 @@ BUCKET = "academic-docs"
 def _client():
     """Return a Supabase client using service role key (bypasses RLS)."""
     from supabase import create_client
-    if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
-        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_KEY must be set")
-    return create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_KEY)
+    key = settings.supabase_key
+    if not settings.SUPABASE_URL or not key:
+        raise RuntimeError("SUPABASE_URL and SUPABASE_SERVICE_KEY (or SUPABASE_SERVICE_ROLE_KEY) must be set")
+    return create_client(settings.SUPABASE_URL, key)
 
 
 def _ensure_bucket(sb) -> None:

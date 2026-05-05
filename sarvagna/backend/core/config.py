@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     FRONTEND_URL: str = "http://localhost:5173"
     SUPABASE_URL: str = ""
     SUPABASE_SERVICE_KEY: str = ""
+    # Railway / Supabase dashboard uses this name — aliased to SUPABASE_SERVICE_KEY
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
+
+    @property
+    def supabase_key(self) -> str:
+        return self.SUPABASE_SERVICE_KEY or self.SUPABASE_SERVICE_ROLE_KEY
 
     class Config:
         env_file = ".env"
