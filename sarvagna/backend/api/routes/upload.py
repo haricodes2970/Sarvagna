@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.chunker import extract_contextual_chunks, split_text
-from agents.scraper_agent import _extract_text
+from agents.scraper_agent import _extract_text, deep_scrape_pdfs
 from core.database import get_db
 from core.security import get_current_user
 from core import vector_store
@@ -160,6 +160,61 @@ async def upload_url(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Deep-scrape strategy:
+      1. Scan page for academic PDF links → download + index each concurrently.
+      2. If no PDFs found, fall back to plain HTML text extraction.
+    """
+    # ── Phase 1: deep PDF scrape ──────────────────────────────────────────────
+    pdfs = await deep_scrape_pdfs(body.url, max_pdfs=5)
+
+    if pdfs:
+        total_chunks = 0
+        for pdf in pdfs:
+            # Dupe check via file_hash
+            existing = await db.execute(
+                select(UploadedFile).where(
+                    UploadedFile.user_id == current_user.id,
+                    UploadedFile.file_hash == pdf.sha256,
+                )
+            )
+            if existing.scalar_one_or_none():
+                logger.info("Skipping duplicate PDF: %s (hash=%s)", pdf.filename, pdf.sha256[:8])
+                continue
+
+            # Contextual chunking for PDFs
+            ctx_chunks = extract_contextual_chunks(pdf.content)
+            chunks_to_index = [c.to_dict() for c in ctx_chunks] if ctx_chunks else split_text(
+                pdf.content.decode("utf-8", errors="ignore")
+            )
+
+            n = await vector_store.index_chunks(
+                collection_name=_collection(current_user.id),
+                chunks=chunks_to_index,
+                payload={
+                    "user_id": current_user.id,
+                    "filename": pdf.filename,
+                    "source_url": pdf.url,
+                    "subject_id": body.subject_id,
+                },
+            )
+            total_chunks += n
+
+            record = UploadedFile(
+                user_id=current_user.id,
+                subject_id=body.subject_id,
+                filename=pdf.filename,
+                file_type="pdf",
+                file_hash=pdf.sha256,
+                chunk_count=n,
+            )
+            db.add(record)
+
+        await db.commit()
+        label = f"{len(pdfs)} PDF{'s' if len(pdfs) != 1 else ''} from {body.url}"
+        return UploadResponse(filename=label, chunk_count=total_chunks, status="deep_scraped")
+
+    # ── Phase 2: fallback — index HTML text ───────────────────────────────────
     import httpx
 
     headers = {"User-Agent": "Mozilla/5.0 (compatible; Sarvagna/1.0)"}

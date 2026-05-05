@@ -1,6 +1,16 @@
+"""
+scraper_agent.py — Web scraper + Deep PDF Extractor for Sarvagna.
+
+scrape_content()    — original: fetch HTML from topic URLs, return text chunks
+deep_scrape_pdfs()  — new: find all academic PDF links on a page, download
+                      concurrently, return (bytes, filename) tuples ready for
+                      the standard upload pipeline.
+"""
 import asyncio
+import hashlib
 import logging
 import urllib.parse
+from dataclasses import dataclass
 
 import httpx
 from bs4 import BeautifulSoup
@@ -12,6 +22,35 @@ CHUNK_OVERLAP = 64
 MAX_RETRIES = 3
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; Sarvagna/1.0)"}
 TIMEOUT = 15.0
+PDF_DOWNLOAD_TIMEOUT = 60.0
+MAX_CONCURRENT_DOWNLOADS = 4
+
+# Keywords in href / link text that suggest academic PDFs
+_ACADEMIC_KEYWORDS = {
+    "notes", "qp", "question", "paper", "textbook", "model", "syllabus",
+    "lecture", "module", "unit", "assignment", "lab", "manual", "study",
+    "material", "resource", "previous", "year", "exam", "vtu",
+}
+
+# Hosts that require authentication — skip their PDF links
+_BLOCKED_HOSTS = {
+    "drive.google.com",
+    "docs.google.com",
+    "accounts.google.com",
+    "dropbox.com",
+    "onedrive.live.com",
+    "sharepoint.com",
+    "box.com",
+    "wetransfer.com",
+}
+
+
+@dataclass
+class ScrapedPDF:
+    url: str
+    filename: str
+    content: bytes
+    sha256: str
 
 
 def _build_query(subject_name: str, module_title: str, topics: list[str]) -> str:
@@ -36,6 +75,140 @@ def _chunk_text(text: str) -> list[str]:
         start += CHUNK_SIZE - CHUNK_OVERLAP
     return [c for c in chunks if len(c.strip()) > 50]
 
+
+def _is_blocked(url: str) -> bool:
+    try:
+        host = urllib.parse.urlparse(url).netloc.lower().lstrip("www.")
+        return any(blocked in host for blocked in _BLOCKED_HOSTS)
+    except Exception:
+        return True
+
+
+def _is_academic(href: str, link_text: str) -> bool:
+    combined = (href + " " + link_text).lower()
+    return any(kw in combined for kw in _ACADEMIC_KEYWORDS)
+
+
+def _resolve_pdf_links(html: str, base_url: str) -> list[tuple[str, str]]:
+    """
+    Parse <a> tags from html, return (absolute_url, link_text) for
+    links ending in .pdf that pass academic keyword + host checks.
+    """
+    soup = BeautifulSoup(html, "lxml")
+    seen: set[str] = set()
+    results: list[tuple[str, str]] = []
+
+    for tag in soup.find_all("a", href=True):
+        href: str = tag["href"].strip()
+        text: str = tag.get_text(strip=True)
+
+        # Resolve relative URLs
+        abs_url = urllib.parse.urljoin(base_url, href)
+
+        # Must end with .pdf (ignoring query params)
+        path = urllib.parse.urlparse(abs_url).path.lower()
+        if not path.endswith(".pdf"):
+            continue
+
+        if _is_blocked(abs_url):
+            logger.debug("Skipping blocked host: %s", abs_url)
+            continue
+
+        if not _is_academic(href, text):
+            logger.debug("Skipping non-academic link: %s", abs_url)
+            continue
+
+        if abs_url in seen:
+            continue
+        seen.add(abs_url)
+        results.append((abs_url, text))
+
+    return results
+
+
+async def _download_pdf(
+    semaphore: asyncio.Semaphore,
+    client: httpx.AsyncClient,
+    url: str,
+) -> ScrapedPDF | None:
+    """Download one PDF, enforcing concurrency limit via semaphore."""
+    async with semaphore:
+        try:
+            resp = await client.get(
+                url,
+                timeout=PDF_DOWNLOAD_TIMEOUT,
+                follow_redirects=True,
+                headers=HEADERS,
+            )
+            resp.raise_for_status()
+
+            content_type = resp.headers.get("content-type", "")
+            if "pdf" not in content_type and not url.lower().split("?")[0].endswith(".pdf"):
+                logger.warning("Non-PDF content-type at %s: %s", url, content_type)
+                return None
+
+            content = resp.content
+            if len(content) < 1024:
+                # Suspiciously small — likely a login redirect page
+                return None
+
+            filename = url.split("/")[-1].split("?")[0] or "document.pdf"
+            if not filename.endswith(".pdf"):
+                filename += ".pdf"
+
+            sha = hashlib.sha256(content).hexdigest()
+            logger.info("Downloaded PDF: %s (%d bytes, sha=%s)", filename, len(content), sha[:8])
+            return ScrapedPDF(url=url, filename=filename, content=content, sha256=sha)
+
+        except Exception as e:
+            logger.warning("PDF download failed for %s: %s", url, e)
+            return None
+
+
+async def deep_scrape_pdfs(
+    page_url: str,
+    max_pdfs: int = 5,
+) -> list[ScrapedPDF]:
+    """
+    Fetch page_url, find all academic PDF links, download concurrently.
+
+    Returns up to max_pdfs ScrapedPDF objects sorted by filename.
+    Skips login-required hosts. Uses semaphore to cap concurrent downloads.
+    """
+    if _is_blocked(page_url):
+        logger.info("deep_scrape_pdfs: blocked host — %s", page_url)
+        return []
+
+    try:
+        async with httpx.AsyncClient(headers=HEADERS, timeout=TIMEOUT, follow_redirects=True) as client:
+            resp = await client.get(page_url)
+            resp.raise_for_status()
+            html = resp.text
+    except Exception as e:
+        logger.warning("deep_scrape_pdfs: page fetch failed for %s: %s", page_url, e)
+        return []
+
+    links = _resolve_pdf_links(html, page_url)
+    if not links:
+        logger.info("deep_scrape_pdfs: no academic PDF links found on %s", page_url)
+        return []
+
+    logger.info("deep_scrape_pdfs: found %d candidate PDF links on %s", len(links), page_url)
+
+    # Cap candidates before downloading
+    links = links[:max_pdfs * 2]
+
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_DOWNLOADS)
+    async with httpx.AsyncClient(follow_redirects=True) as client:
+        tasks = [_download_pdf(semaphore, client, url) for url, _ in links]
+        results = await asyncio.gather(*tasks)
+
+    pdfs = [r for r in results if r is not None][:max_pdfs]
+    logger.info("deep_scrape_pdfs: successfully downloaded %d PDFs from %s", len(pdfs), page_url)
+    return pdfs
+
+
+# ── Legacy helpers kept for existing callers ──────────────────────────────────
 
 async def _fetch_with_retry(client: httpx.AsyncClient, url: str) -> str | None:
     for attempt in range(MAX_RETRIES):
