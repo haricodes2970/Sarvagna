@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AlertCircle, BookOpen, CheckCircle2, ChevronRight, Clock, Sparkles, Zap } from 'lucide-react';
+import { AlertCircle, BookOpen, CheckCircle2, ChevronRight, Clock, GraduationCap, Sparkles, Zap } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 import type { RoadmapModule } from '../services/api';
@@ -230,6 +230,16 @@ const RoadmapPage: React.FC = () => {
                     </div>
                   </details>
                 )}
+
+                <button
+                  onClick={() => navigate(
+                    `/teach?subject_id=${subjectId}&subject_name=${encodeURIComponent(subjectName)}&topic=${encodeURIComponent(mod.title)}`
+                  )}
+                  className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-400 transition-colors pt-1"
+                >
+                  <GraduationCap className="w-3.5 h-3.5" />
+                  Teach Me This Module
+                </button>
               </div>
             ))}
           </div>

@@ -9,13 +9,8 @@ interface VoiceControllerProps {
   disabled?: boolean;
 }
 
-// Browser Speech API types
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySpeechRecognition = any;
 
 const VoiceController: React.FC<VoiceControllerProps> = ({
   onTranscript,
@@ -26,12 +21,13 @@ const VoiceController: React.FC<VoiceControllerProps> = ({
 }) => {
   const [listening, setListening] = useState(false);
   const [supported, setSupported] = useState(true);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const recognitionRef = useRef<AnySpeechRecognition>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
-  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    const SR = w.SpeechRecognition || w.webkitSpeechRecognition;
     if (!SR) { setSupported(false); return; }
 
     const rec = new SR();
@@ -39,11 +35,11 @@ const VoiceController: React.FC<VoiceControllerProps> = ({
     rec.interimResults = false;
     rec.lang = 'en-IN';
 
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = Array.from(e.results)
-        .map(r => r[0].transcript)
-        .join(' ')
-        .trim();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (e: any) => {
+      const transcript: string = Array.from({ length: e.results.length as number }, (_: unknown, i: number) =>
+        (e.results[i][0] as { transcript: string }).transcript
+      ).join(' ').trim();
       if (transcript) onTranscript(transcript);
     };
     rec.onend = () => setListening(false);
@@ -62,7 +58,6 @@ const VoiceController: React.FC<VoiceControllerProps> = ({
     utt.rate = 0.95;
     utt.pitch = 1;
     utt.lang = 'en-IN';
-    utteranceRef.current = utt;
     synthRef.current.speak(utt);
   }, [spokenText, ttsEnabled]);
 
