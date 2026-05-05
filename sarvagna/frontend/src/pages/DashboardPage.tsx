@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Flame, Plus, BookOpen, AlertCircle, CheckCircle2, Database, FileSearch } from 'lucide-react';
+import { Flame, Plus, BookOpen, AlertCircle, CheckCircle2, Database, FileSearch, Map } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useUserStore } from '../store/userStore';
@@ -112,6 +112,13 @@ const DashboardPage: React.FC = () => {
               <FileSearch className="w-4 h-4" />
               Analyze QP
             </button>
+            <button
+              onClick={() => navigate('/roadmap')}
+              className="hidden md:flex items-center gap-2 text-slate-400 hover:text-emerald-400 transition-colors text-sm font-bold"
+            >
+              <Map className="w-4 h-4" />
+              Roadmap
+            </button>
             <div className="hidden md:flex items-center gap-4 bg-slate-900/50 border border-slate-800 px-4 py-2 rounded-2xl">
               <div className="flex flex-col items-end">
                 <span className="text-[10px] font-bold text-slate-500 uppercase">Level {user.level}</span>
@@ -140,8 +147,8 @@ const DashboardPage: React.FC = () => {
             {subjects.map((sub) => (
               <div
                 key={sub.id}
-                onClick={() => navigate(`/subjects/${sub.id}`)}
                 className="group bg-slate-900 border border-slate-800 p-6 rounded-3xl hover:border-indigo-500/50 hover:bg-slate-900/80 transition-all cursor-pointer"
+                onClick={() => navigate(`/subjects/${sub.id}`)}
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="bg-indigo-500/10 p-3 rounded-2xl text-indigo-400 border border-indigo-500/20">
@@ -165,6 +172,12 @@ const DashboardPage: React.FC = () => {
                     />
                   </div>
                 </div>
+                <button
+                  onClick={e => { e.stopPropagation(); navigate(`/roadmap?subject_id=${sub.id}&subject_name=${encodeURIComponent(sub.name)}`); }}
+                  className="mt-4 w-full flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:text-emerald-400 transition-colors py-1"
+                >
+                  <Map className="w-3 h-3" /> View Roadmap
+                </button>
               </div>
             ))}
 
