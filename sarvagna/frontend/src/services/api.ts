@@ -38,6 +38,21 @@ export type QuizResult = {
   new_badges: string[];
 };
 
+export type AnalyticsDashboard = {
+  mastery: Array<{
+    subject_id: number;
+    subject_name: string;
+    roadmap_pct: number;
+    quiz_pct: number;
+    srs_pct: number;
+    mastery_score: number;
+  }>;
+  heatmap: Array<{ topic: string; score_pct: number; quiz_count: number; color: string }>;
+  weak_areas: Array<{ topic: string; score_pct: number; quiz_count: number; color: string }>;
+  srs_due: number;
+  progress: { xp: number; level: number; streak_days: number; badges: string[] };
+};
+
 export type QuizSessionSummary = {
   id: number;
   topic: string;
@@ -282,6 +297,16 @@ const api = {
   getQuizSessions: async (subjectId?: number) => {
     const res = await axiosInstance.get('/quiz/sessions', { params: subjectId ? { subject_id: subjectId } : {} });
     return res.data as QuizSessionSummary[];
+  },
+
+  getAnalyticsDashboard: async () => {
+    const res = await axiosInstance.get('/analytics/dashboard');
+    return res.data as AnalyticsDashboard;
+  },
+
+  exportStudyReport: async () => {
+    const res = await axiosInstance.get('/analytics/export', { responseType: 'text' });
+    return res.data as string;
   },
 };
 

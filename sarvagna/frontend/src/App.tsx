@@ -9,6 +9,7 @@ import UploadPage from './pages/UploadPage'
 import QPAnalyzerPage from './pages/QPAnalyzerPage'
 import TeachPage from './pages/TeachPage'
 import ReviewCenter from './pages/ReviewCenter'
+import MasteryDashboard from './pages/MasteryDashboard'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/qp-analyzer" element={<QPAnalyzerPage />} />
         <Route path="/teach" element={<TeachPage />} />
         <Route path="/review" element={<ReviewCenter />} />
+        <Route path="/mastery" element={<MasteryDashboard />} />
       </Routes>
     </BrowserRouter>
   )
