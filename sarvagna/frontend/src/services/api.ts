@@ -184,6 +184,7 @@ const api = {
       file_type: string;
       chunk_count: number;
       subject_id: number | null;
+      storage_url: string | null;
       created_at: string;
     }>;
   },

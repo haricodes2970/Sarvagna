@@ -6,6 +6,7 @@ interface VoiceControllerProps {
   spokenText: string | null;
   ttsEnabled: boolean;
   onTtsToggle: (enabled: boolean) => void;
+  onSpeakingChange?: (speaking: boolean) => void;
   disabled?: boolean;
 }
 
@@ -17,6 +18,7 @@ const VoiceController: React.FC<VoiceControllerProps> = ({
   spokenText,
   ttsEnabled,
   onTtsToggle,
+  onSpeakingChange,
   disabled = false,
 }) => {
   const [listening, setListening] = useState(false);
@@ -58,8 +60,11 @@ const VoiceController: React.FC<VoiceControllerProps> = ({
     utt.rate = 0.95;
     utt.pitch = 1;
     utt.lang = 'en-IN';
+    utt.onstart = () => onSpeakingChange?.(true);
+    utt.onend = () => onSpeakingChange?.(false);
+    utt.onerror = () => onSpeakingChange?.(false);
     synthRef.current.speak(utt);
-  }, [spokenText, ttsEnabled]);
+  }, [spokenText, ttsEnabled, onSpeakingChange]);
 
   const handlePushToTalk = useCallback(() => {
     if (!recognitionRef.current || disabled) return;
@@ -68,18 +73,18 @@ const VoiceController: React.FC<VoiceControllerProps> = ({
       setListening(false);
     } else {
       synthRef.current?.cancel();
+      onSpeakingChange?.(false);
       recognitionRef.current.start();
       setListening(true);
     }
-  }, [listening, disabled]);
+  }, [listening, disabled, onSpeakingChange]);
 
   if (!supported) return null;
 
   return (
     <div className="flex items-center gap-2">
-      {/* TTS toggle */}
       <button
-        onClick={() => { onTtsToggle(!ttsEnabled); if (!ttsEnabled === false) synthRef.current?.cancel(); }}
+        onClick={() => { onTtsToggle(!ttsEnabled); if (ttsEnabled) { synthRef.current?.cancel(); onSpeakingChange?.(false); } }}
         title={ttsEnabled ? 'Mute voice' : 'Enable voice readback'}
         className={`p-2 rounded-xl border transition-all ${
           ttsEnabled
@@ -90,7 +95,6 @@ const VoiceController: React.FC<VoiceControllerProps> = ({
         {ttsEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
       </button>
 
-      {/* Push-to-talk */}
       <button
         onMouseDown={handlePushToTalk}
         onTouchStart={handlePushToTalk}
