@@ -192,6 +192,19 @@ const api = {
     await axiosInstance.delete(`/upload/files/${fileId}`);
   },
 
+  scrapeLinks: async (url: string): Promise<Array<{ title: string; url: string }>> => {
+    const res = await axiosInstance.get("/upload/scrape-links", { params: { url } });
+    return res.data;
+  },
+
+  confirmSelection: async (url: string, subjectId?: number) => {
+    const res = await axiosInstance.post("/upload/confirm-selection", {
+      url,
+      subject_id: subjectId ?? null,
+    });
+    return res.data as { filename: string; chunk_count: number; status: string };
+  },
+
   analyzeQP: async (file: File) => {
     const form = new FormData();
     form.append("file", file);

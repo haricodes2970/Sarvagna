@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle2, FileText, Globe, Trash2, Upload, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, FileText, Globe, Link as LinkIcon, Loader2, Trash2, Upload, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useUserStore } from '../store/userStore';
@@ -10,7 +10,13 @@ interface UploadedFileRecord {
   file_type: string;
   chunk_count: number;
   subject_id: number | null;
+  storage_url: string | null;
   created_at: string;
+}
+
+interface ScrapedLink {
+  title: string;
+  url: string;
 }
 
 interface ToastState {
@@ -27,9 +33,14 @@ const UploadPage: React.FC = () => {
   const [url, setUrl] = useState('');
   const [subjectId, setSubjectId] = useState<string>('');
   const [uploading, setUploading] = useState(false);
-  const [fetchingUrl, setFetchingUrl] = useState(false);
   const [dragging, setDragging] = useState(false);
   const [toast, setToast] = useState<ToastState | null>(null);
+
+  // Scrape-links state
+  const [scrapedLinks, setScrapedLinks] = useState<ScrapedLink[]>([]);
+  const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
+  const [fetchingLinks, setFetchingLinks] = useState(false);
+  const [ingesting, setIngesting] = useState<Record<string, 'pending' | 'done' | 'error'>>({});
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -41,15 +52,13 @@ const UploadPage: React.FC = () => {
   const loadFiles = useCallback(async () => {
     try {
       const data = await api.getUploadedFiles();
-      setFiles(data);
+      setFiles(data as UploadedFileRecord[]);
     } catch {
-      // silently fail on load
+      // silently fail
     }
   }, []);
 
-  useEffect(() => {
-    loadFiles();
-  }, [loadFiles]);
+  useEffect(() => { loadFiles(); }, [loadFiles]);
 
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -74,19 +83,51 @@ const UploadPage: React.FC = () => {
     }
   };
 
-  const handleUrlFetch = async () => {
+  const handleFetchLinks = async () => {
     if (!url.trim()) return;
-    setFetchingUrl(true);
+    setFetchingLinks(true);
+    setScrapedLinks([]);
+    setSelectedUrls(new Set());
+    setIngesting({});
     try {
-      const res = await api.uploadUrl(url.trim(), subjectId ? parseInt(subjectId) : undefined);
-      showToast(`Indexed ${res.chunk_count} chunks from URL`, 'success');
-      setUrl('');
-      await loadFiles();
+      const links = await api.scrapeLinks(url.trim());
+      if (links.length === 0) {
+        showToast('No academic PDFs found on that page.', 'error');
+      }
+      setScrapedLinks(links);
     } catch {
-      showToast('Failed to fetch or index URL.', 'error');
+      showToast('Failed to fetch page.', 'error');
     } finally {
-      setFetchingUrl(false);
+      setFetchingLinks(false);
     }
+  };
+
+  const toggleUrl = (linkUrl: string) => {
+    setSelectedUrls(prev => {
+      const next = new Set(prev);
+      if (next.has(linkUrl)) next.delete(linkUrl);
+      else next.add(linkUrl);
+      return next;
+    });
+  };
+
+  const handleConfirmSelection = async () => {
+    if (selectedUrls.size === 0) return;
+    const sid = subjectId ? parseInt(subjectId) : undefined;
+    for (const linkUrl of selectedUrls) {
+      setIngesting(prev => ({ ...prev, [linkUrl]: 'pending' }));
+      try {
+        await api.confirmSelection(linkUrl, sid);
+        setIngesting(prev => ({ ...prev, [linkUrl]: 'done' }));
+      } catch {
+        setIngesting(prev => ({ ...prev, [linkUrl]: 'error' }));
+      }
+    }
+    showToast(`Ingested ${selectedUrls.size} PDF(s) into Knowledge Base`, 'success');
+    await loadFiles();
+    setScrapedLinks([]);
+    setSelectedUrls(new Set());
+    setIngesting({});
   };
 
   const handleDelete = async (fileId: number) => {
@@ -103,19 +144,19 @@ const UploadPage: React.FC = () => {
     new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 
   const typeIcon: Record<string, { bg: string; text: string; label: string }> = {
-    pdf:  { bg: 'bg-rose-500',   text: 'text-white', label: 'PDF'  },
-    docx: { bg: 'bg-indigo-500', text: 'text-white', label: 'DOC'  },
-    txt:  { bg: 'bg-slate-600',  text: 'text-white', label: 'TXT'  },
-    md:   { bg: 'bg-emerald-600',text: 'text-white', label: 'MD'   },
-    url:  { bg: 'bg-sky-600',    text: 'text-white', label: 'URL'  },
+    pdf:  { bg: 'bg-rose-500',    text: 'text-white', label: 'PDF' },
+    docx: { bg: 'bg-indigo-500',  text: 'text-white', label: 'DOC' },
+    txt:  { bg: 'bg-slate-600',   text: 'text-white', label: 'TXT' },
+    md:   { bg: 'bg-emerald-600', text: 'text-white', label: 'MD'  },
+    url:  { bg: 'bg-sky-600',     text: 'text-white', label: 'URL' },
   };
 
   const badgeColor: Record<string, string> = {
-    pdf: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    pdf:  'bg-rose-500/10 text-rose-400 border-rose-500/20',
     docx: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-    txt: 'bg-slate-500/10 text-slate-400 border-slate-500/20',
-    md: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-    url: 'bg-sky-500/10 text-sky-400 border-sky-500/20',
+    txt:  'bg-slate-500/10 text-slate-400 border-slate-500/20',
+    md:   'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    url:  'bg-sky-500/10 text-sky-400 border-sky-500/20',
   };
 
   return (
@@ -226,42 +267,92 @@ const UploadPage: React.FC = () => {
           )}
         </div>
 
-        {/* Indexing note */}
         <p className="text-xs text-slate-600 text-center -mt-4">
           Files are indexed automatically. Re-upload to refresh content.
         </p>
 
-        {/* URL input */}
-        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
-          <div className="flex items-center gap-2 text-slate-400">
-            <Globe className="w-4 h-4" />
-            <span className="text-sm font-bold uppercase tracking-widest">Fetch from URL</span>
+        {/* Smart URL section — fetch + scrape links */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
+          <div className="p-6 space-y-4">
+            <div className="flex items-center gap-2 text-slate-400">
+              <LinkIcon className="w-4 h-4" />
+              <span className="text-sm font-bold uppercase tracking-widest">Fetch from URL</span>
+            </div>
+            <p className="text-xs text-slate-500">
+              Paste a page link — Sarvagna scans it for academic PDFs. Select which ones to ingest.
+            </p>
+            <div className="flex gap-3">
+              <input
+                type="url"
+                value={url}
+                onChange={e => setUrl(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleFetchLinks()}
+                placeholder="https://vtucircle.com/notes/..."
+                className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50"
+              />
+              <button
+                onClick={handleFetchLinks}
+                disabled={fetchingLinks || !url.trim()}
+                className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 disabled:opacity-50 text-white font-bold rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap"
+              >
+                {fetchingLinks ? <Loader2 className="w-4 h-4 animate-spin" /> : <Globe className="w-4 h-4" />}
+                {fetchingLinks ? 'Scanning...' : 'Scan Links'}
+              </button>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <input
-              type="url"
-              value={url}
-              onChange={e => setUrl(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleUrlFetch()}
-              placeholder="https://example.com/article"
-              className="flex-1 bg-slate-950 border border-slate-800 rounded-2xl px-4 py-3 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500/50"
-            />
-            <button
-              onClick={handleUrlFetch}
-              disabled={fetchingUrl || !url.trim()}
-              className="px-6 py-3 bg-indigo-500 hover:bg-indigo-400 disabled:opacity-50 text-white font-bold rounded-2xl transition-all flex items-center gap-2 whitespace-nowrap"
-            >
-              {fetchingUrl ? (
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              ) : (
-                <Globe className="w-4 h-4" />
-              )}
-              {fetchingUrl ? 'Fetching...' : 'Fetch & Index'}
-            </button>
-          </div>
+
+          {/* Scraped links list */}
+          {scrapedLinks.length > 0 && (
+            <div className="border-t border-slate-800">
+              <div className="px-6 py-3 bg-slate-800/40 flex items-center justify-between">
+                <span className="text-sm text-slate-400 font-medium">
+                  {scrapedLinks.length} PDF{scrapedLinks.length !== 1 ? 's' : ''} found
+                  {selectedUrls.size > 0 && (
+                    <span className="ml-2 text-cyan-400">· {selectedUrls.size} selected</span>
+                  )}
+                </span>
+                <button
+                  onClick={handleConfirmSelection}
+                  disabled={selectedUrls.size === 0}
+                  className="text-sm bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 px-4 py-1.5 rounded-lg hover:bg-cyan-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all font-semibold"
+                >
+                  Ingest Selected
+                </button>
+              </div>
+              <div className="divide-y divide-slate-800 max-h-80 overflow-y-auto">
+                {scrapedLinks.map(link => {
+                  const status = ingesting[link.url];
+                  return (
+                    <label
+                      key={link.url}
+                      className="flex items-center gap-4 px-6 py-4 hover:bg-slate-800/30 transition-colors cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedUrls.has(link.url)}
+                        disabled={!!status}
+                        onChange={() => toggleUrl(link.url)}
+                        className="w-4 h-4 accent-cyan-500 shrink-0"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-200 truncate">{link.title}</p>
+                        <p className="text-xs text-slate-500 truncate">{link.url}</p>
+                      </div>
+                      <div className="shrink-0">
+                        {status === 'pending' && <Loader2 className="w-4 h-4 text-cyan-400 animate-spin" />}
+                        {status === 'done'    && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                        {status === 'error'   && <AlertCircle className="w-4 h-4 text-rose-400" />}
+                        {!status              && <FileText className="w-4 h-4 text-slate-600" />}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Files table */}
+        {/* Indexed files table */}
         {files.length > 0 && (
           <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden">
             <div className="px-6 py-4 border-b border-slate-800">
@@ -278,6 +369,17 @@ const UploadPage: React.FC = () => {
                     <p className="text-sm font-semibold text-white truncate">{f.filename}</p>
                     <p className="text-xs text-slate-500">{formatDate(f.created_at)}</p>
                   </div>
+                  {f.storage_url && (
+                    <a
+                      href={f.storage_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="View in Supabase"
+                      className="shrink-0 p-1.5 text-slate-600 hover:text-cyan-400 transition-colors"
+                    >
+                      <Globe className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                   <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-lg border ${badgeColor[f.file_type] ?? badgeColor.txt}`}>
                     {f.file_type}
                   </span>
