@@ -9,12 +9,13 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from agents.chunker import extract_contextual_chunks, split_text
-from agents.scraper_agent import _extract_text, deep_scrape_pdfs
+from agents.scraper_agent import _extract_text, _resolve_pdf_links, deep_scrape_pdfs
 from core.database import get_db
 from core.security import get_current_user
 from core import vector_store
 from models.db_models import UploadedFile, User
 from services.ocr_service import extract_text_ocr
+from utils.storage_manager import upload_to_supabase
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["upload"])
@@ -78,6 +79,7 @@ class FileRecord(BaseModel):
     file_type: str
     chunk_count: int
     subject_id: Optional[int]
+    storage_url: Optional[str]
     created_at: str
 
     model_config = {"from_attributes": True}
@@ -267,6 +269,7 @@ async def list_files(
             file_type=r.file_type,
             chunk_count=r.chunk_count,
             subject_id=r.subject_id,
+            storage_url=r.storage_url,
             created_at=r.created_at.isoformat(),
         )
         for r in rows
@@ -296,3 +299,115 @@ async def delete_file(
 
     await db.delete(record)
     await db.commit()
+
+
+# ── Scrape-links preview ──────────────────────────────────────────────────────
+
+class ScrapedLink(BaseModel):
+    title: str
+    url: str
+
+
+@router.get("/scrape-links", response_model=list[ScrapedLink])
+async def scrape_links(
+    url: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Return PDF links found on the page without downloading or indexing them."""
+    import httpx
+
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; Sarvagna/1.0)"}
+    try:
+        async with httpx.AsyncClient(headers=headers, timeout=15) as client:
+            resp = await client.get(url, follow_redirects=True)
+            resp.raise_for_status()
+            html = resp.text
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {e}")
+
+    links = _resolve_pdf_links(html, url)
+    return [ScrapedLink(title=text or lnk.split("/")[-1] or lnk, url=lnk) for lnk, text in links[:20]]
+
+
+# ── Confirm-selection: download → Supabase → Qdrant → DB ─────────────────────
+
+class ConfirmSelectionRequest(BaseModel):
+    url: str
+    subject_id: Optional[int] = None
+
+
+@router.post("/confirm-selection", response_model=UploadResponse, status_code=status.HTTP_201_CREATED)
+async def confirm_selection(
+    body: ConfirmSelectionRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Download a single PDF URL, upload to Supabase, index into Qdrant, save DB record."""
+    import hashlib as _hashlib
+
+    import httpx
+
+    headers = {"User-Agent": "Mozilla/5.0 (compatible; Sarvagna/1.0)"}
+    try:
+        async with httpx.AsyncClient(headers=headers, timeout=30, follow_redirects=True) as client:
+            resp = await client.get(body.url)
+            resp.raise_for_status()
+            content = resp.content
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to download PDF: {e}")
+
+    if len(content) < 1024:
+        raise HTTPException(status_code=400, detail="Downloaded file too small — likely a login redirect")
+
+    file_hash = _hashlib.sha256(content).hexdigest()
+    filename = body.url.split("/")[-1].split("?")[0] or "document.pdf"
+    if not filename.lower().endswith(".pdf"):
+        filename += ".pdf"
+
+    existing = await db.execute(
+        select(UploadedFile).where(
+            UploadedFile.user_id == current_user.id,
+            UploadedFile.file_hash == file_hash,
+        )
+    )
+    if existing.scalar_one_or_none():
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"Already indexed: {filename}")
+
+    # Upload raw PDF to Supabase Storage
+    storage_url: Optional[str] = None
+    try:
+        storage_url = await upload_to_supabase(content, f"{current_user.id}/{filename}")
+    except Exception as e:
+        logger.warning("Supabase upload failed (continuing without storage_url): %s", e)
+
+    # Contextual chunking + Qdrant index
+    ctx_chunks = extract_contextual_chunks(content)
+    chunks_to_index = [c.to_dict() for c in ctx_chunks] if ctx_chunks else split_text(
+        content.decode("utf-8", errors="ignore")
+    )
+
+    chunk_count = await vector_store.index_chunks(
+        collection_name=_collection(current_user.id),
+        chunks=chunks_to_index,
+        payload={
+            "user_id": current_user.id,
+            "filename": filename,
+            "source_url": body.url,
+            "subject_id": body.subject_id,
+        },
+    )
+
+    record = UploadedFile(
+        user_id=current_user.id,
+        subject_id=body.subject_id,
+        filename=filename,
+        file_type="pdf",
+        file_hash=file_hash,
+        chunk_count=chunk_count,
+        storage_url=storage_url,
+    )
+    db.add(record)
+    await db.commit()
+
+    logger.info("confirm-selection: %s → %d chunks, supabase=%s", filename, chunk_count, storage_url)
+    return UploadResponse(filename=filename, chunk_count=chunk_count, status="indexed")

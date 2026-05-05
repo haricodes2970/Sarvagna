@@ -16,6 +16,8 @@ class Settings(BaseSettings):
 
     ENVIRONMENT: str = "development"
     FRONTEND_URL: str = "http://localhost:5173"
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_KEY: str = ""
 
     class Config:
         env_file = ".env"

@@ -89,6 +89,7 @@ class UploadedFile(Base):
     file_type: Mapped[str] = mapped_column(String, nullable=False)
     file_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    storage_url: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="uploaded_files")
