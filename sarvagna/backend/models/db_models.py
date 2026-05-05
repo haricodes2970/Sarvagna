@@ -23,6 +23,7 @@ class User(Base):
     uploaded_files: Mapped[list["UploadedFile"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     exam_predictions: Mapped[list["ExamPrediction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     roadmap_entries: Mapped[list["RoadmapEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    teaching_sessions: Mapped[list["TeachingSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Subject(Base):
@@ -120,6 +121,20 @@ class RoadmapEntry(Base):
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="roadmap_entries")
+
+
+class TeachingSession(Base):
+    __tablename__ = "teaching_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    topic: Mapped[str] = mapped_column(String, nullable=False)
+    messages: Mapped[list] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="teaching_sessions")
 
 
 class Progress(Base):
