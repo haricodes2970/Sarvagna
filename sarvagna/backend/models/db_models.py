@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, Float, JSON, DateTime, ForeignKey, Integer, String, func
+from sqlalchemy import Boolean, Date, Float, JSON, DateTime, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from core.database import Base
@@ -24,6 +24,8 @@ class User(Base):
     exam_predictions: Mapped[list["ExamPrediction"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     roadmap_entries: Mapped[list["RoadmapEntry"]] = relationship(back_populates="user", cascade="all, delete-orphan")
     teaching_sessions: Mapped[list["TeachingSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    flashcards: Mapped[list["Flashcard"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    quiz_sessions: Mapped[list["QuizSession"]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class Subject(Base):
@@ -121,6 +123,43 @@ class RoadmapEntry(Base):
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     user: Mapped["User"] = relationship(back_populates="roadmap_entries")
+
+
+class Flashcard(Base):
+    __tablename__ = "flashcards"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    topic: Mapped[str] = mapped_column(String, nullable=False, default="General")
+    front: Mapped[str] = mapped_column(String, nullable=False)
+    back: Mapped[str] = mapped_column(String, nullable=False)
+    # SM-2 SRS fields
+    easiness_factor: Mapped[float] = mapped_column(Float, default=2.5)
+    interval: Mapped[int] = mapped_column(Integer, default=1)
+    repetitions: Mapped[int] = mapped_column(Integer, default=0)
+    next_review_date: Mapped[date] = mapped_column(Date, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="flashcards")
+
+
+class QuizSession(Base):
+    __tablename__ = "quiz_sessions"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    subject_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("subjects.id", ondelete="SET NULL"), nullable=True)
+    topic: Mapped[str] = mapped_column(String, nullable=False)
+    questions: Mapped[list] = mapped_column(JSON, default=list)
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    total: Mapped[int] = mapped_column(Integer, default=0)
+    xp_awarded: Mapped[int] = mapped_column(Integer, default=0)
+    mastery_badge: Mapped[bool] = mapped_column(Boolean, default=False)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="quiz_sessions")
 
 
 class TeachingSession(Base):

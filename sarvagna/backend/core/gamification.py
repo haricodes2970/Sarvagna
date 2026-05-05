@@ -12,6 +12,10 @@ class XPConfig:
     DAILY_LOGIN: int = 10
     ASK_QUESTION: int = 8
     SEVEN_DAY_STREAK: int = 100
+    QUIZ_CORRECT: int = 10
+    QUIZ_PERFECT: int = 50
+    QUIZ_MASTERY: int = 100
+    FLASHCARD_REVIEW: int = 3
 
 
 XP_CONFIG = XPConfig()
@@ -69,6 +73,9 @@ BADGES: List[Badge] = [
     Badge("subject_complete", "Subject Conqueror", "Complete a subject"),
     Badge("all_slots_full", "Maxed Out", "Fill all subject slots"),
     Badge("level_10", "Enlightened", "Reach Level 10"),
+    Badge("perfect_quiz", "Quiz Master", "Perfect score on any quiz"),
+    Badge("high_yield_mastery", "Exam Ready", "Perfect score on a High-Yield topic quiz"),
+    Badge("flashcard_50", "Memory Champion", "Successfully recall 50 flashcards"),
 ]
 
 
@@ -114,4 +121,8 @@ ACTION_XP_MAP: Dict[str, int] = {
     "daily_login": XP_CONFIG.DAILY_LOGIN,
     "ask_question": XP_CONFIG.ASK_QUESTION,
     "seven_day_streak": XP_CONFIG.SEVEN_DAY_STREAK,
+    "quiz_correct": XP_CONFIG.QUIZ_CORRECT,
+    "quiz_perfect": XP_CONFIG.QUIZ_PERFECT,
+    "quiz_mastery": XP_CONFIG.QUIZ_MASTERY,
+    "flashcard_review": XP_CONFIG.FLASHCARD_REVIEW,
 }
