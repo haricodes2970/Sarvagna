@@ -30,6 +30,9 @@ _ACADEMIC_KEYWORDS = {
     "notes", "qp", "question", "paper", "textbook", "model", "syllabus",
     "lecture", "module", "unit", "assignment", "lab", "manual", "study",
     "material", "resource", "previous", "year", "exam", "vtu",
+    "download", "pdf", "subject", "semester", "sem", "cse", "ece", "me",
+    "cv", "is", "ch", "scheme", "regulation", "cbcs", "18cs", "21cs",
+    "18ec", "21ec", "18me", "21me", "scheme", "question-bank", "qbank",
 }
 
 # Hosts that require authentication — skip their PDF links
@@ -89,10 +92,24 @@ def _is_academic(href: str, link_text: str) -> bool:
     return any(kw in combined for kw in _ACADEMIC_KEYWORDS)
 
 
-def _resolve_pdf_links(html: str, base_url: str) -> list[tuple[str, str]]:
+def _has_pdf(abs_url: str) -> bool:
+    """True if URL points to a PDF (path or query string)."""
+    parsed = urllib.parse.urlparse(abs_url)
+    path = parsed.path.lower()
+    query = parsed.query.lower()
+    return path.endswith(".pdf") or ".pdf" in query
+
+
+def _resolve_pdf_links(
+    html: str,
+    base_url: str,
+    academic_only: bool = True,
+) -> list[tuple[str, str]]:
     """
-    Parse <a> tags from html, return (absolute_url, link_text) for
-    links ending in .pdf that pass academic keyword + host checks.
+    Parse <a> tags from html, return (absolute_url, link_text) for PDF links.
+
+    academic_only=True  → also filter by _is_academic() (used by deep_scrape_pdfs)
+    academic_only=False → return all PDF links (used by scrape-links preview)
     """
     soup = BeautifulSoup(html, "lxml")
     seen: set[str] = set()
@@ -102,19 +119,16 @@ def _resolve_pdf_links(html: str, base_url: str) -> list[tuple[str, str]]:
         href: str = tag["href"].strip()
         text: str = tag.get_text(strip=True)
 
-        # Resolve relative URLs
         abs_url = urllib.parse.urljoin(base_url, href)
 
-        # Must end with .pdf (ignoring query params)
-        path = urllib.parse.urlparse(abs_url).path.lower()
-        if not path.endswith(".pdf"):
+        if not _has_pdf(abs_url):
             continue
 
         if _is_blocked(abs_url):
             logger.debug("Skipping blocked host: %s", abs_url)
             continue
 
-        if not _is_academic(href, text):
+        if academic_only and not _is_academic(href, text):
             logger.debug("Skipping non-academic link: %s", abs_url)
             continue
 

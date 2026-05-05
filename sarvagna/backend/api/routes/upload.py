@@ -325,8 +325,16 @@ async def scrape_links(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch URL: {e}")
 
-    links = _resolve_pdf_links(html, url)
-    return [ScrapedLink(title=text or lnk.split("/")[-1] or lnk, url=lnk) for lnk, text in links[:20]]
+    # Preview: no academic filter — user selects what to ingest
+    links = _resolve_pdf_links(html, url, academic_only=False)
+    results = []
+    for lnk, text in links[:30]:
+        # derive readable title: link text → filename → truncated URL
+        import urllib.parse as _up
+        fname = _up.unquote(_up.urlparse(lnk).path.split("/")[-1]) or ""
+        title = text or fname or lnk
+        results.append(ScrapedLink(title=title[:120], url=lnk))
+    return results
 
 
 # ── Confirm-selection: download → Supabase → Qdrant → DB ─────────────────────
