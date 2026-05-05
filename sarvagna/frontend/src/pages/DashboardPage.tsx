@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Flame, Plus, BookOpen, AlertCircle, CheckCircle2, Database, FileSearch, Map } from 'lucide-react';
+import { Flame, Plus, BookOpen, AlertCircle, CheckCircle2, Database, FileSearch, Map, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useUserStore } from '../store/userStore';
@@ -118,6 +118,13 @@ const DashboardPage: React.FC = () => {
             >
               <Map className="w-4 h-4" />
               Roadmap
+            </button>
+            <button
+              onClick={() => navigate('/review')}
+              className="hidden md:flex items-center gap-2 text-slate-400 hover:text-violet-400 transition-colors text-sm font-bold"
+            >
+              <Brain className="w-4 h-4" />
+              Review
             </button>
             <div className="hidden md:flex items-center gap-4 bg-slate-900/50 border border-slate-800 px-4 py-2 rounded-2xl">
               <div className="flex flex-col items-end">

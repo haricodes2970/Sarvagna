@@ -1,5 +1,56 @@
 import { api as axiosInstance } from "../lib/api";
 
+export type FlashcardOut = {
+  id: number;
+  front: string;
+  back: string;
+  topic: string;
+  subject_id: number | null;
+  easiness_factor: number;
+  interval: number;
+  repetitions: number;
+  next_review_date: string;
+  created_at: string;
+};
+
+export type QuizQuestion = {
+  id: string;
+  type: 'MCQ' | 'BLANK' | 'SHORT';
+  question: string;
+  options: string[];
+  correct_answer: string;
+  explanation: string;
+};
+
+export type QuizAnswer = {
+  question_id: string;
+  user_answer: string;
+  is_correct: boolean;
+};
+
+export type QuizResult = {
+  session_id: number;
+  score: number;
+  total: number;
+  percentage: number;
+  xp_awarded: number;
+  mastery_badge: boolean;
+  new_badges: string[];
+};
+
+export type QuizSessionSummary = {
+  id: number;
+  topic: string;
+  subject_id: number | null;
+  score: number | null;
+  total: number;
+  percentage: number;
+  xp_awarded: number;
+  mastery_badge: boolean;
+  completed_at: string | null;
+  created_at: string;
+};
+
 export type TutorReply = {
   session_id: number;
   exact: string;
@@ -186,6 +237,51 @@ const api = {
   exportTeachSessions: async (subjectId: number) => {
     const res = await axiosInstance.get(`/teach/export/${subjectId}`);
     return res.data as object[];
+  },
+
+  // Flashcards
+  createFlashcard: async (body: { front: string; back: string; topic?: string; subject_id?: number }) => {
+    const res = await axiosInstance.post('/flashcards', body);
+    return res.data as FlashcardOut;
+  },
+
+  getFlashcards: async (subjectId?: number) => {
+    const res = await axiosInstance.get('/flashcards', { params: subjectId ? { subject_id: subjectId } : {} });
+    return res.data as FlashcardOut[];
+  },
+
+  getReviewCards: async (subjectId?: number) => {
+    const res = await axiosInstance.get('/flashcards/review', { params: subjectId ? { subject_id: subjectId } : {} });
+    return res.data as FlashcardOut[];
+  },
+
+  rateFlashcard: async (cardId: number, rating: number) => {
+    const res = await axiosInstance.post('/flashcards/rate', { card_id: cardId, rating });
+    return res.data as FlashcardOut;
+  },
+
+  deleteFlashcard: async (cardId: number) => {
+    await axiosInstance.delete(`/flashcards/${cardId}`);
+  },
+
+  // Quiz
+  generateQuiz: async (topic: string, subjectId?: number, count = 5) => {
+    const res = await axiosInstance.post('/quiz/generate', { topic, subject_id: subjectId, count });
+    return res.data as { session_id: number; topic: string; questions: QuizQuestion[] };
+  },
+
+  submitQuiz: async (sessionId: number, answers: QuizAnswer[], isHighYield = false) => {
+    const res = await axiosInstance.post('/quiz/submit', {
+      session_id: sessionId,
+      answers,
+      is_high_yield: isHighYield,
+    });
+    return res.data as QuizResult;
+  },
+
+  getQuizSessions: async (subjectId?: number) => {
+    const res = await axiosInstance.get('/quiz/sessions', { params: subjectId ? { subject_id: subjectId } : {} });
+    return res.data as QuizSessionSummary[];
   },
 };
 
