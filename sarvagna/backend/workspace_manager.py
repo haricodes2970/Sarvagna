@@ -303,12 +303,43 @@ async def discover_and_import(
     )
 
 
+async def export_sessions(
+    subject_id: int,
+    base_url: str = "http://localhost:8080",
+    token: str = "",
+) -> None:
+    """
+    Fetch teaching session transcripts from /teach/export/{subject_id}
+    and append new ones into .sarvagna/metadata.json under 'teaching_sessions'.
+    """
+    async with httpx.AsyncClient(timeout=30) as client:
+        resp = await client.get(
+            f"{base_url}/teach/export/{subject_id}",
+            headers={"Authorization": f"Bearer {token}"},
+        )
+        resp.raise_for_status()
+        sessions = resp.json()
+
+    meta = _load_metadata()
+    meta.setdefault("teaching_sessions", [])
+    existing_ids = {s["id"] for s in meta["teaching_sessions"] if "id" in s}
+    added = 0
+    for s in sessions:
+        if s.get("id") not in existing_ids:
+            meta["teaching_sessions"].append(s)
+            added += 1
+    _save_metadata(meta)
+    logger.info("Exported %d new session(s) for subject %d → %s", added, subject_id, METADATA_FILE)
+
+
 def _parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Sarvagna workspace sync")
     p.add_argument("--dir", default=None, help="Directory to scan for local PDFs")
     p.add_argument("--remote-urls", default=None, help="Comma-separated PDF URLs to import")
     p.add_argument("--discover", default=None, metavar="TOPIC",
                    help="Auto-discover resources via /discovery/recommend and import")
+    p.add_argument("--export-sessions", type=int, default=None, metavar="SUBJECT_ID",
+                   help="Export teaching session transcripts for subject into .sarvagna/metadata.json")
     p.add_argument("--url", default="http://localhost:8080", help="Backend base URL")
     p.add_argument("--token", default="", help="JWT bearer token")
     p.add_argument("--subject-id", type=int, default=None, help="Link uploads to subject ID")
@@ -322,6 +353,14 @@ if __name__ == "__main__":
     if not args.dry_run and not args.token:
         print("ERROR: --token required unless --dry-run", file=sys.stderr)
         sys.exit(1)
+
+    if args.export_sessions is not None:
+        asyncio.run(export_sessions(
+            subject_id=args.export_sessions,
+            base_url=args.url,
+            token=args.token,
+        ))
+        sys.exit(0)
 
     if args.discover:
         results = asyncio.run(discover_and_import(
